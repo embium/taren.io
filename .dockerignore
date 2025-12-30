@@ -1,0 +1,54 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build outputs
+build
+.svelte-kit
+dist
+
+# Development files
+.vscode
+.idea
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# CI/CD
+.github
+
+# Documentation
+README.md
+*.md
+!package.json
+
+# Testing
+coverage
+.nyc_output
+
+# Misc
+.prettierrc
+.prettierignore
+.eslintrc*
+eslint.config.js
+tsconfig.json
+vite.config.ts
+svelte.config.js
+drizzle.config.ts
