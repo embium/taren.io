@@ -43,12 +43,13 @@ README.md
 coverage
 .nyc_output
 
-# Misc
+# Misc - Keep config files needed for build
 .prettierrc
 .prettierignore
 .eslintrc*
 eslint.config.js
-tsconfig.json
-vite.config.ts
-svelte.config.js
-drizzle.config.ts
+# Don't exclude these - they're needed for build:
+# tsconfig.json
+# vite.config.ts
+# svelte.config.js
+# drizzle.config.ts
