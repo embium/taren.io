@@ -20,17 +20,22 @@ COPY packages ./packages
 # Install all dependencies
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
-# Build the frontend package (must run from workspace root for pnpm to work)
-RUN echo "Starting build..." && \
-    pnpm --filter=frontend run build && \
-    echo "Build completed. Checking output..." && \
-    ls -la /workspace/build && \
-    echo "Contents of /workspace/packages/frontend/": && \
-    ls -la /workspace/packages/frontend/ && \
-    echo "Checking for build directory:" && \
-    find /workspace/packages/frontend -name "build" -type d && \
-    echo "Verifying build exists:" && \
-    test -d /workspace/packages/frontend/build || (echo "ERROR: Build directory not found!" && exit 1)
+# Build the frontend package with verbose output
+RUN echo "=== Starting SvelteKit build ===" && \
+    echo "Current directory: $(pwd)" && \
+    echo "Frontend package.json:" && \
+    cat /workspace/packages/frontend/package.json && \
+    echo "" && \
+    echo "Running build..." && \
+    pnpm --filter=frontend run build --verbose && \
+    echo "" && \
+    echo "=== Build command completed ===" && \
+    echo "Searching for build output in entire workspace:" && \
+    find /workspace -name "build" -o -name ".svelte-kit" | head -20 && \
+    echo "Contents of frontend directory:" && \
+    ls -laR /workspace/packages/frontend/ | head -50 && \
+    echo "Checking for adapter output:" && \
+    test -d /workspace/packages/frontend/build && echo "✓ Build directory exists!" || echo "✗ Build directory NOT found"
 
 # Production stage
 FROM node:20-alpine AS runner
