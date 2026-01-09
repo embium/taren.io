@@ -33,12 +33,11 @@ RUN corepack enable
 
 WORKDIR /app
 
-# Copy package.json and pnpm-lock from frontend
+# Copy package.json from frontend
 COPY --from=builder /workspace/packages/frontend/package.json ./package.json
-COPY --from=builder /workspace/pnpm-lock.yaml ./pnpm-lock.yaml
 
-# Install production dependencies directly (no workspace, just the frontend package)
-RUN pnpm install --prod --frozen-lockfile
+# Copy node_modules from the builder stage (production deps)
+COPY --from=builder /workspace/packages/frontend/node_modules ./node_modules
 
 # Copy built application from builder
 COPY --from=builder /workspace/packages/frontend/build ./build
