@@ -1,0 +1,62 @@
+# Dependencies (will be installed in Docker)
+**/node_modules
+**/.pnpm-store
+.pnpm
+
+# Build outputs (will be created in Docker)
+**/dist
+**/build
+**/.svelte-kit  
+**/.svelte
+**/*.tsbuildinfo
+
+# Development files
+.vscode
+.idea
+
+# Git
+.git
+.github
+
+# Environment files (use Docker env vars instead)
+**/.env
+**/.env.*
+!**/.env.example
+
+# Logs
+**/logs
+**/*.log
+**/npm-debug.log*
+**/pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python cache (for backend)
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+.Python
+**/.pytest_cache
+**/.coverage
+
+# Database files
+**/*.db
+**/*.sqlite
+
+# Virtual environments (for backend)
+**/.venv
+**/venv
+**/env
+
+# Documentation (not needed in container)
+*.md
+!README.md
+
+# Test files
+**/coverage
+**/.nyc_output
+**/tests
+**/.pytest_cache
