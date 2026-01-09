@@ -24,7 +24,8 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 RUN echo "Starting build..." && \
     pnpm --filter=frontend run build && \
     echo "Build completed. Checking output..." && \
-    echo "Contents of /workspace/packages/frontend:" && \
+    ls -la /workspace/build && \
+    echo "Contents of /workspace/packages/frontend/": && \
     ls -la /workspace/packages/frontend/ && \
     echo "Checking for build directory:" && \
     find /workspace/packages/frontend -name "build" -type d && \
