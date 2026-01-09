@@ -20,22 +20,8 @@ COPY packages ./packages
 # Install all dependencies
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
-# Build the frontend package with verbose output
-RUN echo "=== Starting SvelteKit build ===" && \
-    echo "Current directory: $(pwd)" && \
-    echo "Frontend package.json:" && \
-    cat /workspace/packages/frontend/package.json && \
-    echo "" && \
-    echo "Running build..." && \
-    pnpm --filter=frontend run build --verbose && \
-    echo "" && \
-    echo "=== Build command completed ===" && \
-    echo "Searching for build output in entire workspace:" && \
-    find /workspace -name "build" -o -name ".svelte-kit" | head -20 && \
-    echo "Contents of frontend directory:" && \
-    ls -laR /workspace/packages/frontend/ | head -50 && \
-    echo "Checking for adapter output:" && \
-    test -d /workspace/packages/frontend/build && echo "✓ Build directory exists!" || echo "✗ Build directory NOT found"
+# Build the frontend package (use path-based filter since package name is "taren.io")
+RUN pnpm --filter=./packages/frontend run build
 
 # Production stage
 FROM node:20-alpine AS runner
@@ -53,8 +39,8 @@ COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
 # Copy only frontend package.json
 COPY --from=builder /workspace/packages/frontend/package.json ./packages/frontend/package.json
 
-# Install only production dependencies for frontend
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile --filter=frontend
+# Install only production dependencies for frontend (use path-based filter)
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile --filter=./packages/frontend
 
 # Copy built application from builder
 COPY --from=builder /workspace/packages/frontend/build ./build
