@@ -36,8 +36,11 @@ WORKDIR /app
 # Copy package.json from frontend
 COPY --from=builder /workspace/packages/frontend/package.json ./package.json
 
-# Copy node_modules from the builder stage (production deps)
-COPY --from=builder /workspace/packages/frontend/node_modules ./node_modules
+# Copy workspace node_modules (pnpm hoists dependencies here)
+COPY --from=builder /workspace/node_modules ./node_modules
+
+# Copy frontend's node_modules (may contain package-specific dependencies)
+COPY --from=builder /workspace/packages/frontend/node_modules ./node_modules/.pnpm/node_modules
 
 # Copy built application from builder
 COPY --from=builder /workspace/packages/frontend/build ./build
