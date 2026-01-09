@@ -17,21 +17,21 @@ export const authApi = {
 	 * Register a new user
 	 */
 	async register(data: RegisterUserRequest): Promise<RegisterUserResponse> {
-		return api.post<RegisterUserResponse>('/api/auth/register', data, { skipAuth: true });
+		return api.post<RegisterUserResponse>('/auth/register', data, { skipAuth: true });
 	},
 
 	/**
 	 * Login user and get tokens
 	 */
 	async login(data: LoginRequest): Promise<LoginResponse> {
-		return api.post<LoginResponse>('/api/auth/login', data, { skipAuth: true });
+		return api.post<LoginResponse>('/auth/login', data, { skipAuth: true });
 	},
 
 	/**
 	 * Logout current user
 	 */
 	async logout(): Promise<LogoutResponse> {
-		return api.post<LogoutResponse>('/api/auth/logout');
+		return api.post<LogoutResponse>('/auth/logout');
 	},
 
 	/**
@@ -49,6 +49,6 @@ export const authApi = {
 	 * Get current user profile
 	 */
 	async getCurrentUser(): Promise<User> {
-		return api.get<User>('/api/users/me');
+		return api.get<User>('/users/me');
 	}
 };

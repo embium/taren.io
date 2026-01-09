@@ -6,7 +6,7 @@ from src.api.dependencies import get_current_user
 from src.application.schemas import UserResponse
 from src.domain.entities import User
 
-router = APIRouter(prefix="/api/users", tags=["Users"])
+router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @router.get(

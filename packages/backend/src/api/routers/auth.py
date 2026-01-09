@@ -30,7 +30,7 @@ from src.domain.entities import User
 from src.domain.repositories import ISessionRepository, IUserRepository
 from src.infrastructure.events.event_bus import EventBus
 
-router = APIRouter(prefix="/api/auth", tags=["Authentication"])
+router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
 @router.post(
