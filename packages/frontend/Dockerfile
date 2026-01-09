@@ -31,26 +31,19 @@ ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
 
-WORKDIR /app
+# Copy entire workspace structure to preserve pnpm symlinks
+WORKDIR /workspace
+COPY --from=builder /workspace ./
 
-# Copy package.json from frontend
-COPY --from=builder /workspace/packages/frontend/package.json ./package.json
-
-# Copy workspace node_modules (pnpm hoists dependencies here)
-COPY --from=builder /workspace/node_modules ./node_modules
-
-# Copy frontend's node_modules (may contain package-specific dependencies)
-COPY --from=builder /workspace/packages/frontend/node_modules ./node_modules/.pnpm/node_modules
-
-# Copy built application from builder
-COPY --from=builder /workspace/packages/frontend/build ./build
+# Set working directory to frontend package
+WORKDIR /workspace/packages/frontend
 
 # Create a non-root user
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S sveltekit -u 1001
 
 # Change ownership
-RUN chown -R sveltekit:nodejs /app
+RUN chown -R sveltekit:nodejs /workspace
 
 # Switch to non-root user
 USER sveltekit
@@ -63,5 +56,5 @@ ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOST=0.0.0.0
 
-# Start the application
+# Start the application from the frontend directory
 CMD ["node", "build"]
