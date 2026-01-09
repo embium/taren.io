@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" fill="none">
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ec4899;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#8b5cf6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Icon Mark - Lightning bolt in circle -->
+  <g transform="translate(20, 30)">
+    <!-- Circle background -->
+    <circle cx="70" cy="70" r="65" fill="none" stroke="url(#logoGradient)" stroke-width="3" opacity="0.3"/>
+    
+    <!-- Stylized lightning bolt -->
+    <path d="M 85 35 L 60 75 L 75 75 L 50 105 L 75 65 L 60 65 Z" 
+          fill="url(#logoGradient)" 
+          filter="url(#glow)"/>
+    
+    <!-- Accent dots -->
+    <circle cx="70" cy="25" r="4" fill="url(#logoGradient)" opacity="0.6"/>
+    <circle cx="105" cy="70" r="3" fill="url(#logoGradient)" opacity="0.5"/>
+  </g>
+  
+  <!-- Wordmark "TAREN" -->
+  <g transform="translate(170, 40)" filter="url(#glow)">
+    <!-- T -->
+    <path d="M 0 10 L 70 10 L 70 30 L 50 30 L 50 120 L 30 120 L 30 30 L 10 30 Z" 
+          fill="url(#logoGradient)"/>
+    
+    <!-- A -->
+    <path d="M 90 120 L 100 90 L 130 90 L 140 120 L 160 120 L 130 10 L 100 10 L 70 120 Z M 107 70 L 115 40 L 123 70 Z" 
+          fill="url(#logoGradient)"/>
+    
+    <!-- R -->
+    <path d="M 170 120 L 170 10 L 220 10 Q 240 10 250 25 Q 260 40 260 55 Q 260 67 252 77 Q 244 87 232 90 L 265 120 L 240 120 L 210 90 L 190 90 L 190 120 Z M 190 30 L 190 70 L 215 70 Q 225 70 230 63 Q 235 56 235 50 Q 235 44 230 37 Q 225 30 215 30 Z" 
+          fill="url(#logoGradient)"/>
+    
+    <!-- E -->
+    <path d="M 280 120 L 280 10 L 360 10 L 360 30 L 300 30 L 300 55 L 350 55 L 350 75 L 300 75 L 300 100 L 360 100 L 360 120 Z" 
+          fill="url(#logoGradient)"/>
+    
+    <!-- N -->
+    <path d="M 380 120 L 380 10 L 405 10 L 440 80 L 440 10 L 460 10 L 460 120 L 435 120 L 400 50 L 400 120 Z" 
+          fill="url(#logoGradient)"/>
+  </g>
+</svg>

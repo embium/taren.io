@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "name": "@taren/backend",
+  "scripts": {
+    "dev": "cross-env PYTHONUTF8=1 fastapi dev main.py"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0"
+  }
+}
