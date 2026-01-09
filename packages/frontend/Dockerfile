@@ -20,11 +20,8 @@ COPY packages ./packages
 # Install all dependencies
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
-# Build the frontend package from its directory
-WORKDIR /workspace/packages/frontend
-RUN pnpm run build && \
-    echo "Build completed. Checking output..." && \
-    ls -la build/ || (echo "ERROR: Build directory not found!" && exit 1)
+# Build the frontend package (must run from workspace root for pnpm to work)
+RUN pnpm --filter=frontend run build
 
 # Production stage
 FROM node:20-alpine AS runner
