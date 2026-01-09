@@ -49,13 +49,33 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
+# Add custom middleware for iOS Safari compatibility
+@app.middleware("http")
+async def add_cors_headers(request, call_next):
+    """Add additional CORS headers for iOS Safari compatibility."""
+    response = await call_next(request)
+
+    # iOS Safari needs explicit Vary header for proper CORS caching
+    response.headers["Vary"] = "Origin"
+
+    # Add explicit CORS headers for preflight responses
+    if request.method == "OPTIONS":
+        response.headers["Access-Control-Max-Age"] = "3600"
+
+    return response
+
+
 # Configure CORS
+# iOS Safari requires more explicit CORS configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_origins_list,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=3600,  # Cache preflight requests for 1 hour
 )
 
 # Register routers
