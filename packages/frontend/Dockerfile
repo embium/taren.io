@@ -32,7 +32,7 @@ RUN corepack enable
 WORKDIR /app
 
 # Copy package files for production dependencies
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json pnpm-workspace.yaml ./
 
 # Install only production dependencies
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
