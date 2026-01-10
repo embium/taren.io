@@ -7,6 +7,10 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
 	plugins: [tailwindcss(), sveltekit()],
 	server: {
+		hmr: {
+			// Workaround for Svelte 5 HMR issues
+			overlay: false
+		},
 		fs: {
 			// Allow serving files from anywhere in the workspace
 			allow: [
