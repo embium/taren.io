@@ -37,7 +37,7 @@
 				<Button
 					variant="outline"
 					onclick={handleLogout}
-					class="border-[#262626] bg-transparent text-[#fafafa] hover:bg-[#1a1a1a] hover:border-[#333333]"
+					class="border-[#262626] bg-transparent text-[#fafafa] hover:bg-[#1a1a1a] hover:text-[#fafafa] hover:border-[#333333]"
 				>
 					<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path
