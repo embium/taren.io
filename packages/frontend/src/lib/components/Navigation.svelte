@@ -47,7 +47,7 @@
 					<Button
 						variant="outline"
 						size="sm"
-						class="border-[#262626] text-[#fafafa] hover:bg-[#1a1a1a]"
+						class="border-[#262626] bg-transparent text-[#fafafa] hover:bg-[#1a1a1a]"
 						onclick={() => navigateTo('/dashboard')}
 					>
 						Dashboard
@@ -55,7 +55,7 @@
 					<Button
 						variant="outline"
 						size="sm"
-						class="border-[#262626] text-[#fafafa] hover:bg-[#1a1a1a]"
+						class="border-[#262626] bg-transparent text-[#fafafa] hover:bg-[#1a1a1a]"
 						onclick={handleLogout}
 					>
 						Log Out
@@ -115,7 +115,7 @@
 					</Button>
 					<Button
 						variant="outline"
-						class="w-full border-[#262626] text-[#fafafa] hover:bg-[#1a1a1a]"
+						class="w-full border-[#262626] bg-transparent text-[#fafafa] hover:bg-[#1a1a1a]"
 						onclick={handleLogout}
 					>
 						Log Out
@@ -125,7 +125,7 @@
 				<div class="mobile-menu-content">
 					<Button
 						variant="outline"
-						class="w-full border-[#262626] text-[#fafafa] hover:bg-[#1a1a1a] mb-3"
+						class="w-full border-[#262626] bg-transparent text-[#fafafa] hover:bg-[#1a1a1a] mb-3"
 						onclick={() => navigateTo('/login')}
 					>
 						Sign In
