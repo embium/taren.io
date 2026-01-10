@@ -30,7 +30,7 @@
 </script>
 
 <!-- Navigation Bar -->
-<nav class="navbar glass fixed top-0 left-0 right-0 z-50 border-b">
+<nav class="navbar fixed top-0 left-0 right-0 z-50 border-b border-gray-800">
 	<div class="nav-container">
 		<!-- Text Logo -->
 		<a href="/" class="logo-link">

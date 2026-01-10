@@ -58,7 +58,7 @@
 
 		<div class="relative z-10">
 			<!-- Header -->
-			<header class="glass border-b border-white/5">
+			<header class="border-b border-gray-800">
 				<div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
 					<div>
 						<h1 class="gradient-text text-3xl font-black">Taren</h1>
