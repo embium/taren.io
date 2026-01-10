@@ -1,9 +1,10 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+
 	import { goto } from '$app/navigation';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { getAuthState, logout, initializeAuth } from '$lib/stores/auth.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
-	import { onMount } from 'svelte';
 
 	const authState = getAuthState();
 	let mobileMenuOpen = $state(false);
@@ -30,11 +31,11 @@
 </script>
 
 <!-- Navigation Bar -->
-<nav class="navbar fixed top-0 left-0 right-0 z-50 border-b border-gray-800">
+<nav class="navbar">
 	<div class="nav-container">
-		<!-- Text Logo -->
+		<!-- Logo -->
 		<a href="/" class="logo-link">
-			<span class="gradient-text text-2xl font-black tracking-tight">Taren</span>
+			<span class="text-2xl font-bold text-[#fafafa]">Taren</span>
 		</a>
 
 		<!-- Desktop Navigation -->
@@ -46,22 +47,36 @@
 					<Button
 						variant="outline"
 						size="sm"
-						class="glass-button"
+						class="border-[#262626] text-[#fafafa] hover:bg-[#1a1a1a]"
 						onclick={() => navigateTo('/dashboard')}
 					>
 						Dashboard
 					</Button>
-					<Button variant="outline" size="sm" class="glass-button" onclick={handleLogout}>
+					<Button
+						variant="outline"
+						size="sm"
+						class="border-[#262626] text-[#fafafa] hover:bg-[#1a1a1a]"
+						onclick={handleLogout}
+					>
 						Log Out
 					</Button>
 				</div>
 			{:else}
 				<!-- Guest Links -->
 				<div class="auth-links">
-					<Button variant="ghost" size="sm" class="ghost-button" onclick={() => navigateTo('/login')}>
+					<Button
+						variant="ghost"
+						size="sm"
+						class="text-[#a3a3a3] hover:text-[#fafafa] hover:bg-transparent"
+						onclick={() => navigateTo('/login')}
+					>
 						Sign In
 					</Button>
-					<Button size="sm" class="gradient-button" onclick={() => navigateTo('/register')}>
+					<Button
+						size="sm"
+						class="bg-[#3b82f6] hover:bg-[#2563eb] text-white"
+						onclick={() => navigateTo('/register')}
+					>
 						Get Started
 					</Button>
 				</div>
@@ -88,23 +103,37 @@
 
 	<!-- Mobile Menu -->
 	{#if mobileMenuOpen}
-		<div class="mobile-menu glass">
+		<div class="mobile-menu">
 			{#if authState.isAuthenticated && authState.user}
 				<div class="mobile-menu-content">
 					<p class="mobile-user-email">{authState.user.email}</p>
-					<Button class="w-full gradient-button mb-2" onclick={() => navigateTo('/dashboard')}>
+					<Button
+						class="w-full bg-[#3b82f6] hover:bg-[#2563eb] text-white mb-2"
+						onclick={() => navigateTo('/dashboard')}
+					>
 						Dashboard
 					</Button>
-					<Button variant="outline" class="w-full glass-button" onclick={handleLogout}>
+					<Button
+						variant="outline"
+						class="w-full border-[#262626] text-[#fafafa] hover:bg-[#1a1a1a]"
+						onclick={handleLogout}
+					>
 						Log Out
 					</Button>
 				</div>
 			{:else}
 				<div class="mobile-menu-content">
-					<Button class="w-full ghost-button mb-3" onclick={() => navigateTo('/login')}>
+					<Button
+						variant="outline"
+						class="w-full border-[#262626] text-[#fafafa] hover:bg-[#1a1a1a] mb-3"
+						onclick={() => navigateTo('/login')}
+					>
 						Sign In
 					</Button>
-					<Button class="w-full gradient-button" onclick={() => navigateTo('/register')}>
+					<Button
+						class="w-full bg-[#3b82f6] hover:bg-[#2563eb] text-white"
+						onclick={() => navigateTo('/register')}
+					>
 						Get Started
 					</Button>
 				</div>
@@ -115,8 +144,13 @@
 
 <style>
 	.navbar {
-		backdrop-filter: blur(12px);
-		background: rgba(10, 10, 15, 0.8);
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		z-index: 50;
+		background: #0a0a0a;
+		border-bottom: 1px solid #262626;
 	}
 
 	.nav-container {
@@ -136,7 +170,7 @@
 	}
 
 	.logo-link:hover {
-		opacity: 0.8;
+		opacity: 0.7;
 	}
 
 	.nav-links {
@@ -159,7 +193,7 @@
 	}
 
 	.user-email {
-		color: #9ca3af;
+		color: #737373;
 		font-size: 0.875rem;
 		margin-right: 0.5rem;
 	}
@@ -171,7 +205,7 @@
 		padding: 0.5rem;
 		background: none;
 		border: none;
-		color: white;
+		color: #fafafa;
 		cursor: pointer;
 		transition: opacity 0.2s;
 	}
@@ -187,8 +221,9 @@
 	}
 
 	.mobile-menu {
-		border-top: 1px solid rgba(255, 255, 255, 0.05);
+		border-top: 1px solid #262626;
 		padding: 1rem 1.5rem;
+		background: #0a0a0a;
 	}
 
 	.mobile-menu-content {
@@ -197,45 +232,9 @@
 	}
 
 	.mobile-user-email {
-		color: #9ca3af;
+		color: #737373;
 		font-size: 0.875rem;
 		margin-bottom: 1rem;
 		text-align: center;
-	}
-
-	:global(.glass-button) {
-		background: rgba(255, 255, 255, 0.05) !important;
-		border: 1px solid rgba(255, 255, 255, 0.1) !important;
-		color: white !important;
-		transition: all 0.2s;
-	}
-
-	:global(.glass-button:hover) {
-		background: rgba(255, 255, 255, 0.1) !important;
-		border-color: rgba(236, 72, 153, 0.5) !important;
-	}
-
-	:global(.ghost-button) {
-		background: transparent !important;
-		border: none !important;
-		color: white !important;
-		transition: all 0.2s;
-	}
-
-	:global(.ghost-button:hover) {
-		background: rgba(255, 255, 255, 0.05) !important;
-	}
-
-	:global(.gradient-button) {
-		background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 50%, #3b82f6 100%) !important;
-		border: none !important;
-		color: white !important;
-		font-weight: 600;
-		transition: all 0.2s;
-	}
-
-	:global(.gradient-button:hover) {
-		transform: translateY(-1px);
-		box-shadow: 0 10px 25px -5px rgba(236, 72, 153, 0.4);
 	}
 </style>
