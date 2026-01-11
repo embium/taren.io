@@ -24,13 +24,16 @@ class RegisterUserUseCase:
         self._password_service = password_service
         self._event_bus = event_bus
 
-    async def execute(self, email: str, password: str) -> User:
+    async def execute(
+        self, email: str, password: str, name: str | None = None
+    ) -> User:
         """
         Register a new user.
 
         Args:
             email: User's email address
             password: User's plaintext password
+            name: User's full name (optional)
 
         Returns:
             Created User entity
@@ -52,7 +55,9 @@ class RegisterUserUseCase:
         hashed_password = self._password_service.hash_password(password_vo)
 
         # Create user entity
-        user = User.create(email=email_vo, password_hash=hashed_password)
+        user = User.create(
+            email=email_vo, password_hash=hashed_password, name=name
+        )
 
         # Persist user
         user = await self._user_repository.save(user)

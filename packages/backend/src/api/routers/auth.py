@@ -48,7 +48,7 @@ async def register(
 ):
     """Register a new user account."""
     use_case = RegisterUserUseCase(user_repository, password_service, event_bus)
-    user = await use_case.execute(request.email, request.password)
+    user = await use_case.execute(request.email, request.password, request.name)
 
     return RegisterUserResponse(
         user_id=str(user.id), email=str(user.email), created_at=user.created_at
@@ -93,6 +93,7 @@ async def login(
         user=UserResponse(
             id=str(user.id),
             email=str(user.email),
+            name=user.name,
             created_at=user.created_at,
             is_active=user.is_active,
         ),

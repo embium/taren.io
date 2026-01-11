@@ -29,6 +29,7 @@ class UserRepository(IUserRepository):
         if existing:
             # Update existing user
             existing.email = str(user.email)
+            existing.name = user.name
             existing.password_hash = str(user.password_hash.value)
             existing.updated_at = user.updated_at
             existing.is_active = user.is_active
@@ -37,6 +38,7 @@ class UserRepository(IUserRepository):
             user_model = UserModel(
                 id=str(user.id),
                 email=str(user.email),
+                name=user.name,
                 password_hash=user.password_hash.value,
                 created_at=user.created_at,
                 updated_at=user.updated_at,
@@ -96,6 +98,7 @@ class UserRepository(IUserRepository):
             id=UserId.from_string(model.id),
             email=Email(value=model.email),
             password_hash=HashedPassword(value=model.password_hash),
+            name=model.name,
             created_at=model.created_at,
             updated_at=model.updated_at,
             is_active=model.is_active,

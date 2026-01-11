@@ -14,6 +14,7 @@ class User:
     id: UserId
     email: Email
     password_hash: HashedPassword
+    name: Optional[str] = None
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: datetime = field(default_factory=datetime.utcnow)
     is_active: bool = True
@@ -24,11 +25,13 @@ class User:
         email: Email,
         password_hash: HashedPassword,
         user_id: Optional[UserId] = None,
+        name: Optional[str] = None,
     ) -> "User":
         """Factory method to create a new user."""
         return cls(
             id=user_id or UserId.generate(),
             email=email,
+            name=name,
             password_hash=password_hash,
             created_at=datetime.utcnow(),
             updated_at=datetime.utcnow(),

@@ -2,6 +2,7 @@
 	import './layout.css';
 
 	import { onMount } from 'svelte';
+	import { ModeWatcher } from 'mode-watcher';
 
 	import favicon from '$lib/assets/favicon.svg';
 	import Toast from '$lib/components/ui/Toast.svelte';
@@ -18,6 +19,7 @@
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
 <Toast />
+<ModeWatcher />
 
 {@render children()}
 

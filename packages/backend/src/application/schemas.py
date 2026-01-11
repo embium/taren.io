@@ -16,6 +16,9 @@ class RegisterUserRequest(BaseModel):
         min_length=8,
         description="User's password (min 8 characters, must include uppercase, lowercase, digit, special char)",
     )
+    name: Optional[str] = Field(
+        None, max_length=255, description="User's full name (optional)"
+    )
 
 
 class RegisterUserResponse(BaseModel):
@@ -73,6 +76,7 @@ class UserResponse(BaseModel):
 
     id: str
     email: str
+    name: Optional[str] = None
     created_at: datetime
     is_active: bool
 

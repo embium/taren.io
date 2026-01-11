@@ -62,6 +62,7 @@ export const changePasswordRequestSchema = z.object({
 export const userSchema = z.object({
 	id: z.string(),
 	email: z.string().email(),
+	name: z.string(),
 	created_at: z.string(),
 	is_active: z.boolean()
 });

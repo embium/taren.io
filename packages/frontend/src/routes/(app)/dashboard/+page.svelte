@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import Button from '$lib/components/ui/button/button.svelte';
 	import { getAuthState, logout } from '$lib/stores/auth.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
+	import UserMenu from './components/UserMenu.svelte';
 
 	const authState = getAuthState();
 
@@ -29,44 +29,30 @@
 </svelte:head>
 
 {#if authState.isAuthenticated && authState.user}
-	<div class="min-h-screen bg-[#0a0a0a]">
+	<div class="min-h-screen bg-white dark:bg-[#0a0a0a]">
 		<!-- Header -->
-		<header class="border-b border-[#262626] bg-[#0a0a0a]">
-			<div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-				<h1 class="text-2xl font-bold text-[#fafafa]">Taren</h1>
-				<Button
-					variant="outline"
-					onclick={handleLogout}
-					class="border-[#262626] bg-transparent text-[#fafafa] hover:bg-[#1a1a1a] hover:text-[#fafafa] hover:border-[#333333]"
-				>
-					<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-						/>
-					</svg>
-					Log Out
-				</Button>
+		<header class="border-b border-gray-200 dark:border-[#262626] bg-white dark:bg-[#0a0a0a]">
+			<div class="px-6 py-4 flex justify-between items-center">
+				<h1 class="text-2xl font-bold text-gray-900 dark:text-[#fafafa]">Taren</h1>
+				<UserMenu />
 			</div>
 		</header>
 
 		<!-- Main Content -->
 		<main class="max-w-7xl mx-auto px-6 py-12">
 			<div class="mb-12">
-				<h2 class="text-4xl font-bold text-[#fafafa] mb-2">
-					Welcome back, {authState.user.email.split('@')[0]}
+				<h2 class="text-4xl font-bold text-gray-900 dark:text-[#fafafa] mb-2">
+					Welcome back, {authState.user.name || authState.user.email.split('@')[0]}
 				</h2>
-				<p class="text-[#737373] text-lg">Here's your account overview</p>
+				<p class="text-gray-500 dark:text-[#737373] text-lg">Here's your account overview</p>
 			</div>
 
 			<!-- Stats Grid -->
 			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-				<div class="bg-[#171717] rounded-lg border border-[#262626] p-6">
+				<div class="bg-gray-50 dark:bg-[#171717] rounded-lg border border-gray-200 dark:border-[#262626] p-6">
 					<div class="flex items-center justify-between mb-4">
-						<div class="w-12 h-12 rounded-lg bg-[#fafafa] flex items-center justify-center">
-							<svg class="w-6 h-6 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<div class="w-12 h-12 rounded-lg bg-gray-900 dark:bg-[#fafafa] flex items-center justify-center">
+							<svg class="w-6 h-6 text-white dark:text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -75,15 +61,15 @@
 								/>
 							</svg>
 						</div>
-						<span class="px-3 py-1 rounded-full text-xs font-medium bg-green-900/30 text-green-400 border border-green-800"
+						<span class="px-3 py-1 rounded-full text-xs font-medium bg-green-600/30 text-green-600 border border-green-600"
 							>Active</span
 						>
 					</div>
-					<h3 class="text-[#737373] text-sm font-medium mb-1">Account Status</h3>
-					<p class="text-[#fafafa] text-2xl font-bold">Verified</p>
+					<h3 class="text-gray-500 dark:text-[#737373] text-sm font-medium mb-1">Account Status</h3>
+					<p class="text-gray-900 dark:text-[#fafafa] text-2xl font-bold">Verified</p>
 				</div>
 
-				<div class="bg-[#171717] rounded-lg border border-[#262626] p-6">
+				<div class="bg-gray-50 dark:bg-[#171717] rounded-lg border border-gray-200 dark:border-[#262626] p-6">
 					<div class="flex items-center justify-between mb-4">
 						<div class="w-12 h-12 rounded-lg bg-[#fafafa] flex items-center justify-center">
 							<svg class="w-6 h-6 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -96,11 +82,11 @@
 							</svg>
 						</div>
 					</div>
-					<h3 class="text-[#737373] text-sm font-medium mb-1">Email</h3>
-					<p class="text-[#fafafa] text-lg font-semibold truncate">{authState.user.email}</p>
+					<h3 class="text-gray-500 dark:text-[#737373] text-sm font-medium mb-1">Email</h3>
+					<p class="text-gray-900 dark:text-[#fafafa] text-lg font-semibold truncate">{authState.user.email}</p>
 				</div>
 
-				<div class="bg-[#171717] rounded-lg border border-[#262626] p-6">
+				<div class="bg-gray-50 dark:bg-[#171717] rounded-lg border border-gray-200 dark:border-[#262626] p-6">
 					<div class="flex items-center justify-between mb-4">
 						<div class="w-12 h-12 rounded-lg bg-[#fafafa] flex items-center justify-center">
 							<svg class="w-6 h-6 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -113,8 +99,8 @@
 							</svg>
 						</div>
 					</div>
-					<h3 class="text-[#737373] text-sm font-medium mb-1">Member Since</h3>
-					<p class="text-[#fafafa] text-lg font-semibold">
+					<h3 class="text-gray-500 dark:text-[#737373] text-sm font-medium mb-1">Member Since</h3>
+					<p class="text-gray-900 dark:text-[#fafafa] text-lg font-semibold">
 						{new Date(authState.user.created_at).toLocaleDateString('en-US', {
 							month: 'short',
 							year: 'numeric'
@@ -122,7 +108,7 @@
 					</p>
 				</div>
 
-				<div class="bg-[#171717] rounded-lg border border-[#262626] p-6">
+				<div class="bg-gray-50 dark:bg-[#171717] rounded-lg border border-gray-200 dark:border-[#262626] p-6">
 					<div class="flex items-center justify-between mb-4">
 						<div class="w-12 h-12 rounded-lg bg-[#fafafa] flex items-center justify-center">
 							<svg class="w-6 h-6 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,13 +121,13 @@
 							</svg>
 						</div>
 					</div>
-					<h3 class="text-[#737373] text-sm font-medium mb-1">User ID</h3>
-					<p class="text-[#fafafa] text-sm font-mono truncate">{authState.user.id}</p>
+					<h3 class="text-gray-500 dark:text-[#737373] text-sm font-medium mb-1">User ID</h3>
+					<p class="text-gray-900 dark:text-[#fafafa] text-sm font-mono truncate">{authState.user.id}</p>
 				</div>
 			</div>
 
 			<!-- Welcome Card -->
-			<div class="bg-[#171717] rounded-lg border border-[#262626] p-12">
+			<div class="bg-gray-50 dark:bg-[#171717] rounded-lg border border-gray-200 dark:border-[#262626] p-12">
 				<div class="text-center max-w-2xl mx-auto">
 					<div class="w-16 h-16 mx-auto mb-6 rounded-lg bg-[#3b82f6] flex items-center justify-center">
 						<svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -153,8 +139,8 @@
 							/>
 						</svg>
 					</div>
-					<h3 class="text-2xl font-bold text-[#fafafa] mb-4">You're All Set!</h3>
-					<p class="text-[#737373] mb-8">
+					<h3 class="text-2xl font-bold text-gray-900 dark:text-[#fafafa] mb-4">You're All Set!</h3>
+					<p class="text-gray-500 dark:text-[#737373] mb-8">
 						Welcome to Taren. Your account is active and ready to go. This is a protected area
 						that only authenticated users can access.
 					</p>
@@ -177,10 +163,10 @@
 		</main>
 	</div>
 {:else}
-	<div class="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
+	<div class="min-h-screen flex items-center justify-center bg-white dark:bg-[#0a0a0a]">
 		<div class="text-center">
 			<div class="spinner mx-auto mb-4"></div>
-			<p class="text-[#737373]">Loading...</p>
+			<p class="text-gray-500 dark:text-[#737373]">Loading...</p>
 		</div>
 	</div>
 {/if}
