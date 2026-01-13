@@ -4,6 +4,7 @@
 	import { goto } from '$app/navigation';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { getAuthState, logout, initializeAuth } from '$lib/stores/auth.svelte';
+	import UserMenu from '$lib/components/UserMenu.svelte';
 
 	const authState = getAuthState();
 	let mobileMenuOpen = $state(false);
@@ -30,57 +31,32 @@
 </script>
 
 <!-- Navigation Bar -->
-<nav class="navbar">
-	<div class="nav-container">
-		<!-- Logo -->
-		<a href="/" class="logo-link">
-			<span class="text-2xl font-bold text-[#fafafa]">Taren</span>
-		</a>
+<header class="border-b border-gray-200 dark:border-[#262626] bg-white dark:bg-[#0a0a0a]">
+	<div class="px-6 py-4 flex justify-between items-center">
+		<h1 class="text-2xl font-bold text-gray-900 dark:text-[#fafafa]">Taren</h1>
 
-		<!-- Desktop Navigation -->
-		<div class="nav-links">
-			{#if authState.isAuthenticated && authState.user}
-				<!-- Authenticated User Menu -->
-				<div class="user-menu">
-					<span class="user-email">{authState.user.email}</span>
-					<Button
-						variant="outline"
-						size="sm"
-						class="border-[#262626] bg-transparent text-[#fafafa] hover:bg-[#1a1a1a] hover:text-[#fafafa]"
-						onclick={() => navigateTo('/dashboard')}
-					>
-						Dashboard
-					</Button>
-					<Button
-						variant="outline"
-						size="sm"
-						class="border-[#262626] bg-transparent text-[#fafafa] hover:bg-[#1a1a1a] hover:text-[#fafafa]"
-						onclick={handleLogout}
-					>
-						Log Out
-					</Button>
-				</div>
-			{:else}
-				<!-- Guest Links -->
-				<div class="auth-links">
-					<Button
-						variant="ghost"
-						size="sm"
-						class="text-[#a3a3a3] hover:text-[#fafafa] hover:bg-transparent"
-						onclick={() => navigateTo('/login')}
-					>
-						Sign In
-					</Button>
-					<Button
-						size="sm"
-						class="bg-[#3b82f6] hover:bg-[#2563eb] text-white"
-						onclick={() => navigateTo('/register')}
-					>
-						Get Started
-					</Button>
-				</div>
-			{/if}
-		</div>
+		{#if authState.isAuthenticated && authState.user}
+			<UserMenu />
+		{:else}
+			<!-- Guest Links -->
+			<div class="auth-links">
+				<Button
+					variant="ghost"
+					size="sm"
+					class="text-[#a3a3a3] hover:text-[#fafafa] hover:bg-transparent"
+					onclick={() => navigateTo('/login')}
+				>
+					Sign In
+				</Button>
+				<Button
+					size="sm"
+					class="bg-[#3b82f6] hover:bg-[#2563eb] text-white"
+					onclick={() => navigateTo('/register')}
+				>
+					Get Started
+				</Button>
+			</div>
+		{/if}
 
 		<!-- Mobile Menu Button -->
 		<button
@@ -104,22 +80,7 @@
 	{#if mobileMenuOpen}
 		<div class="mobile-menu">
 			{#if authState.isAuthenticated && authState.user}
-				<div class="mobile-menu-content">
-					<p class="mobile-user-email">{authState.user.email}</p>
-					<Button
-						class="w-full bg-[#3b82f6] hover:bg-[#2563eb] text-white mb-2"
-						onclick={() => navigateTo('/dashboard')}
-					>
-						Dashboard
-					</Button>
-					<Button
-						variant="outline"
-						class="w-full border-[#262626] bg-transparent text-[#fafafa] hover:bg-[#1a1a1a] hover:text-[#fafafa]"
-						onclick={handleLogout}
-					>
-						Log Out
-					</Button>
-				</div>
+				<UserMenu />
 			{:else}
 				<div class="mobile-menu-content">
 					<Button
@@ -139,7 +100,7 @@
 			{/if}
 		</div>
 	{/if}
-</nav>
+</header>
 
 <style>
 	.navbar {

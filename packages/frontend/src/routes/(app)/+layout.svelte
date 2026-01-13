@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { getAuthState } from '$lib/stores/auth.svelte';
-	import UserMenu from './dashboard/components/UserMenu.svelte';
+	import UserMenu from '$lib/components/UserMenu.svelte';
 
 	let { children } = $props();
 	

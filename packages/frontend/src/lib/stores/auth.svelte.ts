@@ -55,7 +55,6 @@ function clearAuth(): void {
  */
 function storeAuth(userData: User, accessToken: string, refreshToken: string): void {
 	user = userData;
-	console.log('Storing auth data:', userData);
 	setTokens(accessToken, refreshToken);
 	storage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
 	storage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
