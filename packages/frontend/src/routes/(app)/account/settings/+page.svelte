@@ -7,6 +7,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
+	import SettingsCard from '$lib/components/SettingsCard.svelte';
 	
 	const authState = getAuthState();
 	
@@ -136,149 +137,100 @@
 			</nav>
 		</aside>
 
-						<!-- Content Area -->
-			<main class="flex-1 max-w-3xl space-y-6">
-				<!-- Avatar Section -->
-			<div class="settings-card">
-				<div class="card-content">
+		<main class="flex-1 max-w-3xl space-y-6">
+			<SettingsCard
+				title="Avatar"
+				description="This is your avatar. Click on the avatar to upload a custom one from your files."
+				footerText="An avatar is optional but strongly recommended."
+				>
 					<div class="flex items-start justify-between gap-6">
-						<div class="flex-1">
-							<h2 class="section-title">Avatar</h2>
-							<p class="section-description">This is your avatar.<br/>Click on the avatar to upload a custom one from your files.</p>
-						</div>
-						
-						<button
-							class="avatar-container shrink-0"
-							onclick={() => avatarInput?.click()}
-							aria-label="Upload avatar"
-						>
-							{#if avatarPreview}
-								<img src={avatarPreview} alt="Avatar" class="avatar-image" />
-							{:else}
-								<div class="avatar-placeholder">
-									<span class="text-2xl font-bold">{authState.user?.name?.[0]?.toUpperCase() || authState.user?.email[0].toUpperCase()}</span>
-								</div>
-							{/if}
-						</button>
-					</div>
-					
-					<input
-						bind:this={avatarInput}
-						accept="image/jpeg,image/png,image/webp"
-						onchange={handleAvatarUpload}
-						type="file"
-						class="hidden"
-						aria-label="Upload avatar file"
-					/>
-					</div>
-					
-					<div class="card-footer">
-						<p class="text-xs text-muted-foreground">
-							An avatar is optional but strongly recommended.
-						</p>
-					</div>
+					<button
+						class="avatar-container shrink-0"
+						onclick={() => avatarInput?.click()}
+						aria-label="Upload avatar"
+					>
+						{#if avatarPreview}
+							<img src={avatarPreview} alt="Avatar" class="avatar-image" />
+						{:else}
+							<div class="avatar-placeholder">
+								<span class="text-2xl font-bold">{authState.user?.name?.[0]?.toUpperCase() || authState.user?.email[0].toUpperCase()}</span>
+							</div>
+						{/if}
+					</button>
 				</div>
+				
+				<input
+					bind:this={avatarInput}
+					accept="image/jpeg,image/png,image/webp"
+					onchange={handleAvatarUpload}
+					type="file"
+					class="hidden"
+					aria-label="Upload avatar file"
+				/></SettingsCard>
 
-				<!-- Display Name Section -->
-				<div class="settings-card">
-					<div class="card-content">
-						<h2 class="section-title">Display Name</h2>
-						<p class="section-description">Please enter your full name, or a display name you are comfortable with.</p>
-						
-						<Input
-							bind:value={displayName}
-							maxlength={32}
-							placeholder="Michael Mooney"
-							type="text"
-							class="max-w-md mt-4"
-						/>
-					</div>
-					
-					<div class="card-footer flex items-center justify-between">
-						<p class="text-xs text-muted-foreground">
-							Please use 32 characters at maximum.
-						</p>
-						<Button
-							size="sm"
-							disabled={isSavingName}
-							onclick={handleSaveName}
-						>
-							{isSavingName ? 'Saving...' : 'Save'}
-						</Button>
-					</div>
-				</div>
+			<SettingsCard
+				title="Display Name"
+				description="Please enter your full name, or a display name you are comfortable with."
+				footerText="Please use 32 characters at maximum."
+				button={{
+					label: isSavingName ? 'Saving...' : 'Save',
+					onclick: handleSaveName,
+					disabled: isSavingName
+				}}
+			>
+				<Input
+					bind:value={displayName}
+					maxlength={32}
+					placeholder="Michael Mooney"
+					type="text"
+					class="max-w-md"
+				/></SettingsCard>
 
-				<!-- Email Section -->
-				<div class="settings-card">
-					<div class="card-content">
-						<h2 class="section-title">Email</h2>
-						<p class="section-description">Enter the email address you use to sign in to Taren. Your primary email will be used for account-related notifications.</p>
-						
-						<div class="flex items-center gap-3 mt-4">
-							<div class="email-badge">{authState.user?.email}</div>
-							<span class="badge-verified">Verified</span>
-							<span class="badge-primary">Primary</span>
-						</div>
-					</div>
-					
-					<div class="card-footer">
-						<p class="text-xs text-muted-foreground">
-							Emails that can be used to sign in to your account will be marked as verified.
-						</p>
-					</div>
+			<SettingsCard
+				title="Email"
+				description="This is the email address you use to sign in to Taren."
+				footerText="Emails that can be used to sign in to your account will be marked as verified."
+			>
+				<div class="flex items-center gap-3">
+					<div class="email-badge">{authState.user?.email}</div>
+					<span class="badge-verified">Verified</span>
+					<span class="badge-primary">Primary</span>
 				</div>
+			</SettingsCard>
 
-				<!-- User ID Section -->
-				<div class="settings-card">
-					<div class="card-content">
-						<h2 class="section-title">User ID</h2>
-						<p class="section-description">This is your user ID within Taren.</p>
-						
-						<div class="flex items-center gap-3 mt-4">
-							<code class="user-id">{authState.user?.id}</code>
-							<Button
-								variant="outline"
-								size="sm"
-								onclick={copyUserId}
-								aria-label="Copy user ID"
-								class="h-8 w-8 p-0"
-							>
-								{#if isCopied}
-									<Check class="w-4 h-4" />
-								{:else}
-									<Copy class="w-4 h-4" />
-								{/if}
-							</Button>
-						</div>
-					</div>
-					
-					<div class="card-footer">
-						<p class="text-xs text-muted-foreground">
-							Used when interacting with the Taren API.
-						</p>
-					</div>
+			<SettingsCard
+				title="User ID"
+				description="This is your user ID within Taren."
+				footerText="Used when interacting with the Taren API."
+			>
+				<div class="flex items-center gap-3">
+					<code class="user-id">{authState.user?.id}</code>
+					<Button
+						variant="outline"
+						size="sm"
+						onclick={copyUserId}
+						aria-label="Copy user ID"
+						class="h-8 w-8 p-0"
+					>
+						{#if isCopied}
+							<Check class="w-4 h-4" />
+						{:else}
+							<Copy class="w-4 h-4" />
+						{/if}
+					</Button>
 				</div>
+			</SettingsCard>
 
-				<!-- Delete Account Section -->
-				<div class="settings-card border-destructive/50">
-					<div class="card-content">
-						<h2 class="section-title text-destructive">Delete Account</h2>
-						<p class="section-description">Permanently deactivate your Taren Account and remove access to all files.</p>
-					</div>
-					
-					<div class="card-footer flex items-center justify-between">
-						<p class="text-xs text-muted-foreground">
-							This action is not reversible, so please continue with caution.
-						</p>
-						<Button
-							variant="destructive"
-							size="sm"
-							onclick={() => (showDeleteDialog = true)}
-						>
-							Delete Personal Account
-						</Button>
-					</div>
-				</div>
+				<SettingsCard
+					destructive
+					title="Delete Account"
+					description="Permanently deactivate your Taren Account and remove access to all files."
+					footerText="This action is not reversible, so please continue with caution."
+					button={{
+						label: 'Delete Personal Account',
+						onclick: () => showDeleteDialog = true
+					}}
+				/>
 			</main>
 		</div>
 	</div>
@@ -348,7 +300,7 @@
 		text-align: left;
 		padding: 0.625rem 0.75rem;
 		font-size: 0.875rem;
-		color: #737373;
+		color: oklch(var(--muted-foreground));
 		background: transparent;
 		border: none;
 		border-radius: 0.375rem;
@@ -357,49 +309,19 @@
 	}
 	
 	.nav-item:hover:not(.disabled) {
-		background: #171717;
-		color: #fafafa;
+		background: oklch(var(--accent));
+		color: oklch(var(--accent-foreground));
 	}
 	
 	.nav-item.active {
-		background: #171717;
-		color: #fafafa;
+		background: oklch(var(--accent));
+		color: oklch(var(--accent-foreground));
 		font-weight: 500;
 	}
 	
 	.nav-item.disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
-	}
-	
-	.settings-card {
-		background: #0a0a0a;
-		border: 1px solid #262626;
-		border-radius: 0.5rem;
-		overflow: hidden;
-	}
-	
-	.card-content {
-		padding: 1.5rem;
-	}
-	
-	.card-footer {
-		padding: 1rem 1.5rem;
-		background: rgba(23, 23, 23, 0.5);
-		border-top: 1px solid #262626;
-	}
-	
-	.section-title {
-		font-size: 0.875rem;
-		font-weight: 600;
-		color: #fafafa;
-		margin-bottom: 0.5rem;
-	}
-	
-	.section-description {
-		font-size: 0.875rem;
-		color: #737373;
-		line-height: 1.5;
 	}
 	
 	.avatar-container {
@@ -434,10 +356,10 @@
 	
 	.email-badge {
 		padding: 0.375rem 0.75rem;
-		background: #171717;
-		border: 1px solid #262626;
+		background: var(--muted);
+		border: 1px solid var(--border);
 		border-radius: 0.375rem;
-		color: #fafafa;
+		color: var(--foreground);
 		font-size: 0.875rem;
 	}
 	
@@ -463,10 +385,10 @@
 		font-family: 'Courier New', monospace;
 		font-size: 0.875rem;
 		padding: 0.375rem 0.625rem;
-		background: #171717;
-		border: 1px solid #262626;
+		background: var(--muted);
+		border: 1px solid var(--border);
 		border-radius: 0.375rem;
-		color: #a3a3a3;
+		color: var(--muted-foreground);
 	}
 	
 	/* Modal Styles */
@@ -489,8 +411,8 @@
 	.modal-content {
 		position: relative;
 		z-index: 1;
-		background: #0a0a0a;
-		border: 1px solid #262626;
+		background: var(--card);
+		border: 1px solid var(--border);
 		border-radius: 0.5rem;
 		padding: 1.5rem;
 		max-width: 28rem;
