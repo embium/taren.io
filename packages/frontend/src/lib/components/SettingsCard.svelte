@@ -31,12 +31,12 @@
 <div
 	class={cn(
 		'overflow-hidden border rounded-md',
-		destructive ? 'border-red-900/50' : 'border-border/50',
+		destructive ? 'border-destructive/50' : 'border-border/50',
 		className
 	)}
 >
 	<div class="p-4">
-		<h2 class={cn('mb-2 text-foreground', destructive && 'text-red-500')}>
+		<h2 class={cn('mb-2 text-foreground', destructive && 'text-destructive')}>
 			{title}
 		</h2>
 		<p class="text-sm text-muted-foreground">{description}</p>
@@ -50,8 +50,9 @@
 
 	<div
 		class={cn(
-			'p-3 text-sm flex items-center justify-between',
-			destructive ? 'bg-red-900/30' : 'bg-muted/30'
+			'p-3 text-sm flex items-center justify-between border-t',
+			destructive ? 'border-destructive/50' : 'border-border/50',
+			destructive ? 'bg-destructive/10' : 'bg-muted/30'
 		)}
 	>
 		<p class="text-muted-foreground">
