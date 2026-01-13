@@ -55,6 +55,7 @@ function clearAuth(): void {
  */
 function storeAuth(userData: User, accessToken: string, refreshToken: string): void {
 	user = userData;
+	console.log('Storing auth data:', userData);
 	setTokens(accessToken, refreshToken);
 	storage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
 	storage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
@@ -141,6 +142,17 @@ export async function fetchCurrentUser(): Promise<void> {
 	} finally {
 		loading = false;
 	}
+}
+
+/**
+ * Update user data
+ */
+export function updateUser(updates: Partial<User>): void {
+	if (!user) return;
+
+	// Create a new user object to trigger reactivity
+	user = { ...user, ...updates };
+	storage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
 }
 
 /**

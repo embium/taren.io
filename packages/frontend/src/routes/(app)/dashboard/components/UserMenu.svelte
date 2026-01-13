@@ -1,13 +1,16 @@
 <script lang="ts">
   import { House, LogOut } from '@lucide/svelte';
+  import { toast } from "svelte-sonner";
   import { goto } from '$app/navigation';
   import { getAuthState } from '$lib/stores/auth.svelte';
   import { logout } from '$lib/stores/auth.svelte';
-  import { toast } from '$lib/stores/toast.svelte';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
   import ThemeSelector from './ThemeSelector.svelte';
 
   const authState = getAuthState();
+
+  // Use $derived to reactively track changes to authState.user?.avatar
+  let userAvatar = $derived(authState.user?.avatar || null);
 
   async function handleLogout() {
     try {
@@ -26,10 +29,16 @@
     <DropdownMenu.Trigger>
       {#snippet child({ props })}
         <button 
-          class="w-10 h-10 rounded-full bg-gradient-to-br from-[#b700ff] to-[#00b7ff] flex items-center justify-center text-white font-semibold hover:opacity-90 transition-opacity" 
+          class="avatar-container" 
           {...props}
         >
-          {authState.user && authState.user.name ? authState.user.name.charAt(0).toUpperCase() : authState.user?.email.charAt(0).toUpperCase()}
+							{#if userAvatar}
+								<img src={userAvatar} alt="Avatar" class="avatar-image" />
+							{:else}
+								<div class="avatar-placeholder">
+									<span class="text-md font-bold">{authState.user?.name?.[0]?.toUpperCase() || authState.user?.email[0].toUpperCase()}</span>
+								</div>
+							{/if}
         </button>
       {/snippet}
     </DropdownMenu.Trigger>
@@ -48,7 +57,7 @@
       </DropdownMenu.Item>
       
       <DropdownMenu.Item>
-        Account Settings
+        <a href="/account/settings" class="flex w-full">Account Settings</a>
       </DropdownMenu.Item>
       
       <DropdownMenu.Separator />
@@ -73,3 +82,25 @@
     </DropdownMenu.Content>
   </DropdownMenu.Root>
 {/if}
+
+<style>
+  .avatar-container {
+		width: 32px;
+		height: 32px;
+		border-radius: 50%;
+		overflow: hidden;
+		border: none;
+		cursor: pointer;
+		transition: transform 0.2s;
+	}
+
+  .avatar-placeholder {
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+		color: white;
+	}
+</style>

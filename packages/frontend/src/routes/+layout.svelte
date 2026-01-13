@@ -5,7 +5,7 @@
 	import { ModeWatcher } from 'mode-watcher';
 
 	import favicon from '$lib/assets/favicon.svg';
-	import Toast from '$lib/components/ui/Toast.svelte';
+	import { Toaster } from '$lib/components/ui/sonner';
 	import { initializeAuth } from '$lib/stores/auth.svelte';
 
 	let { children } = $props();
@@ -18,8 +18,8 @@
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
-<Toast />
 <ModeWatcher />
+<Toaster />
 
 {@render children()}
 

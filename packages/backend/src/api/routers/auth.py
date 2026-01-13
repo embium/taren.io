@@ -94,6 +94,7 @@ async def login(
             id=str(user.id),
             email=str(user.email),
             name=user.name,
+            avatar=user.avatar,
             created_at=user.created_at,
             is_active=user.is_active,
         ),

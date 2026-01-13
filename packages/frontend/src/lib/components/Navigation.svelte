@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-
+	import { toast } from "svelte-sonner";
 	import { goto } from '$app/navigation';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { getAuthState, logout, initializeAuth } from '$lib/stores/auth.svelte';
-	import { toast } from '$lib/stores/toast.svelte';
 
 	const authState = getAuthState();
 	let mobileMenuOpen = $state(false);

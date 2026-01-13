@@ -1,10 +1,10 @@
 <script lang="ts">
+	import { toast } from 'svelte-sonner';
 	import { goto } from '$app/navigation';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import Label from '$lib/components/ui/label/label.svelte';
 	import { register, getAuthState } from '$lib/stores/auth.svelte';
-	import { toast } from '$lib/stores/toast.svelte';
 	import {
 		validateEmail,
 		validatePassword,

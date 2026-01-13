@@ -1,27 +1,7 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { getAuthState, logout } from '$lib/stores/auth.svelte';
-	import { toast } from '$lib/stores/toast.svelte';
-	import UserMenu from './components/UserMenu.svelte';
+	import { getAuthState } from '$lib/stores/auth.svelte';
 
 	const authState = getAuthState();
-
-	$effect(() => {
-		if (!authState.isAuthenticated) {
-			goto('/login');
-		}
-	});
-
-	async function handleLogout() {
-		try {
-			await logout();
-			toast.success('Logged out successfully');
-			goto('/login');
-		} catch (error) {
-			console.error('Logout error:', error);
-			toast.error('Logout failed');
-		}
-	}
 </script>
 
 <svelte:head>
@@ -29,23 +9,14 @@
 </svelte:head>
 
 {#if authState.isAuthenticated && authState.user}
-	<div class="min-h-screen bg-white dark:bg-[#0a0a0a]">
-		<!-- Header -->
-		<header class="border-b border-gray-200 dark:border-[#262626] bg-white dark:bg-[#0a0a0a]">
-			<div class="px-6 py-4 flex justify-between items-center">
-				<h1 class="text-2xl font-bold text-gray-900 dark:text-[#fafafa]">Taren</h1>
-				<UserMenu />
-			</div>
-		</header>
-
-		<!-- Main Content -->
-		<main class="max-w-7xl mx-auto px-6 py-12">
-			<div class="mb-12">
-				<h2 class="text-4xl font-bold text-gray-900 dark:text-[#fafafa] mb-2">
-					Welcome back, {authState.user.name || authState.user.email.split('@')[0]}
-				</h2>
-				<p class="text-gray-500 dark:text-[#737373] text-lg">Here's your account overview</p>
-			</div>
+	<!-- Main Content -->
+	<main class="max-w-7xl mx-auto px-6 py-12">
+		<div class="mb-12">
+			<h2 class="text-4xl font-bold text-gray-900 dark:text-[#fafafa] mb-2">
+				Welcome back, {authState.user.name || authState.user.email.split('@')[0]}
+			</h2>
+			<p class="text-gray-500 dark:text-[#737373] text-lg">Here's your account overview</p>
+		</div>
 
 			<!-- Stats Grid -->
 			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
@@ -161,15 +132,14 @@
 				</div>
 			</div>
 		</main>
-	</div>
-{:else}
-	<div class="min-h-screen flex items-center justify-center bg-white dark:bg-[#0a0a0a]">
-		<div class="text-center">
-			<div class="spinner mx-auto mb-4"></div>
-			<p class="text-gray-500 dark:text-[#737373]">Loading...</p>
+	{:else}
+		<div class="min-h-screen flex items-center justify-center bg-white dark:bg-[#0a0a0a]">
+			<div class="text-center">
+				<div class="spinner mx-auto mb-4"></div>
+				<p class="text-gray-500 dark:text-[#737373]">Loading...</p>
+			</div>
 		</div>
-	</div>
-{/if}
+	{/if}
 
 <style>
 	.spinner {

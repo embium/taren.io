@@ -1,7 +1,7 @@
 <script lang="ts">
-  import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
   import { setMode, mode } from 'mode-watcher';
   import { Sun, MoonStar } from '@lucide/svelte';
+  import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 
   function handleThemeClick(theme: 'light' | 'dark') {
     setMode(theme);

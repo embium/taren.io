@@ -77,6 +77,7 @@ class UserResponse(BaseModel):
     id: str
     email: str
     name: Optional[str] = None
+    avatar: Optional[str] = None
     created_at: datetime
     is_active: bool
 
@@ -84,7 +85,9 @@ class UserResponse(BaseModel):
 class UpdateUserRequest(BaseModel):
     """Request schema for updating user profile."""
 
+    name: Optional[str] = Field(None, max_length=255)
     email: Optional[EmailStr] = None
+    avatar: Optional[str] = Field(None, description="Base64 encoded image")
 
 
 # Password Reset DTOs
@@ -111,3 +114,16 @@ class ErrorResponse(BaseModel):
 
     detail: str
     error_code: Optional[str] = None
+
+
+# Delete Account DTOs
+class DeleteAccountRequest(BaseModel):
+    """Request schema for deleting account."""
+
+    password: str = Field(..., description="Current password for verification")
+
+
+class DeleteAccountResponse(BaseModel):
+    """Response schema for account deletion."""
+
+    message: str = "Account successfully deactivated"

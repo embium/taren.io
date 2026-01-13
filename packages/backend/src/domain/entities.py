@@ -15,6 +15,7 @@ class User:
     email: Email
     password_hash: HashedPassword
     name: Optional[str] = None
+    avatar: Optional[str] = None
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: datetime = field(default_factory=datetime.utcnow)
     is_active: bool = True
@@ -51,6 +52,21 @@ class User:
     def update_password(self, new_password_hash: HashedPassword) -> None:
         """Update user password."""
         self.password_hash = new_password_hash
+        self.updated_at = datetime.utcnow()
+
+    def update_profile(
+        self,
+        name: Optional[str] = None,
+        email: Optional[Email] = None,
+        avatar: Optional[str] = None,
+    ) -> None:
+        """Update user profile information."""
+        if name is not None:
+            self.name = name
+        if email is not None:
+            self.email = email
+        if avatar is not None:
+            self.avatar = avatar
         self.updated_at = datetime.utcnow()
 
     def __eq__(self, other: object) -> bool:
