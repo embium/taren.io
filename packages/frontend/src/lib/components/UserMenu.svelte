@@ -57,7 +57,7 @@
       </DropdownMenu.Item>
       
       <DropdownMenu.Item>
-        <a href="/account/settings" class="flex w-full">Account Settings</a>
+        <a href="/settings" class="flex w-full">Account Settings</a>
       </DropdownMenu.Item>
       
       <DropdownMenu.Separator />

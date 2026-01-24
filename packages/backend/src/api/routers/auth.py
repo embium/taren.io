@@ -2,15 +2,18 @@
 
 from fastapi import APIRouter, Depends, status
 
-from src.api.dependencies import (
+from api.dependencies import (
     get_current_user,
+    get_email_verification_repository,
     get_event_bus_dependency,
     get_password_service,
     get_session_repository,
     get_token_service,
     get_user_repository,
 )
-from src.application.schemas import (
+from application.schemas import (
+    ForgotPasswordRequest,
+    ForgotPasswordResponse,
     LoginRequest,
     LoginResponse,
     LogoutResponse,
@@ -18,17 +21,23 @@ from src.application.schemas import (
     RefreshTokenResponse,
     RegisterUserRequest,
     RegisterUserResponse,
+    ResendVerificationRequest,
+    ResendVerificationResponse,
+    ResetPasswordRequest,
+    ResetPasswordResponse,
     UserResponse,
+    VerifyEmailRequest,
+    VerifyEmailResponse,
 )
-from src.application.services.password_service import IPasswordService
-from src.application.services.token_service import ITokenService
-from src.application.use_cases.login_user import LoginUserUseCase
-from src.application.use_cases.logout_user import LogoutUserUseCase
-from src.application.use_cases.refresh_token import RefreshTokenUseCase
-from src.application.use_cases.register_user import RegisterUserUseCase
-from src.domain.entities import User
-from src.domain.repositories import ISessionRepository, IUserRepository
-from src.infrastructure.events.event_bus import EventBus
+from application.services.password_service import IPasswordService
+from application.services.token_service import ITokenService
+from application.use_cases.login_user import LoginUserUseCase
+from application.use_cases.logout_user import LogoutUserUseCase
+from application.use_cases.refresh_token import RefreshTokenUseCase
+from application.use_cases.register_user import RegisterUserUseCase
+from domain.entities import User
+from domain.repositories import ISessionRepository, IUserRepository
+from infrastructure.events.event_bus import EventBus
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -45,9 +54,12 @@ async def register(
     user_repository: IUserRepository = Depends(get_user_repository),
     password_service: IPasswordService = Depends(get_password_service),
     event_bus: EventBus = Depends(get_event_bus_dependency),
+    verification_repository=Depends(get_email_verification_repository),
 ):
     """Register a new user account."""
-    use_case = RegisterUserUseCase(user_repository, password_service, event_bus)
+    use_case = RegisterUserUseCase(
+        user_repository, password_service, event_bus, verification_repository
+    )
     user = await use_case.execute(request.email, request.password, request.name)
 
     return RegisterUserResponse(
@@ -97,6 +109,7 @@ async def login(
             avatar=user.avatar,
             created_at=user.created_at,
             is_active=user.is_active,
+            is_email_verified=user.is_email_verified,
         ),
     )
 
@@ -142,3 +155,88 @@ async def refresh_token(
         access_token=access_token,
         expires_in=token_service.get_access_token_expiry_seconds(),
     )
+
+
+# Email Verification Endpoints
+
+
+@router.post("/verify-email", response_model=VerifyEmailResponse)
+async def verify_email(
+    request: VerifyEmailRequest,
+    user_repository: IUserRepository = Depends(get_user_repository),
+    verification_repository=Depends(get_email_verification_repository),
+    event_bus: EventBus = Depends(get_event_bus_dependency),
+):
+    """Verify user email with token."""
+    from application.use_cases.verify_email import VerifyEmailUseCase
+
+    use_case = VerifyEmailUseCase(
+        user_repository, verification_repository, event_bus
+    )
+    message, email = await use_case.execute(request.token)
+
+    return VerifyEmailResponse(message=message, email=email)
+
+
+@router.post("/resend-verification", response_model=ResendVerificationResponse)
+async def resend_verification(
+    request: ResendVerificationRequest,
+    user_repository: IUserRepository = Depends(get_user_repository),
+    verification_repository=Depends(get_email_verification_repository),
+    event_bus: EventBus = Depends(get_event_bus_dependency),
+):
+    """Resend verification email to user."""
+    from application.use_cases.resend_verification import (
+        ResendVerificationUseCase,
+    )
+
+    use_case = ResendVerificationUseCase(
+        user_repository, verification_repository, event_bus
+    )
+    await use_case.execute(request.email)
+
+    return ResendVerificationResponse()
+
+
+@router.post("/forgot-password", response_model=ForgotPasswordResponse)
+async def forgot_password(
+    request: ForgotPasswordRequest,
+    user_repository: IUserRepository = Depends(get_user_repository),
+    verification_repository=Depends(get_email_verification_repository),
+    event_bus: EventBus = Depends(get_event_bus_dependency),
+):
+    """Request password reset email."""
+    from application.use_cases.request_password_reset import (
+        RequestPasswordResetUseCase,
+    )
+
+    use_case = RequestPasswordResetUseCase(
+        user_repository, verification_repository, event_bus
+    )
+    await use_case.execute(request.email)
+
+    return ForgotPasswordResponse()
+
+
+@router.post("/reset-password", response_model=ResetPasswordResponse)
+async def reset_password(
+    request: ResetPasswordRequest,
+    user_repository: IUserRepository = Depends(get_user_repository),
+    verification_repository=Depends(get_email_verification_repository),
+    session_repository: ISessionRepository = Depends(get_session_repository),
+    password_service: IPasswordService = Depends(get_password_service),
+    event_bus: EventBus = Depends(get_event_bus_dependency),
+):
+    """Reset password with verification token."""
+    from application.use_cases.reset_password import ResetPasswordUseCase
+
+    use_case = ResetPasswordUseCase(
+        user_repository,
+        verification_repository,
+        session_repository,
+        password_service,
+        event_bus,
+    )
+    await use_case.execute(request.token, request.new_password)
+
+    return ResetPasswordResponse()

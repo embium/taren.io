@@ -5,7 +5,7 @@ import uuid
 from dataclasses import dataclass
 from typing import Union
 
-from src.domain.exceptions import (
+from domain.exceptions import (
     InvalidEmailException,
     InvalidPasswordException,
 )
@@ -126,6 +126,50 @@ class SessionId:
     def from_string(cls, session_id: str) -> "SessionId":
         """Create SessionId from string."""
         return cls(value=session_id)
+
+    def __str__(self) -> str:
+        return self.value
+
+
+@dataclass(frozen=True)
+class VerificationTokenId:
+    """Verification token identifier value object."""
+
+    value: str
+
+    @classmethod
+    def generate(cls) -> "VerificationTokenId":
+        """Generate a new unique verification token ID."""
+        return cls(value=str(uuid.uuid4()))
+
+    @classmethod
+    def from_string(cls, token_id: str) -> "VerificationTokenId":
+        """Create VerificationTokenId from string."""
+        return cls(value=token_id)
+
+    def __str__(self) -> str:
+        return self.value
+
+
+@dataclass(frozen=True)
+class VerificationToken:
+    """Verification token value object - cryptographically secure random token."""
+
+    value: str
+
+    @classmethod
+    def generate(cls) -> "VerificationToken":
+        """Generate a new cryptographically secure verification token."""
+        import secrets
+
+        # Generate 32 bytes (256 bits) of random data, URL-safe base64 encoded
+        token = secrets.token_urlsafe(32)
+        return cls(value=token)
+
+    @classmethod
+    def from_string(cls, token: str) -> "VerificationToken":
+        """Create VerificationToken from string."""
+        return cls(value=token)
 
     def __str__(self) -> str:
         return self.value

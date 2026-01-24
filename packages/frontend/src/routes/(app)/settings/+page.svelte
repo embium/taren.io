@@ -7,7 +7,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
-	import SettingsCard from '$lib/components/SettingsCard.svelte';
+	import SettingsCard from './components/SettingsCard.svelte';
 	
 	const authState = getAuthState();
 	

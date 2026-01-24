@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-from src.config.settings import settings
+from config.settings import settings
 
 # Create SQLAlchemy base
 Base = declarative_base()

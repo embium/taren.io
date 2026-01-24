@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 
-from src.domain.value_objects import HashedPassword, Password
+from domain.value_objects import HashedPassword, Password
 
 
 class IPasswordService(ABC):
@@ -16,6 +16,11 @@ class IPasswordService(ABC):
     @abstractmethod
     def verify_password(
         self, password: Password, hashed_password: HashedPassword
-    ) -> bool:
-        """Verify a plaintext password against a hashed password."""
+    ) -> tuple[bool, bool]:
+        """
+        Verify a plaintext password against a hashed password.
+
+        Returns:
+            Tuple of (is_valid, needs_rehash)
+        """
         pass

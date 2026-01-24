@@ -74,8 +74,10 @@
 
 		try {
 			await register({ email, password });
-			toast.success('Account created successfully! Redirecting...');
-			goto('/dashboard');
+			// Store email in sessionStorage for check-email page
+			sessionStorage.setItem('pendingVerificationEmail', email);
+			// Redirect to check email page
+			goto('/check-email');
 		} catch (error) {
 			const errorMessage = mapErrorToMessage(error);
 			toast.error(errorMessage);

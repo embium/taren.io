@@ -5,18 +5,18 @@ from typing import Annotated
 from fastapi import Depends, Header, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.application.services.password_service import IPasswordService
-from src.application.services.token_service import ITokenService
-from src.domain.entities import User
-from src.domain.exceptions import InvalidTokenException
-from src.domain.repositories import ISessionRepository, IUserRepository
-from src.domain.value_objects import SessionId, UserId
-from src.infrastructure.database.connection import get_db
-from src.infrastructure.repositories.session_repository import SessionRepository
-from src.infrastructure.repositories.user_repository import UserRepository
-from src.infrastructure.security.jwt_handler import JWTHandler
-from src.infrastructure.security.password_hasher import Argon2PasswordHasher
-from src.infrastructure.events.event_bus import EventBus, get_event_bus
+from application.services.password_service import IPasswordService
+from application.services.token_service import ITokenService
+from domain.entities import User
+from domain.exceptions import InvalidTokenException
+from domain.repositories import ISessionRepository, IUserRepository
+from domain.value_objects import SessionId, UserId
+from infrastructure.database.connection import get_db
+from infrastructure.repositories.session_repository import SessionRepository
+from infrastructure.repositories.user_repository import UserRepository
+from infrastructure.security.jwt_handler import JWTHandler
+from infrastructure.security.password_hasher import Argon2PasswordHasher
+from infrastructure.events.event_bus import EventBus, get_event_bus
 
 
 # Service providers
@@ -48,6 +48,24 @@ def get_session_repository(
 ) -> ISessionRepository:
     """Provide session repository."""
     return SessionRepository(db)
+
+
+def get_email_verification_repository(
+    db: AsyncSession = Depends(get_db),
+):
+    """Provide email verification repository."""
+    from infrastructure.repositories.email_verification_repository import (
+        EmailVerificationRepository,
+    )
+
+    return EmailVerificationRepository(db)
+
+
+def get_email_service():
+    """Provide email service."""
+    from infrastructure.email.resend_service import ResendEmailService
+
+    return ResendEmailService()
 
 
 # Authentication dependency

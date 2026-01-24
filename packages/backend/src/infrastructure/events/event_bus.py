@@ -3,7 +3,7 @@
 from collections import defaultdict
 from typing import Any, Callable, Coroutine, Dict, List, Type
 
-from src.domain.events import DomainEvent
+from domain.events import DomainEvent
 
 
 EventHandler = Callable[[DomainEvent], Coroutine[Any, Any, None]]

@@ -37,7 +37,7 @@
 						>
 					</div>
 					<h3 class="text-gray-500 dark:text-[#737373] text-sm font-medium mb-1">Account Status</h3>
-					<p class="text-gray-900 dark:text-[#fafafa] text-2xl font-bold">Verified</p>
+					<p class="text-gray-900 dark:text-[#fafafa] text-2xl font-bold">{authState.user.is_verified ? 'Verified' : 'Not Verified'}</p>
 				</div>
 
 				<div class="bg-gray-50 dark:bg-[#171717] rounded-lg border border-gray-200 dark:border-[#262626] p-6">

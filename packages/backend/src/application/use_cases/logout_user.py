@@ -1,13 +1,13 @@
 """Logout user use case."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 
-from src.domain.entities import Session
-from src.domain.events import UserLoggedOut
-from src.domain.exceptions import SessionNotFoundException
-from src.domain.repositories import ISessionRepository
-from src.domain.value_objects import SessionId
-from src.infrastructure.events.event_bus import EventBus
+from domain.entities import Session
+from domain.events import UserLoggedOut
+from domain.exceptions import SessionNotFoundException
+from domain.repositories import ISessionRepository
+from domain.value_objects import SessionId
+from infrastructure.events.event_bus import EventBus
 
 
 class LogoutUserUseCase:
@@ -44,7 +44,7 @@ class LogoutUserUseCase:
 
         # Publish domain event
         event = UserLoggedOut(
-            occurred_at=datetime.utcnow(),
+            occurred_at=datetime.now(timezone.utc),
             user_id=session.user_id,
             session_id=session.id,
         )

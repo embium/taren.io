@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Dict, Any
 
-from src.domain.value_objects import UserId, SessionId
+from domain.value_objects import UserId, SessionId
 
 
 class ITokenService(ABC):

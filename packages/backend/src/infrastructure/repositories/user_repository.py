@@ -5,10 +5,10 @@ from typing import Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.domain.entities import User
-from src.domain.repositories import IUserRepository
-from src.domain.value_objects import Email, HashedPassword, UserId
-from src.infrastructure.database.models import UserModel
+from domain.entities import User
+from domain.repositories import IUserRepository
+from domain.value_objects import Email, HashedPassword, UserId
+from infrastructure.database.models import UserModel
 
 
 class UserRepository(IUserRepository):
@@ -34,6 +34,7 @@ class UserRepository(IUserRepository):
             existing.password_hash = str(user.password_hash.value)
             existing.updated_at = user.updated_at
             existing.is_active = user.is_active
+            existing.is_email_verified = user.is_email_verified
         else:
             # Create new user
             user_model = UserModel(
@@ -45,6 +46,7 @@ class UserRepository(IUserRepository):
                 created_at=user.created_at,
                 updated_at=user.updated_at,
                 is_active=user.is_active,
+                is_email_verified=user.is_email_verified,
             )
             self._session.add(user_model)
 
@@ -105,4 +107,5 @@ class UserRepository(IUserRepository):
             created_at=model.created_at,
             updated_at=model.updated_at,
             is_active=model.is_active,
+            is_email_verified=model.is_email_verified,
         )

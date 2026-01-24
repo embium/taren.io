@@ -3,7 +3,7 @@
 import logging
 from datetime import datetime
 
-from src.domain.events import (
+from domain.events import (
     DomainEvent,
     PasswordChanged,
     SessionExpired,
@@ -57,9 +57,17 @@ async def log_generic_event(event: DomainEvent) -> None:
     logger.debug(f"Domain event: {event_type} at {event.occurred_at}")
 
 
-def register_event_handlers(event_bus) -> None:
+def register_event_handlers(event_bus, email_service=None) -> None:
     """Register all event handlers with the event bus."""
-    from src.infrastructure.events.event_bus import EventBus
+    from infrastructure.events.event_bus import EventBus
+    from domain.events import (
+        EmailVerificationRequested,
+        PasswordResetRequested,
+    )
+    from infrastructure.events.email_event_handlers import (
+        handle_email_verification_requested,
+        handle_password_reset_requested,
+    )
 
     # Register specific event handlers
     event_bus.subscribe(UserRegistered, log_user_registered)
@@ -67,6 +75,22 @@ def register_event_handlers(event_bus) -> None:
     event_bus.subscribe(UserLoggedOut, log_user_logged_out)
     event_bus.subscribe(PasswordChanged, log_password_changed)
     event_bus.subscribe(SessionExpired, log_session_expired)
+
+    # Register email event handlers if email service is provided
+    if email_service:
+
+        async def email_verification_handler(
+            event: EmailVerificationRequested,
+        ) -> None:
+            await handle_email_verification_requested(event, email_service)
+
+        async def password_reset_handler(event: PasswordResetRequested) -> None:
+            await handle_password_reset_requested(event, email_service)
+
+        event_bus.subscribe(
+            EmailVerificationRequested, email_verification_handler
+        )
+        event_bus.subscribe(PasswordResetRequested, password_reset_handler)
 
     # You can add more handlers here, e.g.:
     # - Send welcome email on UserRegistered

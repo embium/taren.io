@@ -1,14 +1,17 @@
 """Register user use case."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 
-from src.application.services.password_service import IPasswordService
-from src.domain.entities import User
-from src.domain.events import UserRegistered
-from src.domain.exceptions import UserAlreadyExistsException
-from src.domain.repositories import IUserRepository
-from src.domain.value_objects import Email, Password
-from src.infrastructure.events.event_bus import EventBus
+from application.services.password_service import IPasswordService
+from domain.entities import User
+from domain.events import UserRegistered
+from domain.exceptions import UserAlreadyExistsException
+from domain.repositories import (
+    IUserRepository,
+    IEmailVerificationRepository,
+)
+from domain.value_objects import Email, Password
+from infrastructure.events.event_bus import EventBus
 
 
 class RegisterUserUseCase:
@@ -19,10 +22,12 @@ class RegisterUserUseCase:
         user_repository: IUserRepository,
         password_service: IPasswordService,
         event_bus: EventBus,
+        verification_repository: IEmailVerificationRepository,
     ):
         self._user_repository = user_repository
         self._password_service = password_service
         self._event_bus = event_bus
+        self._verification_repository = verification_repository
 
     async def execute(
         self, email: str, password: str, name: str | None = None
@@ -62,10 +67,37 @@ class RegisterUserUseCase:
         # Persist user
         user = await self._user_repository.save(user)
 
-        # Publish domain event
+        # Create email verification token
+        from domain.entities import EmailVerification, VerificationType
+        from config.settings import settings as app_settings
+        from domain.events import EmailVerificationRequested
+
+        verification = EmailVerification.create(
+            user_id=user.id,
+            email=email_vo,
+            verification_type=VerificationType.REGISTRATION,
+            expiry_hours=app_settings.email_verification_token_expire_hours,
+        )
+
+        # Save verification token
+        await self._verification_repository.save(verification)
+
+        # Publish verification event to trigger email sending
+        verification_event = EmailVerificationRequested(
+            occurred_at=datetime.now(timezone.utc),
+            user_id=user.id,
+            email=user.email,
+            verification_token=str(verification.token),
+            verification_type=verification.verification_type.value,
+        )
+
+        # Publish domain events
         event = UserRegistered(
-            occurred_at=datetime.utcnow(), user_id=user.id, email=user.email
+            occurred_at=datetime.now(timezone.utc),
+            user_id=user.id,
+            email=user.email,
         )
         await self._event_bus.publish(event)
+        await self._event_bus.publish(verification_event)
 
         return user

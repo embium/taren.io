@@ -23,6 +23,31 @@ class InvalidCredentialsException(DomainException):
         super().__init__("Invalid email or password")
 
 
+class EmailNotVerifiedException(DomainException):
+    """Raised when user tries to login without verifying email."""
+
+    def __init__(self):
+        super().__init__(
+            "Email address not verified. Please check your email for verification link."
+        )
+
+
+class InvalidVerificationTokenException(DomainException):
+    """Raised when verification token is invalid."""
+
+    def __init__(self):
+        super().__init__("Invalid verification token")
+
+
+class ExpiredVerificationTokenException(DomainException):
+    """Raised when verification token has expired."""
+
+    def __init__(self):
+        super().__init__(
+            "Verification token has expired. Please request a new one."
+        )
+
+
 class SessionExpiredException(DomainException):
     """Raised when a session has expired."""
 
@@ -40,8 +65,8 @@ class SessionNotFoundException(DomainException):
 class UserNotFoundException(DomainException):
     """Raised when a user is not found."""
 
-    def __init__(self):
-        super().__init__("User not found")
+    def __init__(self, email: str):
+        super().__init__(f"User with email '{email}' not found")
 
 
 class InvalidEmailException(DomainException):

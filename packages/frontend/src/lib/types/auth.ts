@@ -65,7 +65,8 @@ export const userSchema = z.object({
 	name: z.string().nullable(),
 	avatar: z.string().nullable(),
 	created_at: z.string(),
-	is_active: z.boolean()
+	is_active: z.boolean(),
+	is_verified: z.boolean()
 });
 
 export const loginResponseSchema = z.object({

@@ -2,7 +2,7 @@
   "private": true,
   "name": "@taren/backend",
   "scripts": {
-    "dev": "cross-env PYTHONUTF8=1 fastapi dev main.py"
+    "dev": "cross-env PYTHONUTF8=1 fastapi dev main.py --host 0.0.0.0"
   },
   "devDependencies": {
     "cross-env": "^10.1.0"

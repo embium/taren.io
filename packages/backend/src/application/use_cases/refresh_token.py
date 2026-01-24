@@ -1,13 +1,13 @@
 """Refresh token use case."""
 
-from src.application.services.token_service import ITokenService
-from src.domain.exceptions import (
+from application.services.token_service import ITokenService
+from domain.exceptions import (
     InvalidTokenException,
     SessionExpiredException,
     SessionNotFoundException,
 )
-from src.domain.repositories import ISessionRepository
-from src.domain.value_objects import SessionId, UserId
+from domain.repositories import ISessionRepository
+from domain.value_objects import SessionId, UserId
 
 
 class RefreshTokenUseCase:

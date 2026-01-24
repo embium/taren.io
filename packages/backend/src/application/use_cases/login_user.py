@@ -1,18 +1,19 @@
 """Login user use case."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 
-from src.application.services.password_service import IPasswordService
-from src.application.services.token_service import ITokenService
-from src.domain.entities import Session
-from src.domain.events import UserLoggedIn
-from src.domain.exceptions import (
+from application.services.password_service import IPasswordService
+from application.services.token_service import ITokenService
+from domain.entities import Session, User
+from domain.events import UserLoggedIn
+from domain.exceptions import (
     InvalidCredentialsException,
     UserNotFoundException,
+    EmailNotVerifiedException,
 )
-from src.domain.repositories import ISessionRepository, IUserRepository
-from src.domain.value_objects import Email, Password
-from src.infrastructure.events.event_bus import EventBus
+from domain.repositories import ISessionRepository, IUserRepository
+from domain.value_objects import Email, Password
+from infrastructure.events.event_bus import EventBus
 
 
 class LoginUserUseCase:
@@ -59,10 +60,21 @@ class LoginUserUseCase:
             raise InvalidCredentialsException()
 
         # Verify password
-        if not self._password_service.verify_password(
+        is_valid, needs_rehash = self._password_service.verify_password(
             password_vo, user.password_hash
-        ):
+        )
+        if not is_valid:
             raise InvalidCredentialsException()
+
+        # Rehash password if needed
+        if needs_rehash:
+            new_hash = self._password_service.hash_password(password_vo)
+            user.password_hash = new_hash
+            await self._user_repository.save(user)
+
+        # Check if email is verified
+        if not user.is_email_verified:
+            raise EmailNotVerifiedException()
 
         # Check if user is active
         if not user.is_active:
@@ -82,7 +94,7 @@ class LoginUserUseCase:
 
         # Publish domain event
         event = UserLoggedIn(
-            occurred_at=datetime.utcnow(),
+            occurred_at=datetime.now(timezone.utc),
             user_id=user.id,
             session_id=session.id,
         )

@@ -3,8 +3,8 @@
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 
-from src.application.services.password_service import IPasswordService
-from src.domain.value_objects import HashedPassword, Password
+from application.services.password_service import IPasswordService
+from domain.value_objects import HashedPassword, Password
 
 
 class Argon2PasswordHasher(IPasswordService):
@@ -35,7 +35,7 @@ class Argon2PasswordHasher(IPasswordService):
 
     def verify_password(
         self, password: Password, hashed_password: HashedPassword
-    ) -> bool:
+    ) -> tuple[bool, bool]:
         """
         Verify a plaintext password against a hashed password.
 
@@ -44,16 +44,15 @@ class Argon2PasswordHasher(IPasswordService):
             hashed_password: HashedPassword value object to verify against
 
         Returns:
-            True if password matches, False otherwise
+            Tuple of (is_valid, needs_rehash)
         """
         try:
             self._hasher.verify(hashed_password.value, password.value)
 
             # Check if rehashing is needed (parameters changed)
             if self._hasher.check_needs_rehash(hashed_password.value):
-                # Note: In production, you might want to trigger a password rehash here
-                pass
+                return True, True
 
-            return True
+            return True, False
         except VerifyMismatchError:
-            return False
+            return False, False

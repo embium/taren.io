@@ -37,6 +37,9 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Copy backend source code
 COPY packages/backend .
 
+# Install the package in editable mode
+RUN pip install -e .
+
 # Create non-root user
 RUN groupadd -r fastapi && \
     useradd -r -g fastapi -u 1001 fastapi && \

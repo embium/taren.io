@@ -37,6 +37,16 @@ class Settings(BaseSettings):
         """Parse allowed origins into a list."""
         return [origin.strip() for origin in self.allowed_origins.split(",")]
 
+    # Email settings (Resend)
+    resend_api_key: str = ""
+    email_from_address: str = "noreply@taren.io"
+    email_from_name: str = "Taren"
+    app_name: str = "Taren"
+
+    # Email verification settings
+    email_verification_token_expire_hours: int = 24
+    password_reset_token_expire_hours: int = 1
+
 
 # Global settings instance
 settings = Settings()

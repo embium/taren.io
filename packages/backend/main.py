@@ -6,13 +6,13 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.api.error_handlers import register_error_handlers
-from src.api.routers import auth, users
-from src.config.settings import settings
-from src.infrastructure.database.connection import async_engine
-from src.infrastructure.database.models import Base
-from src.infrastructure.events.event_bus import get_event_bus
-from src.infrastructure.events.event_handlers import register_event_handlers
+from api.error_handlers import register_error_handlers
+from api.routers import auth, users
+from config.settings import settings
+from infrastructure.database.connection import async_engine
+from infrastructure.database.models import Base
+from infrastructure.events.event_bus import get_event_bus
+from infrastructure.events.event_handlers import register_event_handlers
 
 # Configure logging
 logging.basicConfig(
@@ -29,9 +29,12 @@ async def lifespan(app: FastAPI):
     async with async_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    # Register event handlers
+    # Register event handlers with email service
+    from api.dependencies import get_email_service
+
     event_bus = get_event_bus()
-    register_event_handlers(event_bus)
+    email_service = get_email_service()
+    register_event_handlers(event_bus, email_service)
     logger.info("Application started successfully")
 
     yield
@@ -61,6 +64,11 @@ app.add_middleware(
 # Register routers
 app.include_router(auth.router)
 app.include_router(users.router)
+
+# Register settings router for email management
+from api.routers import settings
+
+app.include_router(settings.router)
 
 # Register error handlers
 register_error_handlers(app)

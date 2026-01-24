@@ -87,9 +87,6 @@ export async function register(credentials: RegisterUserRequest): Promise<void> 
 
 	try {
 		const response = await authApi.register(credentials);
-
-		// After registration, log the user in
-		await login({ email: credentials.email, password: credentials.password });
 	} catch (err) {
 		error = err instanceof AuthError ? err.message : 'Registration failed. Please try again.';
 		throw err;

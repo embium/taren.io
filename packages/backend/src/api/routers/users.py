@@ -2,22 +2,22 @@
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from src.api.dependencies import (
+from api.dependencies import (
     get_current_user,
     get_user_repository,
     get_session_repository,
     get_password_service,
 )
-from src.application.schemas import (
+from application.schemas import (
     UserResponse,
     UpdateUserRequest,
     DeleteAccountRequest,
     DeleteAccountResponse,
 )
-from src.application.services.password_service import IPasswordService
-from src.domain.entities import User
-from src.domain.repositories import IUserRepository, ISessionRepository
-from src.domain.value_objects import Email, Password
+from application.services.password_service import IPasswordService
+from domain.entities import User
+from domain.repositories import IUserRepository, ISessionRepository
+from domain.value_objects import Email, Password
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -37,6 +37,7 @@ async def get_me(current_user: User = Depends(get_current_user)):
         avatar=current_user.avatar,
         created_at=current_user.created_at,
         is_active=current_user.is_active,
+        is_email_verified=current_user.is_email_verified,
     )
 
 
@@ -82,6 +83,7 @@ async def update_profile(
         avatar=current_user.avatar,
         created_at=current_user.created_at,
         is_active=current_user.is_active,
+        is_email_verified=current_user.is_email_verified,
     )
 
 
@@ -100,10 +102,11 @@ async def delete_account(
 ):
     """Soft-delete the current user account after password verification."""
     # Verify password
-    if not password_service.verify_password(
+    is_valid, _ = password_service.verify_password(
         Password(value=delete_data.password),
         current_user.password_hash,
-    ):
+    )
+    if not is_valid:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid password",

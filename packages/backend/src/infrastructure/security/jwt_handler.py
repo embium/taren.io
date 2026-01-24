@@ -1,14 +1,14 @@
 """JWT token handler for authentication."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
 
 from jose import JWTError, jwt
 
-from src.application.services.token_service import ITokenService
-from src.config.settings import settings
-from src.domain.exceptions import InvalidTokenException
-from src.domain.value_objects import SessionId, UserId
+from application.services.token_service import ITokenService
+from config.settings import settings
+from domain.exceptions import InvalidTokenException
+from domain.value_objects import SessionId, UserId
 
 
 class JWTHandler(ITokenService):
@@ -34,7 +34,7 @@ class JWTHandler(ITokenService):
         Returns:
             Encoded JWT access token
         """
-        expire = datetime.utcnow() + timedelta(
+        expire = datetime.now(timezone.utc) + timedelta(
             minutes=self._access_token_expire_minutes
         )
 
@@ -42,7 +42,7 @@ class JWTHandler(ITokenService):
             "user_id": str(user_id),
             "session_id": str(session_id),
             "exp": expire,
-            "iat": datetime.utcnow(),
+            "iat": datetime.now(timezone.utc),
             "type": "access",
         }
 
@@ -61,7 +61,7 @@ class JWTHandler(ITokenService):
         Returns:
             Encoded JWT refresh token
         """
-        expire = datetime.utcnow() + timedelta(
+        expire = datetime.now(timezone.utc) + timedelta(
             days=self._refresh_token_expire_days
         )
 
@@ -69,7 +69,7 @@ class JWTHandler(ITokenService):
             "user_id": str(user_id),
             "session_id": str(session_id),
             "exp": expire,
-            "iat": datetime.utcnow(),
+            "iat": datetime.now(timezone.utc),
             "type": "refresh",
         }
 

@@ -1,10 +1,25 @@
 """Repository interfaces for the domain layer."""
 
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
-from src.domain.entities import Session, User
-from src.domain.value_objects import Email, SessionId, UserId
+from domain.value_objects import (
+    Email,
+    SessionId,
+    UserId,
+    VerificationToken,
+    VerificationTokenId,
+)
+
+if TYPE_CHECKING:
+    from domain.entities import (
+        EmailVerification,
+        Session,
+        User,
+        VerificationType,
+    )
+else:
+    from domain.entities import Session, User
 
 
 class IUserRepository(ABC):
@@ -67,4 +82,39 @@ class ISessionRepository(ABC):
     @abstractmethod
     async def revoke_all_for_user(self, user_id: UserId) -> None:
         """Revoke all sessions for a specific user."""
+        pass
+
+
+class IEmailVerificationRepository(ABC):
+    """Abstract interface for email verification persistence operations."""
+
+    @abstractmethod
+    async def save(
+        self, verification: "EmailVerification"
+    ) -> "EmailVerification":
+        """Save or update an email verification."""
+        pass
+
+    @abstractmethod
+    async def find_by_token(
+        self, token: "VerificationToken"
+    ) -> Optional["EmailVerification"]:
+        """Find an email verification by its token."""
+        pass
+
+    @abstractmethod
+    async def find_by_user_and_type(
+        self, user_id: UserId, verification_type: "VerificationType"
+    ) -> list["EmailVerification"]:
+        """Find all verifications for a user of a specific type."""
+        pass
+
+    @abstractmethod
+    async def delete_expired(self) -> int:
+        """Delete all expired verifications and return count."""
+        pass
+
+    @abstractmethod
+    async def delete(self, verification_id: "VerificationTokenId") -> None:
+        """Delete a verification by its ID."""
         pass

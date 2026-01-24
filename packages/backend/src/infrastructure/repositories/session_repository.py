@@ -1,15 +1,15 @@
 """Session repository implementation using SQLAlchemy."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.domain.entities import Session
-from src.domain.repositories import ISessionRepository
-from src.domain.value_objects import SessionId, UserId
-from src.infrastructure.database.models import SessionModel
+from domain.entities import Session
+from domain.repositories import ISessionRepository
+from domain.value_objects import SessionId, UserId
+from infrastructure.database.models import SessionModel
 
 
 class SessionRepository(ISessionRepository):
@@ -77,7 +77,7 @@ class SessionRepository(ISessionRepository):
         """Delete all expired sessions and return count."""
         result = await self._session.execute(
             delete(SessionModel).where(
-                SessionModel.expires_at < datetime.utcnow()
+                SessionModel.expires_at < datetime.now(timezone.utc)
             )
         )
         await self._session.flush()
