@@ -13,6 +13,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import { toast } from 'svelte-sonner';
 	import { Loader2, Mail } from '@lucide/svelte';
+	import { forgotPassword } from '$lib/stores/auth.svelte';
 
 	let email = '';
 	let loading = false;
@@ -29,19 +30,13 @@
 		loading = true;
 
 		try {
-			const response = await fetch(`${PUBLIC_API_URL}/auth/forgot-password`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email })
-			});
+			const data = await forgotPassword({ email });
 
-			const data = await response.json();
-
-			if (response.ok) {
+			if (data.message) {
 				emailSent = true;
 				toast.success('Password reset email sent!');
 			} else {
-				toast.error(data.detail || 'Failed to send reset email');
+				toast.error('Failed to send reset email');
 			}
 		} catch (err) {
 			toast.error('Failed to connect to server');
@@ -74,14 +69,9 @@
 							class="text-[#fafafa]">{email}</strong
 						>.
 					</p>
-					<p class="text-sm text-[#737373]">
-						The link will expire in 1 hour for security reasons.
-					</p>
+					<p class="text-sm text-[#737373]">The link will expire in 1 hour for security reasons.</p>
 					<div class="space-y-2 pt-4">
-						<Button
-							onclick={() => goto('/login')}
-							class="w-full bg-blue-600 hover:bg-blue-700"
-						>
+						<Button onclick={() => goto('/login')} class="w-full bg-blue-600 hover:bg-blue-700">
 							Back to Login
 						</Button>
 						<Button

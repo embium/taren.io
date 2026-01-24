@@ -1,7 +1,17 @@
 import { authApi } from '$lib/api/auth.api';
 import { clearTokens, setTokens } from '$lib/api/client';
 import { storage, STORAGE_KEYS } from '$lib/stores/storage';
-import type { User, LoginRequest, RegisterUserRequest } from '$lib/types/auth';
+import type {
+	User,
+	LoginRequest,
+	RegisterUserRequest,
+	ForgotPasswordResponse,
+	VerifyEmailResponse,
+	VerifyEmailRequest,
+	ForgotPasswordRequest,
+	ResetPasswordRequest,
+	ResetPasswordResponse
+} from '$lib/types/auth';
 import { AuthError } from '$lib/types/auth';
 
 /**
@@ -137,6 +147,52 @@ export async function fetchCurrentUser(): Promise<void> {
 		throw err;
 	} finally {
 		loading = false;
+	}
+}
+
+/**
+ * Verify email
+ */
+export async function verifyEmail(request: VerifyEmailRequest): Promise<VerifyEmailResponse> {
+	try {
+		return await authApi.verifyEmail(request);
+	} catch (err) {
+		throw err;
+	}
+}
+
+/**
+ * Forgot password
+ */
+export async function forgotPassword(
+	request: ForgotPasswordRequest
+): Promise<ForgotPasswordResponse> {
+	try {
+		return await authApi.forgotPassword(request);
+	} catch (err) {
+		throw err;
+	}
+}
+
+/**
+ * Resend verification email
+ */
+export async function resendVerificationEmail(email: string): Promise<void> {
+	try {
+		await authApi.resendVerificationEmail(email);
+	} catch (err) {
+		throw err;
+	}
+}
+
+/**
+ * Reset password
+ */
+export async function resetPassword(request: ResetPasswordRequest): Promise<ResetPasswordResponse> {
+	try {
+		return await authApi.resetPassword(request);
+	} catch (err) {
+		throw err;
 	}
 }
 

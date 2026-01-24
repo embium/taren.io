@@ -15,6 +15,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import { toast } from 'svelte-sonner';
 	import { Loader2, Eye, EyeOff, CheckCircle2 } from '@lucide/svelte';
+	import { resetPassword } from '$lib/stores/auth.svelte';
 
 	let token = '';
 	let newPassword = '';
@@ -74,20 +75,14 @@
 		loading = true;
 
 		try {
-			const response = await fetch(`${PUBLIC_API_URL}/auth/reset-password`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ token, new_password: newPassword })
-			});
+			const data = await resetPassword({ token, new_password: newPassword });
 
-			const data = await response.json();
-
-			if (response.ok) {
+			if (data.message) {
 				resetSuccess = true;
 				toast.success('Password reset successfully!');
 				setTimeout(() => goto('/login'), 3000);
 			} else {
-				toast.error(data.detail || 'Failed to reset password');
+				toast.error('Failed to reset password');
 			}
 		} catch (err) {
 			toast.error('Failed to connect to server');
@@ -130,12 +125,12 @@
 								placeholder="Enter new password"
 								disabled={loading}
 								required
-								class="border-[#262626] bg-[#0a0a0a] text-[#fafafa] placeholder:text-[#737373] pr-10"
+								class="border-[#262626] bg-[#0a0a0a] pr-10 text-[#fafafa] placeholder:text-[#737373]"
 							/>
 							<button
 								type="button"
 								on:click={() => (showPassword = !showPassword)}
-								class="absolute right-3 top-1/2 -translate-y-1/2 text-[#737373] hover:text-[#fafafa]"
+								class="absolute top-1/2 right-3 -translate-y-1/2 text-[#737373] hover:text-[#fafafa]"
 								tabindex="-1"
 							>
 								{#if showPassword}
@@ -160,12 +155,12 @@
 								placeholder="Confirm new password"
 								disabled={loading}
 								required
-								class="border-[#262626] bg-[#0a0a0a] text-[#fafafa] placeholder:text-[#737373] pr-10"
+								class="border-[#262626] bg-[#0a0a0a] pr-10 text-[#fafafa] placeholder:text-[#737373]"
 							/>
 							<button
 								type="button"
 								on:click={() => (showConfirmPassword = !showConfirmPassword)}
-								class="absolute right-3 top-1/2 -translate-y-1/2 text-[#737373] hover:text-[#fafafa]"
+								class="absolute top-1/2 right-3 -translate-y-1/2 text-[#737373] hover:text-[#fafafa]"
 								tabindex="-1"
 							>
 								{#if showConfirmPassword}

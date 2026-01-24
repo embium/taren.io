@@ -55,6 +55,23 @@ export const changePasswordRequestSchema = z.object({
 	new_password: passwordSchema
 });
 
+export const verifyEmailRequestSchema = z.object({
+	token: z.string().min(1, 'Token is required')
+});
+
+export const forgotPasswordRequestSchema = z.object({
+	email: emailSchema
+});
+
+export const resendVerificationEmailRequestSchema = z.object({
+	email: emailSchema
+});
+
+export const resetPasswordRequestSchema = z.object({
+	token: z.string().min(1, 'Token is required'),
+	new_password: passwordSchema
+});
+
 // ============================================================================
 // Response Schemas
 // ============================================================================
@@ -103,6 +120,22 @@ export const errorResponseSchema = z.object({
 	error_code: z.string().optional()
 });
 
+export const verifyEmailResponseSchema = z.object({
+	message: z.string()
+});
+
+export const forgotPasswordResponseSchema = z.object({
+	message: z.string()
+});
+
+export const resendVerificationEmailResponseSchema = z.object({
+	message: z.string()
+});
+
+export const resetPasswordResponseSchema = z.object({
+	message: z.string()
+});
+
 // ============================================================================
 // TypeScript Types (inferred from schemas)
 // ============================================================================
@@ -111,6 +144,10 @@ export type LoginRequest = z.infer<typeof loginRequestSchema>;
 export type RegisterUserRequest = z.infer<typeof registerUserRequestSchema>;
 export type RefreshTokenRequest = z.infer<typeof refreshTokenRequestSchema>;
 export type ChangePasswordRequest = z.infer<typeof changePasswordRequestSchema>;
+export type VerifyEmailRequest = z.infer<typeof verifyEmailRequestSchema>;
+export type ForgotPasswordRequest = z.infer<typeof forgotPasswordRequestSchema>;
+export type ResendVerificationEmailRequest = z.infer<typeof resendVerificationEmailRequestSchema>;
+export type ResetPasswordRequest = z.infer<typeof resetPasswordRequestSchema>;
 
 export type User = z.infer<typeof userSchema>;
 export type LoginResponse = z.infer<typeof loginResponseSchema>;
@@ -119,6 +156,10 @@ export type RefreshTokenResponse = z.infer<typeof refreshTokenResponseSchema>;
 export type LogoutResponse = z.infer<typeof logoutResponseSchema>;
 export type ChangePasswordResponse = z.infer<typeof changePasswordResponseSchema>;
 export type ErrorResponse = z.infer<typeof errorResponseSchema>;
+export type VerifyEmailResponse = z.infer<typeof verifyEmailResponseSchema>;
+export type ForgotPasswordResponse = z.infer<typeof forgotPasswordResponseSchema>;
+export type ResendVerificationEmailResponse = z.infer<typeof resendVerificationEmailResponseSchema>;
+export type ResetPasswordResponse = z.infer<typeof resetPasswordResponseSchema>;
 
 // ============================================================================
 // Error Classes
