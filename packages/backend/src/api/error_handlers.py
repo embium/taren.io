@@ -11,23 +11,37 @@ from domain.exceptions import (
     InvalidTokenException,
     SessionExpiredException,
     SessionNotFoundException,
-    UserAlreadyExistsException,
+    UserEmailAlreadyExistsException,
+    UsernameAlreadyExistsException,
     UserNotFoundException,
+    UsernameChangeTooSoonException,
 )
 
 
 def register_error_handlers(app):
     """Register all error handlers with the FastAPI app."""
 
-    @app.exception_handler(UserAlreadyExistsException)
-    async def user_already_exists_handler(
-        request: Request, exc: UserAlreadyExistsException
+    @app.exception_handler(UserEmailAlreadyExistsException)
+    async def user_email_already_exists_handler(
+        request: Request, exc: UserEmailAlreadyExistsException
     ):
         return JSONResponse(
             status_code=status.HTTP_409_CONFLICT,
             content={
                 "detail": exc.message,
-                "error_code": "USER_ALREADY_EXISTS",
+                "error_code": "USER_EMAIL_ALREADY_EXISTS",
+            },
+        )
+
+    @app.exception_handler(UsernameAlreadyExistsException)
+    async def username_already_exists_handler(
+        request: Request, exc: UsernameAlreadyExistsException
+    ):
+        return JSONResponse(
+            status_code=status.HTTP_409_CONFLICT,
+            content={
+                "detail": exc.message,
+                "error_code": "USERNAME_ALREADY_EXISTS",
             },
         )
 
@@ -103,4 +117,16 @@ def register_error_handlers(app):
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content={"detail": exc.message, "error_code": "DOMAIN_ERROR"},
+        )
+
+    @app.exception_handler(UsernameChangeTooSoonException)
+    async def username_change_too_soon_handler(
+        request: Request, exc: UsernameChangeTooSoonException
+    ):
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={
+                "detail": exc.message,
+                "error_code": "USERNAME_CHANGE_TOO_SOON",
+            },
         )

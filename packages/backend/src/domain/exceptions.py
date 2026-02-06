@@ -9,11 +9,18 @@ class DomainException(Exception):
         super().__init__(self.message)
 
 
-class UserAlreadyExistsException(DomainException):
+class UserEmailAlreadyExistsException(DomainException):
     """Raised when attempting to register a user with an existing email."""
 
     def __init__(self, email: str):
         super().__init__(f"User with email '{email}' already exists")
+
+
+class UsernameAlreadyExistsException(DomainException):
+    """Raised when attempting to register a user with an existing username."""
+
+    def __init__(self, username: str):
+        super().__init__(f"User with username '{username}' already exists")
 
 
 class InvalidCredentialsException(DomainException):
@@ -83,8 +90,31 @@ class InvalidPasswordException(DomainException):
         super().__init__(f"Invalid password: {reason}")
 
 
+class InvalidUsernameException(DomainException):
+    """Raised when username format is invalid."""
+
+    def __init__(self, reason: str):
+        super().__init__(f"Invalid username: {reason}")
+
+
 class InvalidTokenException(DomainException):
     """Raised when a token is invalid or expired."""
 
     def __init__(self):
         super().__init__("Invalid or expired token")
+
+
+class IncorrectPasswordException(DomainException):
+    """Raised when password is incorrect."""
+
+    def __init__(self):
+        super().__init__("Incorrect password")
+
+
+class UsernameChangeTooSoonException(DomainException):
+    """Raised when username is changed too soon."""
+
+    def __init__(self, days_remaining: int):
+        super().__init__(
+            f"Cannot change username. Please wait {days_remaining} days."
+        )

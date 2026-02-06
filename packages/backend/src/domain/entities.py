@@ -10,6 +10,7 @@ from domain.value_objects import (
     HashedPassword,
     SessionId,
     UserId,
+    Username,
     VerificationToken,
     VerificationTokenId,
 )
@@ -21,6 +22,7 @@ class User:
 
     id: UserId
     email: Email
+    username: "Username"
     password_hash: HashedPassword
     name: Optional[str] = None
     avatar: Optional[str] = None
@@ -28,11 +30,13 @@ class User:
     updated_at: datetime = field(default_factory=datetime.utcnow)
     is_active: bool = True
     is_email_verified: bool = False
+    username_last_changed_at: Optional[datetime] = None
 
     @classmethod
     def create(
         cls,
         email: Email,
+        username: "Username",
         password_hash: HashedPassword,
         user_id: Optional[UserId] = None,
         name: Optional[str] = None,
@@ -41,6 +45,7 @@ class User:
         return cls(
             id=user_id or UserId.generate(),
             email=email,
+            username=username,
             name=name,
             password_hash=password_hash,
             created_at=datetime.now(timezone.utc),
@@ -68,6 +73,7 @@ class User:
         name: Optional[str] = None,
         email: Optional[Email] = None,
         avatar: Optional[str] = None,
+        username: Optional[Username] = None,
     ) -> None:
         """Update user profile information."""
         if name is not None:
@@ -76,6 +82,9 @@ class User:
             self.email = email
         if avatar is not None:
             self.avatar = avatar
+        if username is not None:
+            self.username = username
+            self.username_last_changed_at = datetime.now(timezone.utc)
         self.updated_at = datetime.now(timezone.utc)
 
     def verify_email(self) -> None:

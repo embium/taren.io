@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
-	import { goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
 	import {
 		Card,
@@ -12,7 +12,7 @@
 	} from '$lib/components/ui/card';
 	import { toast } from 'svelte-sonner';
 	import { CheckCircle2, XCircle, Loader2 } from '@lucide/svelte';
-	import { verifyEmail } from '$lib/stores/auth.svelte';
+	import { authApi } from '$lib/api/auth.api';
 
 	let token = '';
 	let verifying = false;
@@ -37,18 +37,28 @@
 		error = '';
 
 		try {
-			const data = await verifyEmail({ token });
+			// Call the backend API directly to verify email
+			const response = await authApi.verifyEmail({ token });
 
-			if (data.message) {
+			if (response.message) {
 				verified = true;
-				toast.success('Email verified successfully!');
-				// Redirect to login after 3 seconds
-				setTimeout(() => goto('/login'), 3000);
+				toast.success('Email verified successfully! Redirecting to dashboard...');
+				// Auto-login: The verify endpoint returns tokens
+				if (response.access_token && response.refresh_token) {
+					// Invalidate all load functions to update locals.user
+					await invalidateAll();
+					// Tokens are now set via cookies, just redirect
+					setTimeout(() => goto('/dashboard'), 2000);
+				} else {
+					// Fallback if no tokens (shouldn't happen)
+					setTimeout(() => goto('/login'), 2000);
+				}
 			} else {
 				error = 'Verification failed';
 				toast.error(error);
 			}
-		} catch (err) {
+		} catch (err: any) {
+			error = err.message || 'Verification failed';
 			toast.error(error);
 		} finally {
 			verifying = false;
@@ -83,9 +93,9 @@
 						<CheckCircle2 class="h-16 w-16 text-green-500" />
 					</div>
 					<p class="text-center text-[#a3a3a3]">
-						Your email has been successfully verified! You can now log in to your account.
+						Your email has been successfully verified! Logging you in...
 					</p>
-					<p class="text-center text-sm text-[#737373]">Redirecting to login page...</p>
+					<p class="text-center text-sm text-[#737373]">Redirecting to dashboard...</p>
 				</div>
 			{:else if error}
 				<div class="space-y-4">

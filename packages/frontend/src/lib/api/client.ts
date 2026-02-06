@@ -1,6 +1,7 @@
 import { config } from '$lib/config/env';
 import { AuthError, NetworkError, type ErrorResponse } from '$lib/types/auth';
 import { errorResponseSchema } from '$lib/types/auth';
+import { storage, STORAGE_KEYS } from '$lib/stores/storage';
 
 /**
  * API Client with automatic token injection, refresh, and retry logic
@@ -110,6 +111,7 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
 		const response = await fetch(url, {
 			...fetchOptions,
 			headers,
+			credentials: 'include', // CRITICAL: Send cookies with requests
 			signal: AbortSignal.timeout(config.apiTimeout)
 		});
 
@@ -122,8 +124,10 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
 				// Retry the request with new token
 				return apiRequest<T>(endpoint, { ...options, retries: retries - 1 });
 			} catch (refreshError) {
-				// If refresh fails, clear tokens and throw
+				// If refresh fails, clear all auth state including localStorage
 				clearTokens();
+				storage.removeItem(STORAGE_KEYS.USER);
+				storage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
 				throw new AuthError('Session expired. Please log in again.', 'SESSION_EXPIRED', 401);
 			}
 		}

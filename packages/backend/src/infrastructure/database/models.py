@@ -18,14 +18,19 @@ class UserModel(Base):
     email: Mapped[str] = mapped_column(
         String(255), unique=True, nullable=False, index=True
     )
+    username: Mapped[str] = mapped_column(
+        String(30), unique=True, nullable=False, index=True
+    )
     name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     password_hash: Mapped[str] = mapped_column(Text, nullable=False)
     avatar: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.now(timezone.utc), nullable=False
+        DateTime(timezone=True),
+        default=datetime.now(timezone.utc),
+        nullable=False,
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime,
+        DateTime(timezone=True),
         default=datetime.now(timezone.utc),
         onupdate=datetime.now(timezone.utc),
         nullable=False,
@@ -35,6 +40,9 @@ class UserModel(Base):
     )
     is_email_verified: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=False
+    )
+    username_last_changed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
     )
 
     # Relationships
@@ -64,9 +72,13 @@ class SessionModel(Base):
         index=True,
     )
     created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.now(timezone.utc), nullable=False
+        DateTime(timezone=True),
+        default=datetime.now(timezone.utc),
+        nullable=False,
     )
-    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
     is_revoked: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=False
     )
@@ -100,10 +112,12 @@ class EmailVerificationModel(Base):
         String(50), nullable=False, index=True
     )
     created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.now(timezone.utc), nullable=False
+        DateTime(timezone=True),
+        default=datetime.now(timezone.utc),
+        nullable=False,
     )
     expires_at: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, index=True
+        DateTime(timezone=True), nullable=False, index=True
     )
     is_used: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=False

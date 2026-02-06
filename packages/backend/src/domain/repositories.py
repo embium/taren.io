@@ -7,6 +7,7 @@ from domain.value_objects import (
     Email,
     SessionId,
     UserId,
+    Username,
     VerificationToken,
     VerificationTokenId,
 )
@@ -41,8 +42,18 @@ class IUserRepository(ABC):
         pass
 
     @abstractmethod
+    async def find_by_username(self, username: Username) -> Optional[User]:
+        """Find a user by their username."""
+        pass
+
+    @abstractmethod
     async def exists_by_email(self, email: Email) -> bool:
         """Check if a user with the given email exists."""
+        pass
+
+    @abstractmethod
+    async def exists_by_username(self, username: Username) -> bool:
+        """Check if a user with the given username exists."""
         pass
 
     @abstractmethod

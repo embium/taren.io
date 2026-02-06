@@ -4,6 +4,7 @@ export interface UpdateProfileRequest {
 	name?: string;
 	email?: string;
 	avatar?: string; // base64 encoded image
+	username?: string;
 }
 
 export interface DeleteAccountRequest {

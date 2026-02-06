@@ -9,8 +9,8 @@
 	const authState = getAuthState();
 	let mobileMenuOpen = $state(false);
 
-	onMount(() => {
-		initializeAuth();
+	onMount(async () => {
+		await initializeAuth();
 	});
 
 	async function handleLogout() {

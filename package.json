@@ -1,7 +1,7 @@
 {
   "scripts": {
+    "dev": "pnpm dev:packages",
     "dev:packages": "pnpm --parallel run dev",
-    "dev": "run-p dev:*",
     "build": "pnpm run --recursive --filter=!@taren/backend build"
   },
   "devDependencies": {

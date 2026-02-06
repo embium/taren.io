@@ -107,6 +107,13 @@ class EmailVerificationRepository(IEmailVerificationRepository):
         await self._db.execute(stmt)
         await self._db.commit()
 
+    @staticmethod
+    def _ensure_utc(dt: datetime) -> datetime:
+        """Ensure the datetime is timezone-aware (UTC)."""
+        if dt.tzinfo is None:
+            return dt.replace(tzinfo=timezone.utc)
+        return dt
+
     def _to_entity(self, model: EmailVerificationModel) -> EmailVerification:
         """Convert database model to domain entity."""
         return EmailVerification(
@@ -115,7 +122,7 @@ class EmailVerificationRepository(IEmailVerificationRepository):
             email=Email(value=model.email),
             token=VerificationToken.from_string(model.token),
             verification_type=VerificationType(model.verification_type),
-            created_at=model.created_at,
-            expires_at=model.expires_at,
+            created_at=self._ensure_utc(model.created_at),
+            expires_at=self._ensure_utc(model.expires_at),
             is_used=model.is_used,
         )

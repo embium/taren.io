@@ -5,12 +5,15 @@ from datetime import datetime, timezone
 from application.services.password_service import IPasswordService
 from domain.entities import User
 from domain.events import UserRegistered
-from domain.exceptions import UserAlreadyExistsException
+from domain.exceptions import (
+    UserEmailAlreadyExistsException,
+    UsernameAlreadyExistsException,
+)
 from domain.repositories import (
     IUserRepository,
     IEmailVerificationRepository,
 )
-from domain.value_objects import Email, Password
+from domain.value_objects import Email, Password, Username
 from infrastructure.events.event_bus import EventBus
 
 
@@ -30,13 +33,14 @@ class RegisterUserUseCase:
         self._verification_repository = verification_repository
 
     async def execute(
-        self, email: str, password: str, name: str | None = None
+        self, email: str, username: str, password: str, name: str | None = None
     ) -> User:
         """
         Register a new user.
 
         Args:
             email: User's email address
+            username: User's username
             password: User's plaintext password
             name: User's full name (optional)
 
@@ -44,24 +48,33 @@ class RegisterUserUseCase:
             Created User entity
 
         Raises:
-            UserAlreadyExistsException: If email is already registered
+            UserEmailAlreadyExistsException: If email is already in use
+            UsernameAlreadyExistsException: If username is already in use
             InvalidEmailException: If email format is invalid
             InvalidPasswordException: If password doesn't meet requirements
+            InvalidUsernameException: If username format is invalid
         """
         # Create value objects (will validate automatically)
         email_vo = Email(value=email)
+        username_vo = Username(value=username)
         password_vo = Password(value=password)
 
         # Check if user already exists
         if await self._user_repository.exists_by_email(email_vo):
-            raise UserAlreadyExistsException(email)
+            raise UserEmailAlreadyExistsException(email)
+
+        if await self._user_repository.exists_by_username(username_vo):
+            raise UsernameAlreadyExistsException(username)
 
         # Hash the password
         hashed_password = self._password_service.hash_password(password_vo)
 
         # Create user entity
         user = User.create(
-            email=email_vo, password_hash=hashed_password, name=name
+            email=email_vo,
+            username=username_vo,
+            password_hash=hashed_password,
+            name=name,
         )
 
         # Persist user

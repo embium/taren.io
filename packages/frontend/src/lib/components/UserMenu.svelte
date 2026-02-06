@@ -1,90 +1,92 @@
 <script lang="ts">
-  import { House, LogOut } from '@lucide/svelte';
-  import { toast } from "svelte-sonner";
-  import { goto } from '$app/navigation';
-  import { getAuthState } from '$lib/stores/auth.svelte';
-  import { logout } from '$lib/stores/auth.svelte';
-  import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-  import ThemeSelector from './ThemeSelector.svelte';
+	import type { User } from '$lib/types/auth';
+	import { House, LogOut } from '@lucide/svelte';
+	import { toast } from 'svelte-sonner';
+	import { goto, invalidateAll } from '$app/navigation';
+	import { getAuthState } from '$lib/stores/auth.svelte';
+	import { logout } from '$lib/stores/auth.svelte';
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
+	import ThemeSelector from './ThemeSelector.svelte';
+	import { authApi } from '$lib/api/auth.api';
 
-  const authState = getAuthState();
+	let { user }: { user: User } = $props();
 
-  // Use $derived to reactively track changes to authState.user?.avatar
-  let userAvatar = $derived(authState.user?.avatar || null);
+	let userAvatar = $derived(user?.avatar || null);
 
-  async function handleLogout() {
-    try {
-      await logout();
-      toast.success('Logged out successfully');
-      goto('/login');
-    } catch (error) {
-      console.error('Logout error:', error);
-      toast.error('Logout failed');
-    }
-  }
+	async function handleLogout() {
+		try {
+			await authApi.logout();
+			// Invalidate all load functions to clear locals.user
+			await invalidateAll();
+			toast.success('Logged out successfully');
+			goto('/login');
+		} catch (error) {
+			console.error('Logout error:', error);
+			toast.error('Logout failed');
+		}
+	}
 </script>
 
-{#if authState.isAuthenticated && authState.user}
-  <DropdownMenu.Root>
-    <DropdownMenu.Trigger>
-      {#snippet child({ props })}
-        <button 
-          class="avatar-container" 
-          {...props}
-        >
-							{#if userAvatar}
-								<img src={userAvatar} alt="Avatar" class="avatar-image" />
-							{:else}
-								<div class="avatar-placeholder">
-									<span class="text-md font-bold">{authState.user?.name?.[0]?.toUpperCase() || authState.user?.email[0].toUpperCase()}</span>
-								</div>
-							{/if}
-        </button>
-      {/snippet}
-    </DropdownMenu.Trigger>
-    <DropdownMenu.Content class="w-64" align="end">
-      <div class="px-3 py-3 mb-1">
-        <p class="text-base font-semibold text-gray-900 dark:text-[#fafafa] mb-0.5">
-          {authState.user.name || authState.user.email.split('@')[0]}
-        </p>
-        <p class="text-sm text-gray-500 dark:text-[#737373] truncate">{authState.user.email}</p>
-      </div>
-      
-      <DropdownMenu.Separator />
-      
-      <DropdownMenu.Item>
-        <a href="/dashboard" class="flex w-full">Dashboard</a>
-      </DropdownMenu.Item>
-      
-      <DropdownMenu.Item>
-        <a href="/settings" class="flex w-full">Account Settings</a>
-      </DropdownMenu.Item>
-      
-      <DropdownMenu.Separator />
+{#if user}
+	<DropdownMenu.Root>
+		<DropdownMenu.Trigger>
+			{#snippet child({ props })}
+				<button class="avatar-container" {...props}>
+					{#if userAvatar}
+						<img src={userAvatar} alt="Avatar" class="avatar-image" />
+					{:else}
+						<div class="avatar-placeholder">
+							<span class="text-md font-bold"
+								>{user?.name?.[0]?.toUpperCase() || user?.email[0].toUpperCase()}</span
+							>
+						</div>
+					{/if}
+				</button>
+			{/snippet}
+		</DropdownMenu.Trigger>
+		<DropdownMenu.Content class="w-64" align="end">
+			<div class="mb-1 px-3 py-3">
+				<p class="mb-0.5 text-base font-semibold text-gray-900 dark:text-[#fafafa]">
+					{user.name || user.email.split('@')[0]}
+				</p>
+				<p class="truncate text-sm text-gray-500 dark:text-[#737373]">{user.email}</p>
+			</div>
 
-      <ThemeSelector />
+			<DropdownMenu.Separator />
 
-      <DropdownMenu.Separator />
-      
-      <DropdownMenu.Item>
-        <span class="flex items-center justify-between w-full">
-          <a href="/" class="flex w-full">Home Page</a>
-          <House />
-        </span>
-      </DropdownMenu.Item>
-      
-      <DropdownMenu.Item onclick={handleLogout}>
-        <span class="flex items-center justify-between w-full">
-          <span>Log Out</span>
-          <LogOut />
-        </span>
-      </DropdownMenu.Item>
-    </DropdownMenu.Content>
-  </DropdownMenu.Root>
+			<DropdownMenu.Item>
+				<a href="/dashboard" class="flex w-full">Dashboard</a>
+			</DropdownMenu.Item>
+
+			<DropdownMenu.Item>
+				<a href="/settings" class="flex w-full">Account Settings</a>
+			</DropdownMenu.Item>
+
+			<DropdownMenu.Separator />
+
+			<ThemeSelector />
+
+			<DropdownMenu.Separator />
+
+			<DropdownMenu.Item>
+				<span class="flex w-full items-center justify-between">
+					<a href="/" class="flex w-full">Home Page</a>
+					<House />
+				</span>
+			</DropdownMenu.Item>
+
+			<DropdownMenu.Item onclick={handleLogout}>
+				<span class="flex w-full items-center justify-between">
+					<span>Log Out</span>
+					<LogOut />
+				</span>
+			</DropdownMenu.Item>
+		</DropdownMenu.Content>
+	</DropdownMenu.Root>
 {/if}
 
 <style>
-  .avatar-container {
+	.avatar-container {
 		width: 32px;
 		height: 32px;
 		border-radius: 50%;
@@ -94,7 +96,7 @@
 		transition: transform 0.2s;
 	}
 
-  .avatar-placeholder {
+	.avatar-placeholder {
 		width: 100%;
 		height: 100%;
 		display: flex;

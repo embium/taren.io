@@ -30,7 +30,7 @@ async def add_email(
     event_bus: EventBus = Depends(get_event_bus_dependency),
 ):
     """Add and verify a new email address for the user."""
-    from application.use_cases.add_additional_email import (
+    from application.use_cases.settings.add_additional_email import (
         AddAdditionalEmailUseCase,
     )
 
@@ -52,9 +52,11 @@ async def verify_additional_email(
     event_bus: EventBus = Depends(get_event_bus_dependency),
 ):
     """Verify the additional email address."""
-    from application.use_cases.verify_email import VerifyEmailUseCase
+    from application.use_cases.settings.verify_additional_email import (
+        VerifyAdditionalEmailUseCase,
+    )
 
-    use_case = VerifyEmailUseCase(
+    use_case = VerifyAdditionalEmailUseCase(
         user_repository, verification_repository, event_bus
     )
     message, email = await use_case.execute(request.token)

@@ -46,7 +46,7 @@ export const authApi = {
 	 */
 	async refreshToken(refreshToken: string): Promise<RefreshTokenResponse> {
 		return api.post<RefreshTokenResponse>(
-			'/api/auth/refresh',
+			'/auth/refresh',
 			{ refresh_token: refreshToken },
 			{ skipAuth: true }
 		);
@@ -85,5 +85,15 @@ export const authApi = {
 	 */
 	async resetPassword(request: ResetPasswordRequest): Promise<ResetPasswordResponse> {
 		return api.post<ResetPasswordResponse>('/auth/reset-password', request);
+	},
+
+	/**
+	 * Check if username exists
+	 */
+	async checkUsernameExists(username: string): Promise<boolean> {
+		const response = await api.get<{ exists: boolean }>(
+			`/auth/check-username-exists?username=${username}`
+		);
+		return response.exists;
 	}
 };

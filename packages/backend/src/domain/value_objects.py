@@ -8,7 +8,39 @@ from typing import Union
 from domain.exceptions import (
     InvalidEmailException,
     InvalidPasswordException,
+    InvalidUsernameException,
 )
+
+
+@dataclass(frozen=True)
+class Username:
+    """Username value object with validation."""
+
+    value: str
+
+    def __post_init__(self):
+        """Validate username format on initialization."""
+        self._validate_username(self.value)
+
+    @staticmethod
+    def _validate_username(username: str) -> None:
+        """
+        Validate username format:
+        - Length between 3 and 30 characters
+        - Alphanumeric, underscores, and hyphens only
+        """
+        if not (3 <= len(username) <= 30):
+            raise InvalidUsernameException(
+                "Username must be between 3 and 30 characters"
+            )
+
+        if not re.match(r"^[a-zA-Z0-9_-]+$", username):
+            raise InvalidUsernameException(
+                "Username can only contain letters, numbers, underscores, and hyphens"
+            )
+
+    def __str__(self) -> str:
+        return self.value
 
 
 @dataclass(frozen=True)
@@ -72,7 +104,7 @@ class Password:
                 "Password must contain at least one digit"
             )
 
-        if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
+        if not re.search(r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]", password):
             raise InvalidPasswordException(
                 "Password must contain at least one special character"
             )

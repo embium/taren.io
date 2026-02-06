@@ -1,19 +1,20 @@
 <script lang="ts">
-	import { getAuthState } from '$lib/stores/auth.svelte';
+	import type { LayoutData } from '../$types';
+	import { toast } from 'svelte-sonner';
 
-	const authState = getAuthState();
+	let { data }: { data: LayoutData } = $props();
 </script>
 
 <svelte:head>
 	<title>Dashboard - Taren</title>
 </svelte:head>
 
-{#if authState.isAuthenticated && authState.user}
+{#if data.user && data.user.is_email_verified}
 	<!-- Main Content -->
 	<main class="max-w-7xl mx-auto px-6 py-12">
 		<div class="mb-12">
 			<h2 class="text-4xl font-bold text-gray-900 dark:text-[#fafafa] mb-2">
-				Welcome back, {authState.user.name || authState.user.email.split('@')[0]}
+				Welcome back, {data.user.name || data.user.email.split('@')[0]}
 			</h2>
 			<p class="text-gray-500 dark:text-[#737373] text-lg">Here's your account overview</p>
 		</div>
@@ -37,7 +38,7 @@
 						>
 					</div>
 					<h3 class="text-gray-500 dark:text-[#737373] text-sm font-medium mb-1">Account Status</h3>
-					<p class="text-gray-900 dark:text-[#fafafa] text-2xl font-bold">{authState.user.is_verified ? 'Verified' : 'Not Verified'}</p>
+					<p class="text-gray-900 dark:text-[#fafafa] text-2xl font-bold">{data.user.is_email_verified ? 'Verified' : 'Not Verified'}</p>
 				</div>
 
 				<div class="bg-gray-50 dark:bg-[#171717] rounded-lg border border-gray-200 dark:border-[#262626] p-6">
@@ -54,7 +55,7 @@
 						</div>
 					</div>
 					<h3 class="text-gray-500 dark:text-[#737373] text-sm font-medium mb-1">Email</h3>
-					<p class="text-gray-900 dark:text-[#fafafa] text-lg font-semibold truncate">{authState.user.email}</p>
+					<p class="text-gray-900 dark:text-[#fafafa] text-lg font-semibold truncate">{data.user.email}</p>
 				</div>
 
 				<div class="bg-gray-50 dark:bg-[#171717] rounded-lg border border-gray-200 dark:border-[#262626] p-6">
@@ -72,7 +73,7 @@
 					</div>
 					<h3 class="text-gray-500 dark:text-[#737373] text-sm font-medium mb-1">Member Since</h3>
 					<p class="text-gray-900 dark:text-[#fafafa] text-lg font-semibold">
-						{new Date(authState.user.created_at).toLocaleDateString('en-US', {
+						{new Date(data.user.created_at).toLocaleDateString('en-US', {
 							month: 'short',
 							year: 'numeric'
 						})}
@@ -93,7 +94,7 @@
 						</div>
 					</div>
 					<h3 class="text-gray-500 dark:text-[#737373] text-sm font-medium mb-1">User ID</h3>
-					<p class="text-gray-900 dark:text-[#fafafa] text-sm font-mono truncate">{authState.user.id}</p>
+					<p class="text-gray-900 dark:text-[#fafafa] text-sm font-mono truncate">{data.user.id}</p>
 				</div>
 			</div>
 
@@ -132,25 +133,65 @@
 				</div>
 			</div>
 		</main>
-	{:else}
-		<div class="min-h-screen flex items-center justify-center bg-white dark:bg-[#0a0a0a]">
-			<div class="text-center">
-				<div class="spinner mx-auto mb-4"></div>
-				<p class="text-gray-500 dark:text-[#737373]">Loading...</p>
+{:else if data.user && !data.user.is_email_verified}
+	<!-- Email Verification Reminder -->
+	<main class="max-w-2xl mx-auto px-6 py-12">
+		<div class="bg-gray-50 dark:bg-[#171717] rounded-lg border border-gray-200 dark:border-[#262626] p-12 text-center">
+			<div class="w-20 h-20 mx-auto mb-6 rounded-full bg-yellow-500/20 flex items-center justify-center">
+				<svg class="w-10 h-10 text-yellow-600 dark:text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+					/>
+				</svg>
+			</div>
+			
+			<h2 class="text-3xl font-bold text-gray-900 dark:text-[#fafafa] mb-4">
+				Verify Your Email
+			</h2>
+			
+			<p class="text-lg text-gray-600 dark:text-[#a3a3a3] mb-6">
+				Welcome! We've sent a verification email to:
+			</p>
+			
+			<div class="inline-block bg-white dark:bg-[#0a0a0a] border border-gray-200 dark:border-[#262626] rounded-lg px-6 py-3 mb-8">
+				<code class="text-gray-900 dark:text-[#fafafa] font-medium">{data.user.email}</code>
+			</div>
+			
+			<p class="text-gray-600 dark:text-[#a3a3a3] mb-8">
+				Click the link in the email to verify your account and access all features.
+			</p>
+			
+			<div class="flex flex-col sm:flex-row gap-4 justify-center">
+				<button
+					onclick={() => {
+						toast.info('Resend feature coming soon!');
+					}}
+					class="px-6 py-3 rounded-lg bg-[#3b82f6] text-white font-semibold hover:bg-[#2563eb] transition-colors"
+				>
+					Resend Verification Email
+				</button>
+				
+				<a
+					href="/settings"
+					class="px-6 py-3 rounded-lg border border-gray-300 dark:border-[#262626] text-gray-700 dark:text-[#a3a3a3] font-semibold hover:bg-gray-50 dark:hover:bg-[#171717] transition-colors"
+				>
+					Update Email Address
+				</a>
+			</div>
+			
+			<div class="mt-8 pt-8 border-t border-gray-200 dark:border-[#262626]">
+				<p class="text-sm text-gray-500 dark:text-[#737373]">
+					Didn't receive the email? Check your spam folder or contact support.
+				</p>
 			</div>
 		</div>
-	{/if}
+	</main>
+{/if}
 
 <style>
-	.spinner {
-		width: 2rem;
-		height: 2rem;
-		border: 3px solid #262626;
-		border-top-color: #3b82f6;
-		border-radius: 50%;
-		animation: spin 0.6s linear infinite;
-	}
-
 	@keyframes spin {
 		to {
 			transform: rotate(360deg);

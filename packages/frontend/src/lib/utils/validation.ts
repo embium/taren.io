@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { emailSchema, passwordSchema } from '$lib/types/auth';
+import { emailSchema, passwordSchema, usernameSchema } from '$lib/types/auth';
 import { ValidationError } from '$lib/types/auth';
 
 /**
@@ -13,6 +13,17 @@ export function validateEmail(email: string): { valid: boolean; error?: string }
 	const result = emailSchema.safeParse(email);
 	if (!result.success) {
 		return { valid: false, error: result.error.issues[0]?.message || 'Invalid email' };
+	}
+	return { valid: true };
+}
+
+/**
+ * Validate username format
+ */
+export function validateUsername(username: string): { valid: boolean; error?: string } {
+	const result = usernameSchema.safeParse(username);
+	if (!result.success) {
+		return { valid: false, error: result.error.issues[0]?.message || 'Invalid username' };
 	}
 	return { valid: true };
 }

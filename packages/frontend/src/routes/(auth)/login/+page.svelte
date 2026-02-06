@@ -1,27 +1,18 @@
 <script lang="ts">
-	import { toast } from "svelte-sonner";
-	import { goto } from '$app/navigation';
+	import { toast } from 'svelte-sonner';
+	import { goto, invalidateAll } from '$app/navigation';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import Label from '$lib/components/ui/label/label.svelte';
-	import { login, getAuthState } from '$lib/stores/auth.svelte';
 	import { validateEmail } from '$lib/utils/validation';
 	import { mapErrorToMessage } from '$lib/utils/errors';
-
-	const authState = getAuthState();
+	import { authApi } from '$lib/api/auth.api';
 
 	let email = $state('');
 	let password = $state('');
 	let emailError = $state('');
 	let passwordError = $state('');
 	let isSubmitting = $state(false);
-
-	// Redirect if already authenticated
-	$effect(() => {
-		if (authState.isAuthenticated) {
-			goto('/dashboard');
-		}
-	});
 
 	function validateForm(): boolean {
 		let isValid = true;
@@ -54,7 +45,9 @@
 		isSubmitting = true;
 
 		try {
-			await login({ email, password });
+			await authApi.login({ email, password });
+			// Invalidate all load functions to update locals.user
+			await invalidateAll();
 			toast.success('Login successful! Redirecting...');
 			goto('/dashboard');
 		} catch (error) {
@@ -79,19 +72,19 @@
 	<title>Sign In - Taren</title>
 </svelte:head>
 
-<div class="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4 py-12">
+<div class="flex min-h-screen items-center justify-center bg-[#0a0a0a] px-4 py-12">
 	<div class="w-full max-w-md">
-		<div class="bg-[#171717] rounded-lg border border-[#262626] p-8">
+		<div class="rounded-lg border border-[#262626] bg-[#171717] p-8">
 			<!-- Header -->
 			<div class="mb-8 text-center">
-				<h1 class="text-3xl font-bold text-[#fafafa] mb-2">Welcome Back</h1>
+				<h1 class="mb-2 text-3xl font-bold text-[#fafafa]">Welcome Back</h1>
 				<p class="text-[#737373]">Sign in to continue to Taren</p>
 			</div>
 
 			<!-- Form -->
 			<form onsubmit={handleSubmit} class="space-y-6">
 				<div class="space-y-2">
-					<Label for="email" class="text-[#fafafa] font-medium">Email</Label>
+					<Label for="email" class="font-medium text-[#fafafa]">Email</Label>
 					<Input
 						id="email"
 						type="email"
@@ -110,7 +103,7 @@
 				</div>
 
 				<div class="space-y-2">
-					<Label for="password" class="text-[#fafafa] font-medium">Password</Label>
+					<Label for="password" class="font-medium text-[#fafafa]">Password</Label>
 					<Input
 						id="password"
 						type="password"
@@ -130,10 +123,10 @@
 
 				<Button
 					type="submit"
-					class="w-full bg-[#3b82f6] hover:bg-[#2563eb] text-white"
-					disabled={isSubmitting || authState.loading}
+					class="w-full bg-[#3b82f6] text-white hover:bg-[#2563eb]"
+					disabled={isSubmitting}
 				>
-					{#if isSubmitting || authState.loading}
+					{#if isSubmitting}
 						<span class="loading-spinner"></span>
 						Signing in...
 					{:else}
@@ -143,10 +136,10 @@
 			</form>
 
 			<!-- Footer -->
-			<div class="mt-6 text-center border-t border-[#262626] pt-6">
+			<div class="mt-6 border-t border-[#262626] pt-6 text-center">
 				<p class="text-[#737373]">
 					Don't have an account?
-					<a href="/register" class="text-[#3b82f6] hover:text-[#2563eb] font-medium">Create one</a>
+					<a href="/register" class="font-medium text-[#3b82f6] hover:text-[#2563eb]">Create one</a>
 				</p>
 			</div>
 		</div>

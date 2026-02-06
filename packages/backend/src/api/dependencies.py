@@ -2,7 +2,7 @@
 
 from typing import Annotated
 
-from fastapi import Depends, Header, HTTPException, status
+from fastapi import Depends, Header, HTTPException, status, Cookie
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from application.services.password_service import IPasswordService
@@ -71,12 +71,17 @@ def get_email_service():
 # Authentication dependency
 async def get_current_user(
     authorization: Annotated[str | None, Header()] = None,
+    access_token_cookie: Annotated[
+        str | None, Cookie(alias="access_token")
+    ] = None,
     token_service: ITokenService = Depends(get_token_service),
     user_repository: IUserRepository = Depends(get_user_repository),
     session_repository: ISessionRepository = Depends(get_session_repository),
 ) -> User:
     """
     Get the current authenticated user from JWT token.
+
+    Checks cookies first (for server-side requests), then Authorization header.
 
     Raises:
         HTTPException: If authentication fails
@@ -87,16 +92,20 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
 
-    # Check if authorization header exists
-    if not authorization:
-        raise credentials_exception
-
-    # Extract token from "Bearer <token>"
-    try:
-        scheme, token = authorization.split()
-        if scheme.lower() != "bearer":
+    # Try cookie first (for server-side), then Authorization header
+    token = None
+    if access_token_cookie:
+        token = access_token_cookie
+    elif authorization:
+        # Extract token from "Bearer <token>"
+        try:
+            scheme, token = authorization.split()
+            if scheme.lower() != "bearer":
+                raise credentials_exception
+        except ValueError:
             raise credentials_exception
-    except ValueError:
+
+    if not token:
         raise credentials_exception
 
     # Decode and validate token

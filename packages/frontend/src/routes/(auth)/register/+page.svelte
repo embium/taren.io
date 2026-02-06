@@ -1,25 +1,26 @@
 <script lang="ts">
 	import { toast } from 'svelte-sonner';
-	import { goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import Label from '$lib/components/ui/label/label.svelte';
-	import { register, getAuthState } from '$lib/stores/auth.svelte';
 	import {
 		validateEmail,
+		validateUsername,
 		validatePassword,
 		validatePasswordConfirmation,
 		getPasswordStrength,
 		getPasswordStrengthInfo
 	} from '$lib/utils/validation';
 	import { mapErrorToMessage } from '$lib/utils/errors';
-
-	const authState = getAuthState();
+	import { authApi } from '$lib/api/auth.api';
 
 	let email = $state('');
+	let username = $state('');
 	let password = $state('');
 	let confirmPassword = $state('');
 	let emailError = $state('');
+	let usernameError = $state('');
 	let passwordError = $state('');
 	let confirmPasswordError = $state('');
 	let isSubmitting = $state(false);
@@ -27,13 +28,7 @@
 	const passwordStrength = $derived(getPasswordStrength(password));
 	const strengthInfo = $derived(getPasswordStrengthInfo(passwordStrength));
 
-	$effect(() => {
-		if (authState.isAuthenticated) {
-			goto('/dashboard');
-		}
-	});
-
-	function validateForm(): boolean {
+	async function validateForm(): Promise<boolean> {
 		let isValid = true;
 
 		const emailValidation = validateEmail(email);
@@ -42,6 +37,20 @@
 			isValid = false;
 		} else {
 			emailError = '';
+		}
+
+		const usernameValidation = validateUsername(username);
+		if (!usernameValidation.valid) {
+			usernameError = usernameValidation.error || '';
+			isValid = false;
+		} else {
+			const usernameExist = await authApi.checkUsernameExists(username);
+			if (usernameExist) {
+				usernameError = 'Username already exists';
+				isValid = false;
+			} else {
+				usernameError = '';
+			}
 		}
 
 		const passwordValidation = validatePassword(password);
@@ -66,18 +75,19 @@
 	async function handleSubmit(event: SubmitEvent) {
 		event.preventDefault();
 
-		if (!validateForm()) {
+		const isValid = await validateForm();
+		if (!isValid) {
 			return;
 		}
 
 		isSubmitting = true;
 
 		try {
-			await register({ email, password });
-			// Store email in sessionStorage for check-email page
-			sessionStorage.setItem('pendingVerificationEmail', email);
-			// Redirect to check email page
-			goto('/check-email');
+			await authApi.register({ email, username, password });
+			// Invalidate all load functions to update locals.user
+			await invalidateAll();
+			toast.success('Registration successful! Please check your email to verify your account.');
+			goto('/dashboard');
 		} catch (error) {
 			const errorMessage = mapErrorToMessage(error);
 			toast.error(errorMessage);
@@ -89,6 +99,10 @@
 
 	function handleEmailInput() {
 		if (emailError) emailError = '';
+	}
+
+	function handleUsernameInput() {
+		if (usernameError) usernameError = '';
 	}
 
 	function handlePasswordInput() {
@@ -104,17 +118,17 @@
 	<title>Create Account - Taren</title>
 </svelte:head>
 
-<div class="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4 py-12">
+<div class="flex min-h-screen items-center justify-center bg-[#0a0a0a] px-4 py-12">
 	<div class="w-full max-w-md">
-		<div class="bg-[#171717] rounded-lg border border-[#262626] p-8">
+		<div class="rounded-lg border border-[#262626] bg-[#171717] p-8">
 			<div class="mb-8 text-center">
-				<h1 class="text-3xl font-bold text-[#fafafa] mb-2">Join Taren</h1>
+				<h1 class="mb-2 text-3xl font-bold text-[#fafafa]">Join Taren</h1>
 				<p class="text-[#737373]">Create your account to get started</p>
 			</div>
 
 			<form onsubmit={handleSubmit} class="space-y-5">
 				<div class="space-y-2">
-					<Label for="email" class="text-[#fafafa] font-medium">Email</Label>
+					<Label for="email" class="font-medium text-[#fafafa]">Email</Label>
 					<Input
 						id="email"
 						type="email"
@@ -133,7 +147,26 @@
 				</div>
 
 				<div class="space-y-2">
-					<Label for="password" class="text-[#fafafa] font-medium">Password</Label>
+					<Label for="username" class="font-medium text-[#fafafa]">Username</Label>
+					<Input
+						id="username"
+						type="text"
+						placeholder="Create a username"
+						bind:value={username}
+						oninput={handleUsernameInput}
+						disabled={isSubmitting}
+						class="border-[#262626] bg-[#0a0a0a] text-[#fafafa] focus:border-[#3b82f6] focus:ring-[#3b82f6] {usernameError
+							? 'border-red-500'
+							: ''}"
+						required
+					/>
+					{#if usernameError}
+						<p class="text-sm text-red-500">{usernameError}</p>
+					{/if}
+				</div>
+
+				<div class="space-y-2">
+					<Label for="password" class="font-medium text-[#fafafa]">Password</Label>
 					<Input
 						id="password"
 						type="password"
@@ -148,10 +181,11 @@
 					/>
 					{#if password}
 						<div class="space-y-1">
-							<div class="h-1 w-full bg-[#262626] rounded overflow-hidden">
+							<div class="h-1 w-full overflow-hidden rounded bg-[#262626]">
 								<div
 									class="h-full transition-all"
-									style="width: {(passwordStrength / 4) * 100}%; background-color: {strengthInfo.color}"
+									style="width: {(passwordStrength / 4) *
+										100}%; background-color: {strengthInfo.color}"
 								></div>
 							</div>
 							<p class="text-xs text-[#737373]">
@@ -169,7 +203,7 @@
 				</div>
 
 				<div class="space-y-2">
-					<Label for="confirmPassword" class="text-[#fafafa] font-medium">Confirm Password</Label>
+					<Label for="confirmPassword" class="font-medium text-[#fafafa]">Confirm Password</Label>
 					<Input
 						id="confirmPassword"
 						type="password"
@@ -189,10 +223,10 @@
 
 				<Button
 					type="submit"
-					class="w-full bg-[#3b82f6] hover:bg-[#2563eb] text-white"
-					disabled={isSubmitting || authState.loading}
+					class="w-full bg-[#3b82f6] text-white hover:bg-[#2563eb]"
+					disabled={isSubmitting}
 				>
-					{#if isSubmitting || authState.loading}
+					{#if isSubmitting}
 						<span class="loading-spinner"></span>
 						Creating account...
 					{:else}
@@ -201,10 +235,10 @@
 				</Button>
 			</form>
 
-			<div class="mt-6 text-center border-t border-[#262626] pt-6">
+			<div class="mt-6 border-t border-[#262626] pt-6 text-center">
 				<p class="text-[#737373]">
 					Already have an account?
-					<a href="/login" class="text-[#3b82f6] hover:text-[#2563eb] font-medium">Sign in</a>
+					<a href="/login" class="font-medium text-[#3b82f6] hover:text-[#2563eb]">Sign in</a>
 				</p>
 			</div>
 		</div>

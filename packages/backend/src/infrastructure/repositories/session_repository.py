@@ -96,12 +96,19 @@ class SessionRepository(ISessionRepository):
         await self._session.flush()
 
     @staticmethod
+    def _ensure_utc(dt: datetime) -> datetime:
+        """Ensure the datetime is timezone-aware (UTC)."""
+        if dt.tzinfo is None:
+            return dt.replace(tzinfo=timezone.utc)
+        return dt
+
+    @staticmethod
     def _model_to_entity(model: SessionModel) -> Session:
         """Convert SQLAlchemy model to domain entity."""
         return Session(
             id=SessionId.from_string(model.id),
             user_id=UserId.from_string(model.user_id),
-            created_at=model.created_at,
-            expires_at=model.expires_at,
+            created_at=SessionRepository._ensure_utc(model.created_at),
+            expires_at=SessionRepository._ensure_utc(model.expires_at),
             is_revoked=model.is_revoked,
         )

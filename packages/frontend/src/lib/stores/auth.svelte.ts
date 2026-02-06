@@ -30,7 +30,7 @@ const isAuthenticated = $derived(user !== null);
 /**
  * Initialize auth state from storage
  */
-export function initializeAuth(): void {
+export async function initializeAuth(): Promise<void> {
 	if (initialized) return;
 
 	const storedUser = storage.getItem(STORAGE_KEYS.USER);
@@ -40,6 +40,15 @@ export function initializeAuth(): void {
 		try {
 			user = JSON.parse(storedUser);
 			setTokens('', storedRefreshToken); // Access token will be refreshed on first request
+
+			// Validate the session by attempting to fetch current user
+			// This will trigger a token refresh if needed, or clear auth if refresh token is invalid
+			try {
+				await fetchCurrentUser();
+			} catch (err) {
+				// If validation fails, the error handler in fetchCurrentUser will clear auth
+				console.error('Session validation failed:', err);
+			}
 		} catch (err) {
 			console.error('Failed to parse stored user:', err);
 			clearAuth();
@@ -52,7 +61,7 @@ export function initializeAuth(): void {
 /**
  * Clear auth state
  */
-function clearAuth(): void {
+export function clearAuth(): void {
 	user = null;
 	error = null;
 	clearTokens();
@@ -63,11 +72,8 @@ function clearAuth(): void {
 /**
  * Store auth data
  */
-function storeAuth(userData: User, accessToken: string, refreshToken: string): void {
-	user = userData;
-	setTokens(accessToken, refreshToken);
+function storeAuth(userData: User): void {
 	storage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
-	storage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
 }
 
 /**
@@ -79,7 +85,7 @@ export async function login(credentials: LoginRequest): Promise<void> {
 
 	try {
 		const response = await authApi.login(credentials);
-		storeAuth(response.user, response.access_token, response.refresh_token);
+		storeAuth(response.user);
 	} catch (err) {
 		error = err instanceof AuthError ? err.message : 'Login failed. Please try again.';
 		throw err;

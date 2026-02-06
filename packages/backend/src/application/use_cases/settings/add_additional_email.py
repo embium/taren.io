@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 from domain.entities import EmailVerification, VerificationType
 from domain.events import EmailVerificationRequested
-from domain.exceptions import UserAlreadyExistsException
+from domain.exceptions import UserEmailAlreadyExistsException
 from domain.repositories import (
     IEmailVerificationRepository,
     IUserRepository,
@@ -36,7 +36,7 @@ class AddAdditionalEmailUseCase:
             email: New email address to add
 
         Raises:
-            UserAlreadyExistsException: If email is already in use
+            UserEmailAlreadyExistsException: If email is already in use
         """
         # Parse values
         user_id_vo = UserId.from_string(user_id)
@@ -44,7 +44,7 @@ class AddAdditionalEmailUseCase:
 
         # Check if email already exists
         if await self._user_repository.exists_by_email(email_vo):
-            raise UserAlreadyExistsException(email)
+            raise UserEmailAlreadyExistsException(email)
 
         # Get current user
         user = await self._user_repository.find_by_id(user_id_vo)

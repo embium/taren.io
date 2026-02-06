@@ -17,7 +17,6 @@ from application.schemas import (
 from application.services.password_service import IPasswordService
 from domain.entities import User
 from domain.repositories import IUserRepository, ISessionRepository
-from domain.value_objects import Email, Password
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -33,6 +32,7 @@ async def get_me(current_user: User = Depends(get_current_user)):
     return UserResponse(
         id=str(current_user.id),
         email=str(current_user.email),
+        username=str(current_user.username),
         name=current_user.name,
         avatar=current_user.avatar,
         created_at=current_user.created_at,
@@ -53,37 +53,21 @@ async def update_profile(
     user_repository: IUserRepository = Depends(get_user_repository),
 ):
     """Update the current user's profile (name, email, avatar)."""
-    # Check if email is being updated and if it's already taken
-    if update_data.email and str(update_data.email) != str(current_user.email):
-        if await user_repository.exists_by_email(
-            Email(value=str(update_data.email))
-        ):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email already in use",
-            )
-        email_to_update = Email(value=str(update_data.email))
-    else:
-        email_to_update = None
+    from application.use_cases.users.update_profile import UpdateProfileUseCase
 
-    # Update user profile
-    current_user.update_profile(
-        name=update_data.name,
-        email=email_to_update,
-        avatar=update_data.avatar,
-    )
-
-    # Save to database
-    await user_repository.save(current_user)
+    use_case = UpdateProfileUseCase(user_repository)
+    await use_case.execute(update_data, current_user)
 
     return UserResponse(
         id=str(current_user.id),
         email=str(current_user.email),
+        username=str(current_user.username),
         name=current_user.name,
         avatar=current_user.avatar,
         created_at=current_user.created_at,
         is_active=current_user.is_active,
         is_email_verified=current_user.is_email_verified,
+        username_last_changed_at=current_user.username_last_changed_at,
     )
 
 
@@ -101,22 +85,11 @@ async def delete_account(
     password_service: IPasswordService = Depends(get_password_service),
 ):
     """Soft-delete the current user account after password verification."""
-    # Verify password
-    is_valid, _ = password_service.verify_password(
-        Password(value=delete_data.password),
-        current_user.password_hash,
+    from application.use_cases.users.delete_account import DeleteAccountUseCase
+
+    use_case = DeleteAccountUseCase(
+        user_repository, session_repository, password_service
     )
-    if not is_valid:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid password",
-        )
-
-    # Deactivate user account (soft delete)
-    current_user.deactivate()
-    await user_repository.save(current_user)
-
-    # Revoke all active sessions
-    await session_repository.revoke_all_for_user(current_user.id)
+    await use_case.execute(delete_data, current_user)
 
     return DeleteAccountResponse(message="Account successfully deactivated")

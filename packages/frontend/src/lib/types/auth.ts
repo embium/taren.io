@@ -14,6 +14,22 @@ import { z } from 'zod';
 export const emailSchema = z.string().email('Invalid email format').min(1, 'Email is required');
 
 /**
+ * Username validation schema matching backend requirements:
+ * - Minimum 3 characters
+ * - Maximum 30 characters
+ * - Only letters, numbers, and underscores
+ * - Must start with a letter
+ */
+export const usernameSchema = z
+	.string()
+	.min(3, 'Username must be at least 3 characters long')
+	.max(30, 'Username must be at most 30 characters long')
+	.regex(
+		/^[a-zA-Z][a-zA-Z0-9_]*$/,
+		'Username must start with a letter and contain only letters, numbers, and underscores'
+	);
+
+/**
  * Password validation schema matching backend requirements:
  * - Minimum 8 characters
  * - At least one uppercase letter
@@ -43,6 +59,7 @@ export const loginRequestSchema = z.object({
 
 export const registerUserRequestSchema = z.object({
 	email: emailSchema,
+	username: usernameSchema,
 	password: passwordSchema
 });
 
@@ -78,12 +95,14 @@ export const resetPasswordRequestSchema = z.object({
 
 export const userSchema = z.object({
 	id: z.string(),
-	email: z.string().email(),
+	email: z.email(),
+	username: z.string(),
 	name: z.string().nullable(),
 	avatar: z.string().nullable(),
 	created_at: z.string(),
 	is_active: z.boolean(),
-	is_verified: z.boolean()
+	is_email_verified: z.boolean(),
+	username_last_changed_at: z.string().nullable().optional()
 });
 
 export const loginResponseSchema = z.object({
@@ -97,8 +116,9 @@ export const loginResponseSchema = z.object({
 export const registerUserResponseSchema = z.object({
 	user_id: z.string(),
 	email: z.string().email(),
+	username: z.string(),
 	created_at: z.string(),
-	message: z.string()
+	message: z.string().optional()
 });
 
 export const refreshTokenResponseSchema = z.object({
@@ -121,7 +141,12 @@ export const errorResponseSchema = z.object({
 });
 
 export const verifyEmailResponseSchema = z.object({
-	message: z.string()
+	message: z.string(),
+	email: z.string(),
+	access_token: z.string().optional(),
+	refresh_token: z.string().optional(),
+	token_type: z.string().optional(),
+	expires_in: z.number().optional()
 });
 
 export const forgotPasswordResponseSchema = z.object({

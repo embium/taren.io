@@ -3,6 +3,7 @@
 from datetime import datetime
 from typing import Optional
 
+from domain.entities import Username
 from pydantic import BaseModel, EmailStr, Field
 
 
@@ -11,6 +12,13 @@ class RegisterUserRequest(BaseModel):
     """Request schema for user registration."""
 
     email: EmailStr = Field(..., description="User's email address")
+    username: str = Field(
+        ...,
+        min_length=3,
+        max_length=30,
+        pattern="^[a-zA-Z0-9_-]+$",
+        description="User's username",
+    )
     password: str = Field(
         ...,
         min_length=8,
@@ -26,8 +34,26 @@ class RegisterUserResponse(BaseModel):
 
     user_id: str
     email: str
+    username: str
     created_at: datetime
     message: str = "User registered successfully"
+    access_token: Optional[str] = None
+    refresh_token: Optional[str] = None
+    token_type: str = "bearer"
+    expires_in: Optional[int] = None
+
+
+# Check Username DTOs
+class CheckUsernameRequest(BaseModel):
+    """Request schema for checking username."""
+
+    username: str = Field(..., min_length=3, max_length=30)
+
+
+class CheckUsernameResponse(BaseModel):
+    """Response schema for checking username."""
+
+    exists: bool
 
 
 # Login DTOs
@@ -75,12 +101,15 @@ class UserResponse(BaseModel):
     """Response schema for user data."""
 
     id: str
+    id: str
     email: str
+    username: str
     name: Optional[str] = None
     avatar: Optional[str] = None
     created_at: datetime
     is_active: bool
     is_email_verified: bool
+    username_last_changed_at: Optional[datetime] = None
 
 
 class UpdateUserRequest(BaseModel):
@@ -89,6 +118,7 @@ class UpdateUserRequest(BaseModel):
     name: Optional[str] = Field(None, max_length=255)
     email: Optional[EmailStr] = None
     avatar: Optional[str] = Field(None, description="Base64 encoded image")
+    username: Optional[str] = Field(None, max_length=30)
 
 
 # Password Reset DTOs
@@ -121,6 +151,10 @@ class VerifyEmailResponse(BaseModel):
 
     message: str
     email: str
+    access_token: Optional[str] = None
+    refresh_token: Optional[str] = None
+    token_type: str = "bearer"
+    expires_in: Optional[int] = None  # seconds until access token expires
 
 
 class ResendVerificationRequest(BaseModel):

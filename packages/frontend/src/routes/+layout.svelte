@@ -11,8 +11,8 @@
 	let { children } = $props();
 
 	// Initialize auth on mount (client-side only)
-	onMount(() => {
-		initializeAuth();
+	onMount(async () => {
+		await initializeAuth();
 	});
 </script>
 
