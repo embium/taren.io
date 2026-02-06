@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { toast } from 'svelte-sonner';
-	import { goto, invalidateAll } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import Label from '$lib/components/ui/label/label.svelte';
@@ -84,9 +84,6 @@
 
 		try {
 			await authApi.register({ email, username, password });
-			// Invalidate all load functions to update locals.user
-			await invalidateAll();
-			toast.success('Registration successful! Please check your email to verify your account.');
 			goto('/dashboard');
 		} catch (error) {
 			const errorMessage = mapErrorToMessage(error);

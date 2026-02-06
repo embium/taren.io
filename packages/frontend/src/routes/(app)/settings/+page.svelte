@@ -2,19 +2,18 @@
 	import { Copy, Check } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import { goto } from '$app/navigation';
-	import { updateUser } from '$lib/stores/auth.svelte';
+	import { getAuthState, updateUser } from '$lib/stores/auth.svelte';
 	import { settingsApi } from '$lib/api/settings.api';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import SettingsCard from './components/SettingsCard.svelte';
-	import type { LayoutData } from '../$types';
 
- 	const { data }: { data: LayoutData } = $props();
+	const authState = getAuthState();
 
 	// Reactive state
-	let displayName = $derived(data.user?.name || '');
-	let avatarPreview = $derived<string | null>(data.user?.avatar || null);
+	let displayName = $state(authState.user?.name || '');
+	let avatarPreview = $state<string | null>(authState.user?.avatar || null);
 	let isSavingName = $state(false);
 	let isSavingUsername = $state(false);
 	let isCopied = $state(false);
@@ -22,7 +21,7 @@
 	let deletePassword = $state('');
 	let isDeleting = $state(false);
 	let avatarInput: HTMLInputElement | null = $state(null);
-	let username = $derived(data.user?.username || '');
+	let username = $state(authState.user?.username || '');
 
 	async function handleAvatarUpload(event: Event) {
 		const input = event.target as HTMLInputElement;
@@ -55,7 +54,7 @@
 				toast.success('Avatar updated successfully');
 			} catch (error) {
 				toast.error('Failed to upload avatar');
-				avatarPreview = data.user?.avatar || null;
+				avatarPreview = authState.user?.avatar || null;
 			}
 		};
 		reader.readAsDataURL(file);
@@ -86,10 +85,10 @@
 	}
 
 	async function copyUserId() {
-		if (!data.user?.id) return;
+		if (!authState.user?.id) return;
 
 		try {
-			await navigator.clipboard.writeText(data.user.id);
+			await navigator.clipboard.writeText(authState.user.id);
 			isCopied = true;
 			toast.success('User ID copied to clipboard');
 			setTimeout(() => {
@@ -188,8 +187,8 @@
 						{:else}
 							<div class="avatar-placeholder">
 								<span class="text-2xl font-bold"
-									>{data.user?.name?.[0]?.toUpperCase() ||
-										data.user?.email[0].toUpperCase()}</span
+									>{authState.user?.name?.[0]?.toUpperCase() ||
+										authState.user?.email[0].toUpperCase()}</span
 								>
 							</div>
 						{/if}
@@ -231,7 +230,7 @@
 				footerText="Emails that can be used to sign in to your account will be marked as verified."
 			>
 				<div class="flex items-center gap-3">
-					<div class="email-badge">{data.user?.email}</div>
+					<div class="email-badge">{authState.user?.email}</div>
 					<span class="badge-verified">Verified</span>
 					<span class="badge-primary">Primary</span>
 				</div>
@@ -262,7 +261,7 @@
 				footerText="Used when interacting with the Taren API."
 			>
 				<div class="flex items-center gap-3">
-					<code class="user-id">{data.user?.id}</code>
+					<code class="user-id">{authState.user?.id}</code>
 					<Button
 						variant="outline"
 						size="sm"

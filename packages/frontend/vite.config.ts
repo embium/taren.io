@@ -20,16 +20,7 @@ export default defineConfig({
 				resolve(__dirname, '../../node_modules')
 			],
 			strict: false
-		},
-		...(process.env.ENVIRONMENT !== 'production' && {
-			proxy: {
-				'/api': {
-					target: 'http://localhost:8000',
-					changeOrigin: true,
-					rewrite: (path) => path.replace(/^\/api/, '')
-				}
-			}
-		})
+		}
 	},
 	resolve: {
 		alias: {

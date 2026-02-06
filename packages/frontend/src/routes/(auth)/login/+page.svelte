@@ -1,18 +1,27 @@
 <script lang="ts">
 	import { toast } from 'svelte-sonner';
-	import { goto, invalidateAll } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import Label from '$lib/components/ui/label/label.svelte';
+	import { login, getAuthState } from '$lib/stores/auth.svelte';
 	import { validateEmail } from '$lib/utils/validation';
 	import { mapErrorToMessage } from '$lib/utils/errors';
-	import { authApi } from '$lib/api/auth.api';
+
+	const authState = getAuthState();
 
 	let email = $state('');
 	let password = $state('');
 	let emailError = $state('');
 	let passwordError = $state('');
 	let isSubmitting = $state(false);
+
+	// Redirect if already authenticated
+	$effect(() => {
+		if (authState.isAuthenticated) {
+			goto('/dashboard');
+		}
+	});
 
 	function validateForm(): boolean {
 		let isValid = true;
@@ -45,9 +54,7 @@
 		isSubmitting = true;
 
 		try {
-			await authApi.login({ email, password });
-			// Invalidate all load functions to update locals.user
-			await invalidateAll();
+			await login({ email, password });
 			toast.success('Login successful! Redirecting...');
 			goto('/dashboard');
 		} catch (error) {
@@ -124,9 +131,9 @@
 				<Button
 					type="submit"
 					class="w-full bg-[#3b82f6] text-white hover:bg-[#2563eb]"
-					disabled={isSubmitting}
+					disabled={isSubmitting || authState.loading}
 				>
-					{#if isSubmitting}
+					{#if isSubmitting || authState.loading}
 						<span class="loading-spinner"></span>
 						Signing in...
 					{:else}
