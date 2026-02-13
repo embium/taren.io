@@ -124,10 +124,12 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
 				// Retry the request with new token
 				return apiRequest<T>(endpoint, { ...options, retries: retries - 1 });
 			} catch (refreshError) {
-				// If refresh fails, clear all auth state including localStorage
-				clearTokens();
-				storage.removeItem(STORAGE_KEYS.USER);
-				storage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+				// If refresh fails, handle session expiration
+				// Import is done dynamically to avoid circular dependencies
+				const { handleSessionExpired } = await import('$lib/utils/logout.util');
+				await handleSessionExpired();
+
+				// Throw error to stop further execution
 				throw new AuthError('Session expired. Please log in again.', 'SESSION_EXPIRED', 401);
 			}
 		}
@@ -143,6 +145,15 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
 			const error: ErrorResponse = parsedError.success
 				? parsedError.data
 				: { detail: errorData.detail || 'An error occurred' };
+
+			// Check for authentication errors that indicate stale/invalid tokens
+			const authErrorCodes = ['INVALID_TOKEN', 'TOKEN_EXPIRED', 'SESSION_EXPIRED'];
+			if (error.error_code && authErrorCodes.includes(error.error_code)) {
+				// Handle session expiration
+				const { handleSessionExpired } = await import('$lib/utils/logout.util');
+				await handleSessionExpired(error.detail);
+				throw new AuthError(error.detail, error.error_code, response.status);
+			}
 
 			throw new AuthError(error.detail, error.error_code, response.status);
 		}
