@@ -30,7 +30,7 @@ const isAuthenticated = $derived(user !== null);
 /**
  * Initialize auth state from storage
  */
-export async function initializeAuth(): Promise<void> {
+export function initializeAuth(): void {
 	if (initialized) return;
 
 	const storedUser = storage.getItem(STORAGE_KEYS.USER);
@@ -40,15 +40,6 @@ export async function initializeAuth(): Promise<void> {
 		try {
 			user = JSON.parse(storedUser);
 			setTokens('', storedRefreshToken); // Access token will be refreshed on first request
-
-			// Validate the session by attempting to fetch current user
-			// This will trigger a token refresh if needed, or clear auth if refresh token is invalid
-			try {
-				await fetchCurrentUser();
-			} catch (err) {
-				// If validation fails, the error handler in fetchCurrentUser will clear auth
-				console.error('Session validation failed:', err);
-			}
 		} catch (err) {
 			console.error('Failed to parse stored user:', err);
 			clearAuth();
@@ -61,7 +52,7 @@ export async function initializeAuth(): Promise<void> {
 /**
  * Clear auth state
  */
-export function clearAuthState(): void {
+function clearAuth(): void {
 	user = null;
 	error = null;
 	clearTokens();
@@ -127,7 +118,7 @@ export async function logout(): Promise<void> {
 		console.error('Logout error:', err);
 		// Continue with local logout even if API call fails
 	} finally {
-		clearAuthState();
+		clearAuth();
 		loading = false;
 	}
 }
@@ -150,7 +141,7 @@ export async function fetchCurrentUser(): Promise<void> {
 
 		// If unauthorized, clear auth
 		if (err instanceof AuthError && err.statusCode === 401) {
-			clearAuthState();
+			clearAuth();
 		}
 
 		throw err;

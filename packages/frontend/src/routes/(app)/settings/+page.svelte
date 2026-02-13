@@ -52,17 +52,9 @@
 				// Update local auth state properly to trigger reactivity
 				updateUser({ avatar: base64 });
 				toast.success('Avatar updated successfully');
-			} catch (error: any) {
-				// Auth errors are handled by the API client (logout + redirect)
-				// Only show error toast for non-auth errors
-				if (error?.name !== 'AuthError') {
-					toast.error('Failed to upload avatar');
-					avatarPreview = authState.user?.avatar || null;
-				}
-				// Re-throw auth errors to prevent further execution
-				if (error?.name === 'AuthError') {
-					throw error;
-				}
+			} catch (error) {
+				toast.error('Failed to upload avatar');
+				avatarPreview = authState.user?.avatar || null;
 			}
 		};
 		reader.readAsDataURL(file);
@@ -85,16 +77,8 @@
 			// Update local auth state properly to trigger reactivity
 			updateUser({ name: displayName });
 			toast.success('Display name updated');
-		} catch (error: any) {
-			// Auth errors are handled by the API client (logout + redirect)
-			// Only show error toast for non-auth errors
-			if (error?.name !== 'AuthError') {
-				toast.error(error?.message || 'Failed to update display name');
-			}
-			// Re-throw auth errors to prevent further execution
-			if (error?.name === 'AuthError') {
-				throw error;
-			}
+		} catch (error) {
+			toast.error('Failed to update display name');
 		} finally {
 			isSavingName = false;
 		}
@@ -133,21 +117,13 @@
 			updateUser({ username });
 			toast.success('Username updated');
 		} catch (error: any) {
-			// Auth errors are handled by the API client (logout + redirect)
-			// Only show error toast for non-auth errors
-			if (error?.name !== 'AuthError') {
-				// Handle specific backend errors (like 30-day restriction)
-				if (error?.message) {
-					toast.error(error.message);
-				} else if (error?.detail) {
-					toast.error(error.detail);
-				} else {
-					toast.error('Failed to update username');
-				}
-			}
-			// Re-throw auth errors to prevent further execution
-			if (error?.name === 'AuthError') {
-				throw error;
+			// Handle specific backend errors (like 30-day restriction)
+			if (error?.message) {
+				toast.error(error.message);
+			} else if (error?.detail) {
+				toast.error(error.detail);
+			} else {
+				toast.error('Failed to update username');
 			}
 		} finally {
 			isSavingUsername = false;
