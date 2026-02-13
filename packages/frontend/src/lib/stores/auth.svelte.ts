@@ -30,7 +30,7 @@ const isAuthenticated = $derived(user !== null);
 /**
  * Initialize auth state from storage
  */
-export function initializeAuth(): void {
+export async function initializeAuth(): Promise<void> {
 	if (initialized) return;
 
 	const storedUser = storage.getItem(STORAGE_KEYS.USER);
@@ -40,6 +40,15 @@ export function initializeAuth(): void {
 		try {
 			user = JSON.parse(storedUser);
 			setTokens('', storedRefreshToken); // Access token will be refreshed on first request
+
+			// Validate the session by attempting to fetch current user
+			// This will trigger a token refresh if needed, or clear auth if refresh token is invalid
+			try {
+				await fetchCurrentUser();
+			} catch (err) {
+				// If validation fails, the error handler in fetchCurrentUser will clear auth
+				console.error('Session validation failed:', err);
+			}
 		} catch (err) {
 			console.error('Failed to parse stored user:', err);
 			clearAuth();
