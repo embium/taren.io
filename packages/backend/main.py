@@ -1,4 +1,4 @@
-"""FastAPI application entry point for DDD Authentication System."""
+"""FastAPI application entry point."""
 
 import logging
 from contextlib import asynccontextmanager
@@ -6,13 +6,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.error_handlers import register_error_handlers
-from api.routers import auth, users
-from config.settings import settings
-from infrastructure.database.connection import async_engine
-from infrastructure.database.models import Base
-from infrastructure.events.event_bus import get_event_bus
-from infrastructure.events.event_handlers import register_event_handlers
+from core import async_engine, settings
+from core.database import Base
+from routers import auth, users
+from services.email_service import EmailService
 
 # Configure logging
 logging.basicConfig(
@@ -29,12 +26,6 @@ async def lifespan(app: FastAPI):
     async with async_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    # Register event handlers with email service
-    from api.dependencies import get_email_service
-
-    event_bus = get_event_bus()
-    email_service = get_email_service()
-    register_event_handlers(event_bus, email_service)
     logger.info("Application started successfully")
 
     yield
@@ -47,8 +38,8 @@ async def lifespan(app: FastAPI):
 # Create FastAPI application
 app = FastAPI(
     title="Taren Authentication API",
-    description="Enterprise-grade authentication system built with Domain-Driven Design",
-    version="1.0.0",
+    description="Simple and powerful authentication system",
+    version="2.0.0",
     lifespan=lifespan,
 )
 
@@ -65,21 +56,14 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(users.router)
 
-# Register settings router for email management
-from api.routers import settings
-
-app.include_router(settings.router)
-
-# Register error handlers
-register_error_handlers(app)
-
 
 @app.get("/", tags=["Health"])
 async def root():
     """Root endpoint for health check."""
     return {
         "message": "Taren Authentication API",
-        "version": "1.0.0",
+        "version": "2.0.0",
+        "architecture": "3-layer",
         "status": "running",
     }
 
