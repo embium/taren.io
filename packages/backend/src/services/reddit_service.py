@@ -27,7 +27,7 @@ from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from config.settings import settings
+from core.config import settings
 from models.reddit import (
     RedditJob,
     RedditPost,

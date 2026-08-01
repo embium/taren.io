@@ -53,6 +53,10 @@ class Settings(BaseSettings):
     proxy_url: str = "http://proxy.proxying.io:8080"
     scrape_limit: int = 25
 
+    # Stripe settings
+    stripe_product_id_starter: str = "prod_UzilBzFZtKK3ms"
+    stripe_product_id_professional: str = "prod_UzilBzFZtKK3ms"
+
 
 # Global settings instance
 settings = Settings()

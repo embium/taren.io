@@ -47,10 +47,18 @@ class Settings(BaseSettings):
     email_verification_token_expire_hours: int = 24
     password_reset_token_expire_hours: int = 1
 
+    # Reddit scraper settings
+    openrouter_api_key: str = ""
+    openrouter_model: str = "deepseek/deepseek-v4-flash"
+    proxy_url: str = "http://proxy.proxying.io:8080"
+    scrape_limit: int = 25
+
     # Stripe settings
     stripe_publishable_key: str = ""
     stripe_secret_key: str = ""
     stripe_webhook_secret: str = ""
+    stripe_product_id_starter: str = "prod_UzilBzFZtKK3ms"
+    stripe_product_id_professional: str = "prod_UzilBzFZtKK3ms"
 
 
 # Global settings instance

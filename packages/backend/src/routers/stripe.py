@@ -20,20 +20,21 @@ class CheckoutSessionRequest(BaseModel):
 
 @router.post("/create-checkout-session")
 async def create_checkout_session(
-    request: CheckoutSessionRequest,
-    user: User = Depends(get_current_user)
+    request: CheckoutSessionRequest, user: User = Depends(get_current_user)
 ):
     """Create a Stripe Checkout Session."""
     try:
         # We need the active Price ID for the given Product ID
-        prices = stripe.Price.list(product=request.product_id, active=True, limit=1)
-        
+        prices = stripe.Price.list(
+            product=request.product_id, active=True, limit=1
+        )
+
         if not prices.data:
             raise HTTPException(
                 status_code=404,
-                detail=f"No active price found for product {request.product_id}"
+                detail=f"No active price found for product {request.product_id}",
             )
-            
+
         price_id = prices.data[0].id
 
         # Create Checkout Session
@@ -41,7 +42,11 @@ async def create_checkout_session(
             payment_method_types=["card"],
             client_reference_id=str(user.id),
             metadata={
-                "tier": "Starter" if request.product_id == "prod_UzilBzFZtKK3ms" else "Professional"
+                "tier": (
+                    "Starter"
+                    if request.product_id == settings.stripe_product_id_starter
+                    else "Professional"
+                )
             },
             line_items=[
                 {
@@ -57,27 +62,24 @@ async def create_checkout_session(
         return {"url": checkout_session.url}
     except stripe.error.StripeError as e:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
         )
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )
 
 
 @router.post("/webhook")
-async def stripe_webhook(
-    request: Request,
-    db: AsyncSession = Depends(get_db)
-):
+async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
     """Handle Stripe Webhooks."""
     payload = await request.body()
     sig_header = request.headers.get("stripe-signature")
 
     if not sig_header:
-        raise HTTPException(status_code=400, detail="Missing Stripe signature header")
+        raise HTTPException(
+            status_code=400, detail="Missing Stripe signature header"
+        )
 
     event = None
     try:
@@ -93,21 +95,24 @@ async def stripe_webhook(
     if event.type == "checkout.session.completed":
         session = event.data.object
         user_id = getattr(session, "client_reference_id", None)
-        
+
         metadata = getattr(session, "metadata", None)
         tier = getattr(metadata, "tier", "Starter") if metadata else "Starter"
-        
+
         customer_id = getattr(session, "customer", None)
-        
+
         if user_id:
             from sqlalchemy import select
+
             result = await db.execute(select(User).where(User.id == user_id))
             user = result.scalar_one_or_none()
             if user:
                 user.subscription_tier = tier
                 user.stripe_customer_id = customer_id
                 await db.commit()
-                print(f"Checkout completed. Updated user {user_id} to tier {tier}")
+                print(
+                    f"Checkout completed. Updated user {user_id} to tier {tier}"
+                )
 
     elif event.type == "customer.subscription.updated":
         subscription = event.data.object
@@ -119,7 +124,10 @@ async def stripe_webhook(
         customer_id = getattr(subscription, "customer", None)
         if customer_id:
             from sqlalchemy import select
-            result = await db.execute(select(User).where(User.stripe_customer_id == customer_id))
+
+            result = await db.execute(
+                select(User).where(User.stripe_customer_id == customer_id)
+            )
             user = result.scalar_one_or_none()
             if user:
                 user.subscription_tier = None
