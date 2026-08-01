@@ -11,20 +11,20 @@
 	/>
 </svelte:head>
 
-<div class="min-h-screen bg-[#0a0a0a]">
+<div class="min-h-screen">
 	<!-- Navigation -->
 	<Navigation />
 
 	<!-- Hero Section -->
 	<section class="px-6 py-32 lg:px-12 lg:py-40">
 		<div class="mx-auto max-w-4xl text-center">
-			<h1 class="mb-6 text-7xl font-bold tracking-tight text-[#fafafa] lg:text-8xl">
+			<h1 class="mb-6 text-7xl font-bold tracking-tight lg:text-8xl">
 				Taren
 			</h1>
-			<p class="mb-4 text-2xl font-medium text-[#a3a3a3] lg:text-3xl">
+			<p class="mb-4 text-2xl font-medium lg:text-3xl">
 				Building Tomorrow, Today
 			</p>
-			<p class="mx-auto mb-12 max-w-2xl text-lg leading-relaxed text-[#737373]">
+			<p class="mx-auto mb-12 max-w-2xl text-lg leading-relaxed">
 				Experience the future of innovation. We're creating something extraordinary that will
 				transform the way you work and connect.
 			</p>
@@ -41,10 +41,10 @@
 	<section id="features" class="px-6 py-24 lg:px-12">
 		<div class="mx-auto max-w-7xl">
 			<div class="mb-16 text-center">
-				<h2 class="mb-4 text-4xl font-bold text-[#fafafa] lg:text-5xl">
+				<h2 class="mb-4 text-4xl font-bold lg:text-5xl">
 					Why Taren?
 				</h2>
-				<p class="mx-auto max-w-2xl text-lg text-[#737373]">
+				<p class="mx-auto max-w-2xl text-lg">
 					Simple, powerful features designed to elevate your experience
 				</p>
 			</div>
@@ -52,8 +52,8 @@
 			<div class="simple-grid">
 				<!-- Feature Card 1 -->
 				<div class="card p-8">
-					<div class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-[#fafafa]">
-						<svg class="h-6 w-6 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<div class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-card">
+						<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -70,8 +70,8 @@
 
 				<!-- Feature Card 2 -->
 				<div class="card p-8">
-					<div class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-[#fafafa]">
-						<svg class="h-6 w-6 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<div class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-card">
+						<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -88,8 +88,8 @@
 
 				<!-- Feature Card 3 -->
 				<div class="card p-8">
-					<div class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-[#fafafa]">
-						<svg class="h-6 w-6 text-[#0a0a0a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<div class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-card">
+						<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -108,15 +108,9 @@
 	</section>
 
 	<!-- Footer -->
-	<footer class="border-t border-[#262626] px-6 py-12 lg:px-12">
-		<div class="mx-auto max-w-7xl">
-			<div class="mb-8 text-center">
-				<h3 class="mb-2 text-2xl font-bold text-[#fafafa]">Taren</h3>
-				<p class="text-[#737373]">Building the future of innovation</p>
-			</div>
-			<div class="border-t border-[#262626] pt-8 text-center text-sm text-[#525252]">
+	<footer class="px-6 py-12 lg:px-12">
+		<div class="mx-auto max-w-7xl text-center ">
 				<p>&copy; {new Date().getFullYear()} Taren. All rights reserved.</p>
-			</div>
 		</div>
 	</footer>
 </div>

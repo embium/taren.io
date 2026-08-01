@@ -7,6 +7,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
+	import { setMode, mode } from 'mode-watcher';
 
 	const authState = getAuthState();
 
@@ -195,6 +196,21 @@
 					</Button>
 				</div>
 			</div>
+
+			<div class="rounded-xl border border-border bg-card p-5">
+				<p class="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Theme</p>
+				<p class="mb-4 text-sm text-muted-foreground">Update your theme.</p>
+					<div class="grid grid-cols-2 gap-2">
+						{#each ["light", "dark"] as t}
+							<Button
+								onclick={() => setMode(t as any)}
+								class="flex flex-col items-center gap-2 p-3 rounded-lg border border-border hover:bg-accent transition-colors text-sm font-medium capitalize {mode == null ? '' : (mode === t || (mode as any).current === t ? 'border-primary bg-accent text-bg' : 'text-muted')}"
+							>
+								{t}
+							</Button>
+						{/each}
+					</div>
+				</div>
 
 			<!-- Danger Zone -->
 			<div class="rounded-xl border border-red-500/30 bg-card p-5">
