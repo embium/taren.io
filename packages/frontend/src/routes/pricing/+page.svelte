@@ -4,6 +4,7 @@
 	import { toast } from 'svelte-sonner';
 	import { getAuthState } from '$lib/stores/auth.svelte';
 	import { goto } from '$app/navigation';
+	import { PUBLIC_STRIPE_PRODUCT_ID_PROFESSIONAL, PUBLIC_STRIPE_PRODUCT_ID_STARTER } from '$env/static/public';
 
 	const authState = getAuthState();
 	let loadingProductId: string | null = null;
@@ -85,11 +86,11 @@
 					</ul>
 					
 					<button
-						onclick={() => subscribe('prod_UzilBzFZtKK3ms')}
+						onclick={() => subscribe(PUBLIC_STRIPE_PRODUCT_ID_STARTER)}
 						disabled={loadingProductId !== null}
 						class="w-full rounded-lg bg-[#262626] px-6 py-4 text-center font-semibold text-white transition-all hover:bg-[#404040] disabled:opacity-50"
 					>
-						{loadingProductId === 'prod_UzilBzFZtKK3ms' ? 'Loading...' : 'Subscribe to Starter'}
+						{loadingProductId === PUBLIC_STRIPE_PRODUCT_ID_STARTER ? 'Loading...' : 'Subscribe to Starter'}
 					</button>
 				</div>
 
@@ -125,11 +126,11 @@
 					</ul>
 					
 					<button
-						onclick={() => subscribe('prod_UzipI6nobBUDEC')}
+						onclick={() => subscribe(PUBLIC_STRIPE_PRODUCT_ID_PROFESSIONAL)}
 						disabled={loadingProductId !== null}
 						class="w-full rounded-lg bg-[#3b82f6] px-6 py-4 text-center font-semibold text-white transition-all hover:bg-[#2563eb] disabled:opacity-50"
 					>
-						{loadingProductId === 'prod_UzipI6nobBUDEC' ? 'Loading...' : 'Subscribe to Professional'}
+						{loadingProductId === PUBLIC_STRIPE_PRODUCT_ID_PROFESSIONAL ? 'Loading...' : 'Subscribe to Professional'}
 					</button>
 				</div>
 				
