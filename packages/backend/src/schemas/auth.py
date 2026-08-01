@@ -79,6 +79,7 @@ class UserResponse(BaseModel):
     is_active: bool
     is_email_verified: bool
     username_last_changed_at: Optional[datetime] = None
+    subscription_tier: Optional[str] = None
 
     class Config:
         from_attributes = True

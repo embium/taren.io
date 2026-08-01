@@ -3,7 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { toast } from 'svelte-sonner';
 	import { getAuthState, initializeAuth } from '$lib/stores/auth.svelte';
-	import UserMenu from '$lib/components/UserMenu.svelte';
+	import DashboardSidebar from '$lib/components/DashboardSidebar.svelte';
 
 	let { children } = $props();
 
@@ -11,18 +11,15 @@
 	let isValidating = $state(true);
 
 	onMount(async () => {
-		// Ensure auth is initialized and validated
 		await initializeAuth();
 		isValidating = false;
 
-		// If not authenticated after initialization, redirect to login
 		if (!authState.isAuthenticated) {
 			toast.error('Session expired. Please log in again.');
 			goto('/login');
 		}
 	});
 
-	// Watch for auth state changes (e.g., token expiration during usage)
 	$effect(() => {
 		if (!isValidating && !authState.isAuthenticated) {
 			toast.error('Your session has expired. Please log in again.');
@@ -32,20 +29,19 @@
 </script>
 
 {#if isValidating}
-	<div class="flex min-h-screen items-center justify-center bg-white dark:bg-[#0a0a0a]">
-		<div class="text-gray-500 dark:text-[#a3a3a3]">Loading...</div>
+	<div class="flex h-screen items-center justify-center bg-background">
+		<div class="text-muted-foreground">Loading…</div>
 	</div>
 {:else if authState.isAuthenticated && authState.user}
-	<div class="min-h-screen bg-white dark:bg-[#0a0a0a]">
-		<!-- Shared Header/Navigation -->
-		<header class="border-b border-gray-200 bg-white dark:border-[#262626] dark:bg-[#0a0a0a]">
-			<div class="flex items-center justify-between px-6 py-4">
-				<h1 class="text-2xl font-bold text-gray-900 dark:text-[#fafafa]">Taren</h1>
-				<UserMenu />
-			</div>
-		</header>
+	<div class="flex flex-row h-screen overflow-hidden bg-background">
+		<!-- Sidebar — always visible on desktop, off-canvas on mobile -->
+		<DashboardSidebar />
 
-		<!-- Page Content -->
-		{@render children()}
+		<!-- Content area — offset top on mobile for the fixed header bar -->
+		<div class="flex flex-col flex-1 min-w-0 overflow-hidden pt-14 md:pt-0">
+			<main class="flex-1 overflow-hidden">
+				{@render children()}
+			</main>
+		</div>
 	</div>
 {/if}

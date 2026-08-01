@@ -1,5 +1,5 @@
 """Routers package."""
 
-from routers import auth, users
+from routers import auth, users, reddit
 
-__all__ = ["auth", "users"]
+__all__ = ["auth", "users", "reddit"]

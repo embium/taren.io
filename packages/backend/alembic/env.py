@@ -9,9 +9,14 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 
-# Import your models' Base for autogenerate support
-from infrastructure.database.models import Base
-from config.settings import settings
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
+
+from core.database import Base
+from core.config import settings
+import models.user
+import models.reddit
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

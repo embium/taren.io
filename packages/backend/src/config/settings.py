@@ -47,6 +47,12 @@ class Settings(BaseSettings):
     email_verification_token_expire_hours: int = 24
     password_reset_token_expire_hours: int = 1
 
+    # Reddit scraper settings
+    openrouter_api_key: str = ""
+    openrouter_model: str = "deepseek/deepseek-v4-flash"
+    proxy_url: str = "http://proxy.proxying.io:8080"
+    scrape_limit: int = 25
+
 
 # Global settings instance
 settings = Settings()

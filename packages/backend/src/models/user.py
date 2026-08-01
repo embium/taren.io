@@ -46,6 +46,12 @@ class User(Base):
     username_last_changed_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    subscription_tier: Mapped[Optional[str]] = mapped_column(
+        String(50), nullable=True, default=None
+    )
+    stripe_customer_id: Mapped[Optional[str]] = mapped_column(
+        String(255), nullable=True
+    )
 
     # Relationships
     sessions: Mapped[list["Session"]] = relationship(

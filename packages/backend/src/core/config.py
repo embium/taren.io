@@ -47,6 +47,11 @@ class Settings(BaseSettings):
     email_verification_token_expire_hours: int = 24
     password_reset_token_expire_hours: int = 1
 
+    # Stripe settings
+    stripe_publishable_key: str = ""
+    stripe_secret_key: str = ""
+    stripe_webhook_secret: str = ""
+
 
 # Global settings instance
 settings = Settings()

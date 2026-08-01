@@ -8,8 +8,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from core import async_engine, settings
 from core.database import Base
-from routers import auth, users
+from routers import auth, users, stripe as stripe_router
+from routers import reddit as reddit_router
 from services.email_service import EmailService
+import models.reddit  # noqa: F401 — registers reddit tables with Base.metadata
 
 # Configure logging
 logging.basicConfig(
@@ -55,6 +57,8 @@ app.add_middleware(
 # Register routers
 app.include_router(auth.router)
 app.include_router(users.router)
+app.include_router(reddit_router.router)
+app.include_router(stripe_router.router)
 
 
 @app.get("/", tags=["Health"])

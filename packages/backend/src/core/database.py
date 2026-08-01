@@ -56,8 +56,9 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
         try:
             yield session
             await session.commit()
-        except Exception:
-            await session.rollback()
+        except BaseException:
+            # Catch BaseException to include asyncio.CancelledError
+            import asyncio
+            # Shield the rollback so it completes even if the task is cancelled
+            await asyncio.shield(session.rollback())
             raise
-        finally:
-            await session.close()
