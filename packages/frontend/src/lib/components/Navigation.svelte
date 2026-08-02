@@ -31,31 +31,37 @@
 </script>
 
 <!-- Navigation Bar -->
-<header>
-	<div class="px-6 py-4 flex justify-between items-center">
-		<h1 class="text-2xl font-bold text-gray-900 dark:text-[#fafafa]">Taren</h1>
+<header class="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50">
+	<div class="mx-auto max-w-7xl px-6 py-4 flex justify-between items-center">
+		<a href="/" class="text-xl font-bold text-foreground hover:opacity-80 transition-opacity">Taren</a>
 
 		{#if authState.isAuthenticated && authState.user}
 			<UserMenu />
 		{:else}
 			<!-- Guest Links -->
-			<div class="auth-links">
+			<nav class="flex items-center gap-1">
+				<a
+					href="/pricing"
+					class="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-secondary"
+				>
+					Pricing
+				</a>
 				<Button
 					variant="ghost"
 					size="sm"
-					class="text-[#a3a3a3] hover:text-[#fafafa] hover:bg-transparent"
+					class="text-muted-foreground hover:text-foreground"
 					onclick={() => navigateTo('/login')}
 				>
-					Sign In
+					Sign in
 				</Button>
 				<Button
 					size="sm"
-					class="bg-[#3b82f6] hover:bg-[#2563eb] text-white"
+					class="bg-foreground text-background hover:opacity-80"
 					onclick={() => navigateTo('/register')}
 				>
-					Get Started
+					Get started
 				</Button>
-			</div>
+			</nav>
 		{/if}
 	</div>
-</header>
+</header>

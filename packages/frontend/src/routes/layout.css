@@ -125,17 +125,17 @@
 	}
 }
 
-/* Clean card styling - Dark Theme */
+/* Clean card styling - theme-aware */
 .card {
-	background: #171717;
-	border: 1px solid #262626;
-	border-radius: 0.5rem;
+	background: var(--card);
+	border: 1px solid var(--border);
+	border-radius: 0.75rem;
 	transition: all 0.2s ease;
 }
 
 .card:hover {
-	border-color: #333333;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+	border-color: var(--ring);
+	box-shadow: 0 4px 16px color-mix(in oklch, var(--foreground) 6%, transparent);
 }
 
 /* Simple grid layout */
