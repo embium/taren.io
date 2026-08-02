@@ -24,8 +24,11 @@ class User(Base):
         String(30), unique=True, nullable=False, index=True
     )
     name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    password_hash: Mapped[str] = mapped_column(Text, nullable=False)
+    password_hash: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     avatar: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    google_id: Mapped[Optional[str]] = mapped_column(
+        String(255), unique=True, nullable=True, index=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
@@ -68,9 +71,10 @@ class User(Base):
         self,
         email: str,
         username: str,
-        password_hash: str,
+        password_hash: Optional[str] = None,
         name: Optional[str] = None,
         avatar: Optional[str] = None,
+        google_id: Optional[str] = None,
         id: Optional[str] = None,
         **kwargs,
     ):
@@ -82,6 +86,7 @@ class User(Base):
             password_hash=password_hash,
             name=name,
             avatar=avatar,
+            google_id=google_id,
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
             is_active=True,

@@ -61,6 +61,11 @@ class Settings(BaseSettings):
     stripe_product_id_professional: str = ""
     stripe_starter_trial_days: int = 7
 
+    # Google OAuth settings
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    google_redirect_uri: str = "http://localhost:8000/auth/google/callback"
+
 
 # Global settings instance
 settings = Settings()

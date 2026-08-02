@@ -1,11 +1,15 @@
 """Authentication router."""
 
+import urllib.parse
+
 from fastapi import APIRouter, Depends, Request, Response, status
+from fastapi.responses import RedirectResponse
 from jose import JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
 from core.security import token_service
+from core.config import settings
 from schemas.auth import (
     CheckUsernameResponse,
     ForgotPasswordRequest,
@@ -219,3 +223,49 @@ async def reset_password(
     """Reset password with verification token."""
     await auth_service.reset_password(db, request)
     return MessageResponse(message="Password has been reset successfully")
+
+
+@router.get("/google")
+async def google_oauth_redirect() -> RedirectResponse:
+    """Redirect user to Google OAuth consent screen."""
+    params = urllib.parse.urlencode({
+        "client_id": settings.google_client_id,
+        "redirect_uri": settings.google_redirect_uri,
+        "response_type": "code",
+        "scope": "openid email profile",
+        "access_type": "offline",
+        "prompt": "select_account",
+    })
+    google_auth_url = f"https://accounts.google.com/o/oauth2/v2/auth?{params}"
+    return RedirectResponse(url=google_auth_url)
+
+
+@router.get("/google/callback")
+async def google_oauth_callback(
+    response: Response,
+    code: str,
+    db: AsyncSession = Depends(get_db),
+) -> RedirectResponse:
+    """Handle Google OAuth callback: exchange code, set cookies, redirect to frontend."""
+    access_token, refresh_token, expires_in = await auth_service.google_oauth_login(
+        db, code
+    )
+
+    redirect = RedirectResponse(url=f"{settings.frontend_url}/dashboard")
+    redirect.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=False,  # Set True in production
+        samesite="lax",
+        max_age=expires_in,
+    )
+    redirect.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=False,  # Set True in production
+        samesite="lax",
+        max_age=7 * 24 * 60 * 60,
+    )
+    return redirect
