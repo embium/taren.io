@@ -251,7 +251,7 @@ async def google_oauth_callback(
         db, code
     )
 
-    redirect = RedirectResponse(url=f"{settings.frontend_url}/dashboard")
+    redirect = RedirectResponse(url=f"{settings.frontend_url}/callback")
     redirect.set_cookie(
         key="access_token",
         value=access_token,

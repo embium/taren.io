@@ -53,6 +53,19 @@ export async function initializeAuth(): Promise<void> {
 			console.error('Failed to parse stored user:', err);
 			clearAuth();
 		}
+	} else {
+		// No localStorage data — may have just returned from Google OAuth.
+		// Try fetching the current user using only the httpOnly cookies.
+		try {
+			const userData = await authApi.getCurrentUser();
+			user = userData;
+			storage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
+			// Store a sentinel so future loads know a cookie session exists.
+			storage.setItem(STORAGE_KEYS.REFRESH_TOKEN, '__cookie__');
+			setTokens('', '__cookie__');
+		} catch {
+			// No active session — leave user as null.
+		}
 	}
 
 	if (typeof window !== 'undefined') {

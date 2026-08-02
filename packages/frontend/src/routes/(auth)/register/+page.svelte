@@ -14,6 +14,7 @@
 	} from '$lib/utils/validation';
 	import { mapErrorToMessage } from '$lib/utils/errors';
 	import { authApi } from '$lib/api/auth.api';
+	import { env } from '$env/dynamic/public';
 
 	let email = $state('');
 	let username = $state('');
@@ -24,6 +25,8 @@
 	let passwordError = $state('');
 	let confirmPasswordError = $state('');
 	let isSubmitting = $state(false);
+
+	const PUBLIC_API_URL = env.PUBLIC_API_URL;
 
 	const passwordStrength = $derived(getPasswordStrength(password));
 	const strengthInfo = $derived(getPasswordStrengthInfo(passwordStrength));
@@ -111,7 +114,7 @@
 	}
 
 	function handleGoogleSignup() {
-		window.location.href = 'http://localhost:8000/auth/google';
+		window.location.href = `${PUBLIC_API_URL}/auth/google`;
 	}
 </script>
 
