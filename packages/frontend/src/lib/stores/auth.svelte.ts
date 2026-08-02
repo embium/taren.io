@@ -55,6 +55,25 @@ export async function initializeAuth(): Promise<void> {
 		}
 	}
 
+	if (typeof window !== 'undefined') {
+		window.addEventListener('storage', (event) => {
+			if (event.key === STORAGE_KEYS.USER || event.key === STORAGE_KEYS.REFRESH_TOKEN) {
+				if (!event.newValue) {
+					clearAuth();
+				} else if (event.key === STORAGE_KEYS.USER) {
+					try {
+						user = JSON.parse(event.newValue);
+					} catch (e) {
+						console.error('Failed to parse user from storage event:', e);
+					}
+				}
+			} else if (event.key === null) {
+				// localStorage.clear() was called
+				clearAuth();
+			}
+		});
+	}
+
 	initialized = true;
 }
 
