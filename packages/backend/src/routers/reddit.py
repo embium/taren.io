@@ -281,11 +281,10 @@ async def get_job_results(
         PainPointResponse(
             id=pp.id,
             job_id=pp.job_id,
-            subreddit=pp.subreddit,
+            subreddits=pp.subreddits.split(","),
             title=pp.title,
             description=pp.description,
             severity=pp.severity,
-            target_audience=pp.target_audience,
             created_at=pp.created_at,
             evidence=[
                 EvidenceResponse(

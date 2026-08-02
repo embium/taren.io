@@ -404,10 +404,12 @@
 												<div class="flex items-start justify-between gap-4">
 													<div class="min-w-0 flex-1">
 														<div class="mb-1.5 flex flex-wrap items-center gap-2">
-															<span
-																class="inline-flex items-center rounded-full border border-orange-500/30 bg-orange-500/10 px-2.5 py-0.5 text-xs font-medium text-orange-500"
-																>r/{pp.subreddit}</span
-															>
+															{#each pp.subreddits as subreddit}
+																<span
+																	class="inline-flex items-center rounded-full border border-orange-500/30 bg-orange-500/10 px-2.5 py-0.5 text-xs font-medium text-orange-500"
+																	>r/{subreddit}</span
+																>
+															{/each}
 															<span class="text-xs text-muted-foreground"
 																>{pp.evidence.length} evidence{pp.evidence.length !== 1
 																	? 's'
@@ -434,6 +436,16 @@
 											</button>
 											{#if expandedPainPoints.has(pp.id)}
 												<div class="border-t border-border bg-card/50 px-5 pt-4 pb-5">
+													<div class="mb-6">
+														<p
+															class="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase"
+														>
+															Description
+														</p>
+														<p class="text-sm leading-relaxed text-foreground/90">
+															{pp.description}
+														</p>
+													</div>
 													<div class="space-y-4">
 														{#if pp.evidence.length > 0}
 															<div>

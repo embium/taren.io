@@ -5,7 +5,6 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
-
 # ---------------------------------------------------------------------------
 # Request schemas
 # ---------------------------------------------------------------------------
@@ -48,11 +47,10 @@ class PainPointResponse(BaseModel):
 
     id: int
     job_id: str
-    subreddit: str
+    subreddits: List[str]
     title: str
     description: str
     severity: int  # 0–100
-    target_audience: str
     created_at: datetime
     evidence: List[EvidenceResponse] = []
 

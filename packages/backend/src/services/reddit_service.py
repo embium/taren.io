@@ -54,12 +54,13 @@ and identify distinct pain points expressed by users.
 
 For each pain point:
 1. Give it a short, descriptive **title** (max 10 words).
-2. Assign a **severity** score from 0 to 100 using these guidelines:
+2. Write a **description** of the pain point (1–2 sentences).
+3. Assign a **severity** score from 0 to 100 using these guidelines:
    - 80–100: Widespread, high emotional intensity, clear unmet need
    - 60–79: Moderate frequency, real frustration, but workarounds exist
    - 40–59: Niche or low-frequency, mild inconvenience
    - Below 40: Edge case or minor preference
-3. List all relevant **evidence** comments. For each, include:
+4. List all relevant **evidence** comments. For each, include:
    - **comment_id**: the original comment_id from the data
    - **content**: the original comment text from the data
    - **link**: the full Reddit URL provided in the data
@@ -71,6 +72,7 @@ Return ONLY valid JSON (no markdown fences) in this exact structure:
 [
   {{
     "title": "...",
+    "description": "...",
     "severity": 85,
     "evidence": [
       {{
@@ -85,6 +87,42 @@ Return ONLY valid JSON (no markdown fences) in this exact structure:
 --- COMMENTS ---
 {comments_json}
 """
+
+MERGE_PROMPT_TEMPLATE = """Analyze the pain points below and merge related or duplicate entries into consolidated pain points.
+
+    Input Data:
+    {all_pain_points}
+
+    Instructions:
+    1. Identify pain points that describe the same underlying problem, even if worded differently
+    2. Merge duplicates into single, well-defined pain points
+    3. Preserve the most descriptive title and combine all relevant details
+    4. Combine evidence from all merged entries
+    5. If severity differs across merged items, use the highest severity level
+
+    Return ONLY valid JSON (no markdown fences) in this exact structure:
+    [
+    {{
+        "title": "...",
+        "description": "...",
+        "severity": ...,
+        "evidence": [
+        {{
+            "comment_id": "...",
+            "content": "...",
+            "link": "..."
+        }}
+        ],
+        "subreddits": [
+            "...",
+        ]
+    }}
+    ]
+
+    Merge Strategy:
+    - Same underlying problem = Merge
+    - Different root causes = Keep separate
+    - When in doubt, show related pain points as separate but note the relationship in description"""
 
 
 def _strip_json_fence(text: str) -> str:
@@ -370,7 +408,7 @@ async def run_reddit_job(
         )
 
         total_pain_points = 0
-
+        pain_points_raw = []
         for subreddit, comments_list in subreddit_comments.items():
             if not comments_list:
                 logger.info(
@@ -392,11 +430,10 @@ async def run_reddit_job(
                 comments_json=json.dumps(comments_list, ensure_ascii=False),
             )
 
-            pain_points_raw = []
             for attempt in range(3):
                 try:
                     raw = await _call_openrouter(prompt)
-                    pain_points_raw = json.loads(_strip_json_fence(raw))
+                    pain_points_raw.extend(json.loads(_strip_json_fence(raw)))
                     break
                 except Exception as exc:
                     logger.warning(
@@ -415,16 +452,40 @@ async def run_reddit_job(
                 )
                 continue
 
+        prompt = MERGE_PROMPT_TEMPLATE.format(
+            all_pain_points=json.dumps(pain_points_raw, ensure_ascii=False),
+        )
+
+        merged_pain_points_raw = []
+        for attempt in range(3):
+            try:
+                raw = await _call_openrouter(prompt)
+                merged_pain_points_raw = json.loads(_strip_json_fence(raw))
+                break
+            except Exception as exc:
+                logger.warning(
+                    "Job %s: LLM attempt %d failed for r/%s: %s",
+                    job_id,
+                    attempt + 1,
+                    exc,
+                )
+
+        if not merged_pain_points_raw:
+            logger.warning(
+                "Job %s: all LLM attempts failed for r/%s",
+                job_id,
+            )
+        else:
+
             # Save pain points + evidence
             async with session_factory() as session:
-                for item in pain_points_raw:
+                for item in merged_pain_points_raw:
                     pp = RedditPainPoint(
                         job_id=job_id,
-                        subreddit=subreddit,
+                        subreddits=", ".join(item.get("subreddits", [])),
                         title=item.get("title", "Untitled"),
                         description=item.get("description", ""),
                         severity=int(item.get("severity", 0)),
-                        target_audience=item.get("target_audience", ""),
                     )
                     session.add(pp)
                     await session.flush()

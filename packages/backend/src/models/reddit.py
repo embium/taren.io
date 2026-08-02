@@ -179,13 +179,12 @@ class RedditPainPoint(Base):
         nullable=False,
         index=True,
     )
-    subreddit: Mapped[str] = mapped_column(
+    subreddits: Mapped[str] = mapped_column(
         String(100), nullable=False, index=True
     )
     title: Mapped[str] = mapped_column(String(512), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
     severity: Mapped[int] = mapped_column(Integer, nullable=False)  # 0–100
-    target_audience: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
