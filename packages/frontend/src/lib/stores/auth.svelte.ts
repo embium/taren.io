@@ -72,6 +72,10 @@ export async function initializeAuth(): Promise<void> {
 				clearAuth();
 			}
 		});
+
+		window.addEventListener('auth:expired', () => {
+			clearAuth();
+		});
 	}
 
 	initialized = true;
