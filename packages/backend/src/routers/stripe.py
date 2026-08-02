@@ -42,7 +42,9 @@ async def create_checkout_session(
         # Build subscription_data — include a free trial for the Starter plan
         subscription_data: dict = {}
         if is_starter and settings.stripe_starter_trial_days > 0:
-            subscription_data["trial_period_days"] = settings.stripe_starter_trial_days
+            subscription_data["trial_period_days"] = (
+                settings.stripe_starter_trial_days
+            )
             subscription_data["trial_settings"] = {
                 "end_behavior": {"missing_payment_method": "cancel"}
             }
@@ -65,11 +67,12 @@ async def create_checkout_session(
         return {"url": checkout_session.url}
     except stripe.error.StripeError as e:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Stripe error"
         )
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error",
         )
 
 
@@ -92,24 +95,28 @@ async def get_subscription(user: User = Depends(get_current_user)):
         product = price.product if hasattr(price, "product") else None
         product_name = (
             product.name
-            if product is not None and not isinstance(product, str) and hasattr(product, "name")
+            if product is not None
+            and not isinstance(product, str)
+            and hasattr(product, "name")
             else None
         )
         tier = user.subscription_tier or product_name or "Starter"
 
         # In Stripe API >= 2025-03-31, current_period_end lives on the item
-        current_period_end = getattr(item, "current_period_end", None) or getattr(
-            subscription, "current_period_end", None
-        )
+        current_period_end = getattr(
+            item, "current_period_end", None
+        ) or getattr(subscription, "current_period_end", None)
 
         # cancel_at_period_end is deprecated; fall back to cancel_at for newer API versions
-        cancel_at_period_end = getattr(subscription, "cancel_at_period_end", False) or bool(
-            getattr(subscription, "cancel_at", None)
-        )
+        cancel_at_period_end = getattr(
+            subscription, "cancel_at_period_end", False
+        ) or bool(getattr(subscription, "cancel_at", None))
 
         # recurring can be None on some price types; guard against that
         recurring = getattr(price, "recurring", None)
-        interval = getattr(recurring, "interval", "month") if recurring else "month"
+        interval = (
+            getattr(recurring, "interval", "month") if recurring else "month"
+        )
 
         return {
             "status": subscription.status,
@@ -122,11 +129,12 @@ async def get_subscription(user: User = Depends(get_current_user)):
         }
     except stripe.error.StripeError as e:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Stripe error"
         )
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error",
         )
 
 
@@ -148,11 +156,12 @@ async def cancel_subscription(user: User = Depends(get_current_user)):
         return {"status": "success", "canceled_at": response.canceled_at}
     except stripe.error.StripeError as e:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Stripe error"
         )
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error",
         )
 
 
@@ -236,18 +245,27 @@ async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
                             if price:
                                 product = getattr(price, "product", None)
                                 product_id = (
-                                    product if isinstance(product, str) else getattr(product, "id", None)
+                                    product
+                                    if isinstance(product, str)
+                                    else getattr(product, "id", None)
                                 )
 
                         if product_id == settings.stripe_product_id_starter:
                             new_tier = "Starter"
-                        elif product_id == settings.stripe_product_id_professional:
+                        elif (
+                            product_id
+                            == settings.stripe_product_id_professional
+                        ):
                             new_tier = "Professional"
                         else:
-                            new_tier = user.subscription_tier  # keep existing if unknown
+                            new_tier = (
+                                user.subscription_tier
+                            )  # keep existing if unknown
 
                         user.subscription_tier = new_tier
-                        user.stripe_subscription_id = getattr(subscription, "id", user.stripe_subscription_id)
+                        user.stripe_subscription_id = getattr(
+                            subscription, "id", user.stripe_subscription_id
+                        )
                         await db.commit()
                         print(
                             f"Subscription updated for user {user.id}: "

@@ -292,7 +292,7 @@
 							class="flex flex-col items-center gap-2 rounded-lg border border-border p-3 text-sm font-medium capitalize transition-colors hover:bg-accent {mode ==
 							null
 								? ''
-								: mode === t || (mode as any).current === t
+								: (mode as any) === t || (mode as any).current === t
 									? 'text-bg border-primary bg-accent'
 									: 'text-muted'}"
 						>
