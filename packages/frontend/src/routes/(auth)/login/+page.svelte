@@ -7,6 +7,7 @@
 	import { login, getAuthState } from '$lib/stores/auth.svelte';
 	import { validateEmail } from '$lib/utils/validation';
 	import { mapErrorToMessage } from '$lib/utils/errors';
+	import { env } from '$env/dynamic/public';
 
 	const authState = getAuthState();
 
@@ -15,6 +16,7 @@
 	let emailError = $state('');
 	let passwordError = $state('');
 	let isSubmitting = $state(false);
+	const PUBLIC_API_URL = env.PUBLIC_API_URL;
 
 	// Redirect if already authenticated
 	$effect(() => {
@@ -75,7 +77,7 @@
 	}
 
 	function handleGoogleLogin() {
-		window.location.href = 'http://localhost:8000/auth/google';
+		window.location.href = `${PUBLIC_API_URL}/auth/google`;
 	}
 </script>
 

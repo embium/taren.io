@@ -396,7 +396,9 @@ class AuthService:
             # Fetch Google user info
             userinfo_response = await client.get(
                 "https://www.googleapis.com/oauth2/v2/userinfo",
-                headers={"Authorization": f"Bearer {token_data['access_token']}"},
+                headers={
+                    "Authorization": f"Bearer {token_data['access_token']}"
+                },
             )
             userinfo_response.raise_for_status()
             userinfo = userinfo_response.json()
@@ -427,10 +429,14 @@ class AuthService:
             # Create new user — generate a unique username from email
             base_username = email.split("@")[0].lower()
             # Sanitize: keep only alphanumeric/underscore/hyphen, max 28 chars
-            base_username = re.sub(r"[^a-z0-9_-]", "", base_username)[:28] or "user"
+            base_username = (
+                re.sub(r"[^a-z0-9_-]", "", base_username)[:28] or "user"
+            )
             username = base_username
             suffix = 1
-            while await db.scalar(select(User.id).where(User.username == username)):
+            while await db.scalar(
+                select(User.id).where(User.username == username)
+            ):
                 username = f"{base_username}{suffix}"
                 suffix += 1
 
