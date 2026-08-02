@@ -28,8 +28,12 @@ logger = logging.getLogger(__name__)
 
 # Plan limits table — single source of truth used by both /usage and /jobs
 PLAN_LIMITS: dict[str, dict] = {
-    "Starter":      {"daily_scans": 10,   "max_subreddits": 3,  "max_posts": 15},
-    "Professional": {"daily_scans": None, "max_subreddits": 10, "max_posts": 50},
+    "Starter": {"daily_scans": 10, "max_subreddits": 3, "max_posts": 15},
+    "Professional": {
+        "daily_scans": None,
+        "max_subreddits": 10,
+        "max_posts": 50,
+    },
 }
 
 
@@ -44,23 +48,28 @@ async def get_usage(
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Return the user's plan limits and how many scans they have run today."""
-    tier = current_user.subscription_tier
-    plan = PLAN_LIMITS.get(tier or "", {})
+    tier = current_user.subscription_tier or ""
+    plan = PLAN_LIMITS.get(tier, {})
 
     scans_today = 0
     if plan.get("daily_scans") is not None:
         today_utc = datetime.now(timezone.utc).date()
-        day_start = datetime(today_utc.year, today_utc.month, today_utc.day, tzinfo=timezone.utc)
+        day_start = datetime(
+            today_utc.year, today_utc.month, today_utc.day, tzinfo=timezone.utc
+        )
         count_result = await db.execute(
             select(func.count())
             .select_from(RedditJob)
-            .where(RedditJob.user_id == current_user.id, RedditJob.created_at >= day_start)
+            .where(
+                RedditJob.user_id == current_user.id,
+                RedditJob.created_at >= day_start,
+            )
         )
         scans_today = count_result.scalar() or 0
 
     return {
         "tier": tier,
-        "daily_scans": plan.get("daily_scans"),   # None = unlimited
+        "daily_scans": plan.get("daily_scans"),  # None = unlimited
         "max_subreddits": plan.get("max_subreddits"),
         "max_posts": plan.get("max_posts"),
         "scans_today": scans_today,
@@ -102,7 +111,6 @@ async def create_job(
 
     plan = PLAN_LIMITS[tier]
 
-
     # Enforce daily scan limit (Starter only)
     if plan["daily_scans"] is not None:
         today_utc = datetime.now(timezone.utc).date()
@@ -127,8 +135,8 @@ async def create_job(
                 ),
             )
 
-    limit_per_job   = min(plan["max_posts"], request.scrape_limit)
-    max_subreddits  = plan["max_subreddits"]
+    limit_per_job = min(plan["max_posts"], request.scrape_limit)
+    max_subreddits = plan["max_subreddits"]
 
     # Normalise subreddits (strip r/ prefix and whitespace)
     subreddits = [

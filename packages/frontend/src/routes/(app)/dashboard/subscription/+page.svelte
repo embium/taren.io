@@ -45,6 +45,8 @@
 	const isTrialing = $derived(subscription?.status === 'trialing');
 	const isActive = $derived(subscription?.status === 'active' || isTrialing);
 	const isCancelledAtEnd = $derived(subscription?.cancel_at_period_end === true);
+	// Cancelled during a trial: trial ends and they will NOT be charged
+	const isTrialingAndCancelled = $derived(isTrialing && isCancelledAtEnd);
 
 	async function handleCancel() {
 		cancelling = true;
@@ -105,8 +107,24 @@
 					</a>
 				</div>
 			{:else}
-				<!-- Trial status banner -->
-				{#if isTrialing}
+				<!-- Status banner -->
+				{#if isTrialingAndCancelled}
+					<!-- Cancelled during trial: make it crystal clear they won't be charged -->
+					<div
+						class="flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-4"
+					>
+						<AlertTriangle class="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
+						<div>
+							<p class="text-sm font-semibold text-red-300">Trial Ending — No Charge</p>
+							<p class="mt-0.5 text-sm text-red-400/80">
+								You cancelled during your trial. Your access ends on
+								<span class="font-medium text-red-300"
+									>{formatDate(subscription.trial_end)}</span
+								>. <span class="font-medium text-red-300">You will not be charged.</span>
+							</p>
+						</div>
+					</div>
+				{:else if isTrialing}
 					<div
 						class="flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-5 py-4"
 					>
@@ -157,19 +175,19 @@
 						<span
 							class={[
 								'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold',
-								isTrialing
-									? 'border-amber-500/40 bg-amber-500/10 text-amber-400'
-									: isCancelledAtEnd
-										? 'border-red-500/40 bg-red-500/10 text-red-400'
+								isCancelledAtEnd
+									? 'border-red-500/40 bg-red-500/10 text-red-400'
+									: isTrialing
+										? 'border-amber-500/40 bg-amber-500/10 text-amber-400'
 										: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400'
 							].join(' ')}
 						>
-							{#if isTrialing}
-								<Clock class="h-3 w-3" />
-								Trial
-							{:else if isCancelledAtEnd}
+							{#if isCancelledAtEnd}
 								<XCircle class="h-3 w-3" />
 								Cancelling
+							{:else if isTrialing}
+								<Clock class="h-3 w-3" />
+								Trial
 							{:else}
 								<CheckCircle2 class="h-3 w-3" />
 								Active
@@ -183,12 +201,12 @@
 						<div class="flex items-center justify-between px-6 py-4">
 							<div class="flex items-center gap-3">
 								<CreditCard class="h-4 w-4 text-muted-foreground" />
-								<span class="text-sm text-muted-foreground">
-									{isTrialing ? 'Amount after trial' : 'Billing amount'}
-								</span>
+								<span class="text-sm text-muted-foreground">Billing amount</span>
 							</div>
 							<span class="text-sm font-semibold">
-								{#if isTrialing}
+								{#if isTrialingAndCancelled}
+									<span class="font-bold text-emerald-400">No charge</span>
+								{:else if isTrialing}
 									<span class="mr-2 font-bold text-emerald-400">$0.00 now</span>
 									<span class="text-muted-foreground"
 										>then {formatAmount(subscription.amount)}/{subscription.interval}</span
@@ -209,7 +227,18 @@
 						</div>
 
 						<!-- Trial / next billing dates -->
-						{#if isTrialing && subscription.trial_end}
+						{#if isTrialingAndCancelled && subscription.trial_end}
+							<!-- Cancelled during trial: show trial end as the access end date -->
+							<div class="flex items-center justify-between px-6 py-4">
+								<div class="flex items-center gap-3">
+									<Clock class="h-4 w-4 text-muted-foreground" />
+									<span class="text-sm text-muted-foreground">Access ends</span>
+								</div>
+								<span class="text-sm font-semibold text-red-400"
+									>{formatDate(subscription.trial_end)}</span
+								>
+							</div>
+						{:else if isTrialing && subscription.trial_end}
 							<div class="flex items-center justify-between px-6 py-4">
 								<div class="flex items-center gap-3">
 									<Clock class="h-4 w-4 text-muted-foreground" />
@@ -256,10 +285,17 @@
 							{:else}
 								<div class="space-y-3">
 									<p class="text-sm text-muted-foreground">
-										Are you sure? Your subscription stays active until
-										<span class="font-medium text-foreground"
-											>{formatDate(subscription.current_period_end)}</span
-										>, then ends.
+										{#if isTrialing}
+											Are you sure? Your trial access ends on
+											<span class="font-medium text-foreground"
+												>{formatDate(subscription.trial_end)}</span
+											>. <span class="font-medium text-foreground">You will not be charged.</span>
+										{:else}
+											Are you sure? Your subscription stays active until
+											<span class="font-medium text-foreground"
+												>{formatDate(subscription.current_period_end)}</span
+											>, then ends.
+										{/if}
 									</p>
 									<div class="flex items-center gap-3">
 										<button
@@ -299,8 +335,8 @@
 					{/if}
 				</div>
 
-				<!-- Upgrade nudge (trial only) -->
-				{#if isTrialing}
+				<!-- Upgrade nudge (trial only, not when already cancelled) -->
+				{#if isTrialing && !isCancelledAtEnd}
 					<div
 						class="flex items-center justify-between gap-4 rounded-xl border border-indigo-500/20 bg-indigo-500/5 px-6 py-4"
 					>

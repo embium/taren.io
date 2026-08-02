@@ -204,8 +204,57 @@ async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
 
     elif event.type == "customer.subscription.updated":
         subscription = event.data.object
-        # Handle subscription upgrades/downgrades if necessary
-        print(f"Subscription updated: {getattr(subscription, 'id', None)}")
+        customer_id = getattr(subscription, "customer", None)
+        sub_status = getattr(subscription, "status", None)
+
+        if customer_id:
+            from sqlalchemy import select
+
+            result = await db.execute(
+                select(User).where(User.stripe_customer_id == customer_id)
+            )
+            user = result.scalar_one_or_none()
+            if user:
+                # If the subscription is no longer active (canceled, unpaid, etc.),
+                # revoke the tier rather than trying to map the product.
+                active_statuses = {"active", "trialing", "past_due"}
+                if sub_status not in active_statuses:
+                    user.subscription_tier = None
+                    user.stripe_subscription_id = None
+                    await db.commit()
+                    print(
+                        f"Subscription {getattr(subscription, 'id', None)} moved to "
+                        f"status '{sub_status}'. Reverted user {user.id} to Free."
+                    )
+                else:
+                    # Map the Stripe product back to our tier name
+                    try:
+                        items = getattr(subscription, "items", None)
+                        product_id = None
+                        if items and items.data:
+                            price = getattr(items.data[0], "price", None)
+                            if price:
+                                product = getattr(price, "product", None)
+                                product_id = (
+                                    product if isinstance(product, str) else getattr(product, "id", None)
+                                )
+
+                        if product_id == settings.stripe_product_id_starter:
+                            new_tier = "Starter"
+                        elif product_id == settings.stripe_product_id_professional:
+                            new_tier = "Professional"
+                        else:
+                            new_tier = user.subscription_tier  # keep existing if unknown
+
+                        user.subscription_tier = new_tier
+                        user.stripe_subscription_id = getattr(subscription, "id", user.stripe_subscription_id)
+                        await db.commit()
+                        print(
+                            f"Subscription updated for user {user.id}: "
+                            f"tier={new_tier}, status={sub_status}"
+                        )
+                    except Exception as e:
+                        print(f"Error processing subscription.updated: {e}")
 
     elif event.type == "customer.subscription.deleted":
         subscription = event.data.object
@@ -219,8 +268,9 @@ async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
             user = result.scalar_one_or_none()
             if user:
                 user.subscription_tier = None
+                user.stripe_subscription_id = None
                 await db.commit()
-                print(f"Subscription deleted. Reverted user {user.id} to Free")
+                print(f"Subscription deleted. Reverted user {user.id} to Free.")
 
     else:
         print(f"Unhandled event type: {event.type}")

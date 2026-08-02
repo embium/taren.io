@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { goto } from '$app/navigation';
@@ -10,13 +10,17 @@
 	let usage = $state<UsageResponse | null>(null);
 
 	// Derived plan caps (with safe fallbacks while loading)
-	const maxPosts = $derived(usage?.max_posts ?? 25);
-	const maxSubs = $derived(usage?.max_subreddits ?? 3);
+	const tier = $derived(usage?.tier || '');
+	const isProfessional = $derived(tier === 'Professional');
+	const isStarter = $derived(tier === 'Starter');
+
+	const maxPosts = $derived(usage ? (isProfessional ? 50 : isStarter ? 15 : 0) : 25);
+	const maxSubs = $derived(usage ? (isProfessional ? 10 : isStarter ? 3 : 0) : 3);
 	const scansToday = $derived(usage?.scans_today ?? 0);
-	const scansTotal = $derived(usage?.daily_scans ?? null); // null = unlimited
-	const scansLeft = $derived(usage?.scans_remaining ?? null);
-	const isAtLimit = $derived(scansLeft !== null && scansLeft <= 0);
-	const isUnlimited = $derived(scansTotal === null);
+	const scansTotal = $derived(usage ? (isProfessional ? null : isStarter ? 10 : 0) : null);
+	const scansLeft = $derived(usage ? (isProfessional ? null : isStarter ? Math.max(0, 10 - scansToday) : 0) : null);
+	const isUnlimited = $derived(usage ? isProfessional : true);
+	const isAtLimit = $derived(usage ? (!isUnlimited && scansLeft !== null && scansLeft <= 0) : false);
 
 	// Slider value clamped to plan max
 	let scrapeLimit = $state(15);
@@ -35,7 +39,6 @@
 	onMount(async () => {
 		try {
 			usage = await redditApi.getUsage();
-			scrapeLimit = Math.min(scrapeLimit, usage.max_posts ?? 25);
 		} catch {
 			// ignore — limits will show fallbacks
 		}
@@ -115,7 +118,11 @@
 				<div>
 					<p class="text-sm font-semibold text-red-300">Daily scan limit reached</p>
 					<p class="mt-0.5 text-sm text-red-400/80">
-						You've used all {scansTotal} scans for today.
+						{#if tier === ''}
+							You must be on a paid plan to run scans.
+						{:else}
+							You've used all {scansTotal} scans for today.
+						{/if}
 						<a
 							href="/dashboard/subscription"
 							class="font-medium text-red-300 underline underline-offset-2"
@@ -198,7 +205,7 @@
 						id="scrape-limit"
 						type="range"
 						min="5"
-						max={maxPosts}
+						max={Math.max(5, maxPosts)}
 						step="5"
 						bind:value={scrapeLimit}
 						class="h-2 w-full cursor-pointer appearance-none rounded-full bg-secondary accent-orange-500"
@@ -255,7 +262,7 @@
 										: scansLeft! <= 3
 											? 'bg-amber-500'
 											: 'bg-primary'}"
-									style="width: {Math.min(100, (scansToday / scansTotal) * 100)}%"
+									style="width: {scansTotal > 0 ? Math.min(100, (scansToday / scansTotal) * 100) : 100}%"
 								></div>
 							</div>
 							{#if scansLeft !== null && scansLeft <= 3 && scansLeft > 0}
