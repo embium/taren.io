@@ -45,6 +45,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Forgot Password — Taren</title>
+</svelte:head>
+
 <div class="flex min-h-screen items-center justify-center bg-[#0a0a0a] p-4">
 	<Card class="w-full max-w-md border-[#262626] bg-[#171717]">
 		<CardHeader class="text-center">

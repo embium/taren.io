@@ -151,7 +151,7 @@
 </script>
 
 <svelte:head>
-	<title>Results - Taren</title>
+	<title>Results — Taren</title>
 </svelte:head>
 
 <div class="flex h-full flex-col">
@@ -222,7 +222,11 @@
 								</div>
 								<div class="flex items-center gap-2 text-xs text-muted-foreground">
 									{#if job.status === 'done'}
-										<span class="text-orange-500">{job.pain_point_count} pain point{job.pain_point_count !== 1 ? 's' : ''}</span>
+										<span class="text-orange-500"
+											>{job.pain_point_count} pain point{job.pain_point_count !== 1
+												? 's'
+												: ''}</span
+										>
 									{:else if job.status === 'failed'}
 										<span class="text-red-400">Failed</span>
 									{:else}

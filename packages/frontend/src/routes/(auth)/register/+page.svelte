@@ -112,7 +112,7 @@
 </script>
 
 <svelte:head>
-	<title>Create Account - Taren</title>
+	<title>Create Account — Taren</title>
 </svelte:head>
 
 <div class="flex min-h-screen items-center justify-center bg-[#0a0a0a] px-4 py-12">

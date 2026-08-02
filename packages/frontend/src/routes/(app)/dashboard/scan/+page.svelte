@@ -10,13 +10,13 @@
 	let usage = $state<UsageResponse | null>(null);
 
 	// Derived plan caps (with safe fallbacks while loading)
-	const maxPosts      = $derived(usage?.max_posts ?? 25);
-	const maxSubs       = $derived(usage?.max_subreddits ?? 3);
-	const scansToday    = $derived(usage?.scans_today ?? 0);
-	const scansTotal    = $derived(usage?.daily_scans ?? null);   // null = unlimited
-	const scansLeft     = $derived(usage?.scans_remaining ?? null);
-	const isAtLimit     = $derived(scansLeft !== null && scansLeft <= 0);
-	const isUnlimited   = $derived(scansTotal === null);
+	const maxPosts = $derived(usage?.max_posts ?? 25);
+	const maxSubs = $derived(usage?.max_subreddits ?? 3);
+	const scansToday = $derived(usage?.scans_today ?? 0);
+	const scansTotal = $derived(usage?.daily_scans ?? null); // null = unlimited
+	const scansLeft = $derived(usage?.scans_remaining ?? null);
+	const isAtLimit = $derived(scansLeft !== null && scansLeft <= 0);
+	const isUnlimited = $derived(scansTotal === null);
 
 	// Slider value clamped to plan max
 	let scrapeLimit = $state(15);
@@ -29,7 +29,7 @@
 			.split(/[\n,]+/)
 			.map((s) => s.trim().replace(/^r\//, ''))
 			.filter(Boolean)
-			.slice(0, maxSubs)   // silently cap to plan limit
+			.slice(0, maxSubs) // silently cap to plan limit
 	);
 
 	onMount(async () => {
@@ -74,11 +74,13 @@
 </script>
 
 <svelte:head>
-	<title>Scan - Taren</title>
+	<title>Scan — Taren</title>
 </svelte:head>
 
 <div class="flex h-full flex-col">
-	<div class="flex shrink-0 items-center justify-between flex-wrap gap-2 border-b border-border px-4 py-4 sm:px-6 md:px-8 md:py-5">
+	<div
+		class="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-4 sm:px-6 md:px-8 md:py-5"
+	>
 		<h1 class="text-lg font-semibold">Scan</h1>
 
 		<!-- Scan quota pill (top-right of header) -->
@@ -99,18 +101,26 @@
 	<div class="flex-1 overflow-y-auto px-4 py-5 sm:px-6 md:px-8 md:py-6">
 		<div class="mb-6">
 			<h2 class="text-2xl font-bold">New Analysis</h2>
-			<p class="mt-1 text-muted-foreground">Scrape subreddits and use AI to identify pain points and market opportunities.</p>
+			<p class="mt-1 text-muted-foreground">
+				Scrape subreddits and use AI to identify pain points and market opportunities.
+			</p>
 		</div>
 
 		<!-- Limit exceeded banner -->
 		{#if isAtLimit}
-			<div class="mb-5 flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-4">
+			<div
+				class="mb-5 flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-4"
+			>
 				<AlertTriangle class="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
 				<div>
 					<p class="text-sm font-semibold text-red-300">Daily scan limit reached</p>
 					<p class="mt-0.5 text-sm text-red-400/80">
 						You've used all {scansTotal} scans for today.
-						<a href="/dashboard/subscription" class="font-medium text-red-300 underline underline-offset-2">Upgrade to Professional</a> for unlimited scans.
+						<a
+							href="/dashboard/subscription"
+							class="font-medium text-red-300 underline underline-offset-2"
+							>Upgrade to Professional</a
+						> for unlimited scans.
 					</p>
 				</div>
 			</div>
@@ -119,11 +129,12 @@
 		<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
 			<!-- Left: form -->
 			<div class="space-y-4 lg:col-span-2">
-
 				<!-- Subreddits -->
 				<div class="rounded-xl border border-border bg-card p-5">
 					<div class="mb-3 flex items-center justify-between">
-						<p class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Subreddits</p>
+						<p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+							Subreddits
+						</p>
 						{#if usage}
 							<span class="text-xs text-muted-foreground">
 								Max <span class="font-semibold text-foreground">{maxSubs}</span> per scan
@@ -138,19 +149,26 @@
 						bind:value={subredditsInput}
 						placeholder="learnprogramming, Python, webdev"
 						rows={7}
-						class="w-full resize-none rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm placeholder-muted-foreground transition-colors focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+						class="w-full resize-none rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm placeholder-muted-foreground transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none"
 					></textarea>
 					<p class="mt-2 text-xs text-muted-foreground">
-						One per line or comma-separated. The <code class="rounded bg-secondary px-1 py-0.5">r/</code> prefix is optional.
+						One per line or comma-separated. The <code class="rounded bg-secondary px-1 py-0.5"
+							>r/</code
+						>
+						prefix is optional.
 						{#if usage && parsedSubreddits.length >= maxSubs}
-							<span class="text-amber-400 font-medium"> Only the first {maxSubs} will be used.</span>
+							<span class="font-medium text-amber-400">
+								Only the first {maxSubs} will be used.</span
+							>
 						{/if}
 					</p>
 
 					{#if parsedSubreddits.length > 0}
 						<div class="mt-3 flex flex-wrap gap-1.5">
 							{#each parsedSubreddits as sub}
-								<span class="inline-flex items-center rounded-full border border-orange-500/30 bg-orange-500/10 px-2.5 py-0.5 text-xs font-medium text-orange-500">
+								<span
+									class="inline-flex items-center rounded-full border border-orange-500/30 bg-orange-500/10 px-2.5 py-0.5 text-xs font-medium text-orange-500"
+								>
 									r/{sub}
 								</span>
 							{/each}
@@ -161,12 +179,19 @@
 				<!-- Posts per subreddit -->
 				<div class="rounded-xl border border-border bg-card p-5">
 					<div class="mb-4 flex items-center justify-between">
-						<p class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Posts per subreddit</p>
+						<p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+							Posts per subreddit
+						</p>
 						<div class="flex items-center gap-2">
 							{#if usage}
-								<span class="text-xs text-muted-foreground">Plan max: <span class="font-semibold text-foreground">{maxPosts}</span></span>
+								<span class="text-xs text-muted-foreground"
+									>Plan max: <span class="font-semibold text-foreground">{maxPosts}</span></span
+								>
 							{/if}
-							<span class="rounded-full border border-orange-500/30 bg-orange-500/10 px-2.5 py-0.5 text-xs font-bold text-orange-500">{scrapeLimit}</span>
+							<span
+								class="rounded-full border border-orange-500/30 bg-orange-500/10 px-2.5 py-0.5 text-xs font-bold text-orange-500"
+								>{scrapeLimit}</span
+							>
 						</div>
 					</div>
 					<input
@@ -188,9 +213,11 @@
 			<!-- Right: summary + submit -->
 			<div class="lg:col-span-1">
 				<div class="rounded-xl border border-border bg-card p-5">
-					<p class="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-4">Summary</p>
+					<p class="mb-4 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+						Summary
+					</p>
 
-					<div class="space-y-3 mb-5">
+					<div class="mb-5 space-y-3">
 						<div class="flex items-center justify-between">
 							<span class="text-sm text-muted-foreground">Subreddits</span>
 							<span class="text-sm font-semibold">
@@ -207,7 +234,9 @@
 						</div>
 						<div class="flex items-center justify-between">
 							<span class="text-sm text-muted-foreground">Est. posts total</span>
-							<span class="text-sm font-semibold">{parsedSubreddits.length > 0 ? parsedSubreddits.length * scrapeLimit : '—'}</span>
+							<span class="text-sm font-semibold"
+								>{parsedSubreddits.length > 0 ? parsedSubreddits.length * scrapeLimit : '—'}</span
+							>
 						</div>
 					</div>
 
@@ -216,28 +245,35 @@
 						<div class="mb-5 rounded-lg border border-border bg-secondary/30 p-3">
 							<div class="mb-2 flex items-center justify-between">
 								<span class="text-xs font-medium text-muted-foreground">Scans today</span>
-								<span class="text-xs font-bold {scanUsageColor()}">{scansToday} / {scansTotal}</span>
+								<span class="text-xs font-bold {scanUsageColor()}">{scansToday} / {scansTotal}</span
+								>
 							</div>
 							<div class="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
 								<div
-									class="h-full rounded-full transition-all {scansLeft === 0 ? 'bg-red-500' : scansLeft <= 3 ? 'bg-amber-500' : 'bg-primary'}"
+									class="h-full rounded-full transition-all {scansLeft === 0
+										? 'bg-red-500'
+										: scansLeft! <= 3
+											? 'bg-amber-500'
+											: 'bg-primary'}"
 									style="width: {Math.min(100, (scansToday / scansTotal) * 100)}%"
 								></div>
 							</div>
 							{#if scansLeft !== null && scansLeft <= 3 && scansLeft > 0}
-								<p class="mt-2 text-xs text-amber-400">{scansLeft} scan{scansLeft === 1 ? '' : 's'} left today</p>
+								<p class="mt-2 text-xs text-amber-400">
+									{scansLeft} scan{scansLeft === 1 ? '' : 's'} left today
+								</p>
 							{/if}
 						</div>
 					{:else if usage && isUnlimited}
 						<div class="mb-5 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3">
-							<p class="text-xs font-medium text-emerald-400 flex items-center gap-1.5">
+							<p class="flex items-center gap-1.5 text-xs font-medium text-emerald-400">
 								<Zap class="h-3.5 w-3.5" />
 								Unlimited scans on {usage.tier}
 							</p>
 						</div>
 					{/if}
 
-					<div class="h-px bg-border mb-4"></div>
+					<div class="mb-4 h-px bg-border"></div>
 
 					<button
 						id="start-analysis-btn"
@@ -247,22 +283,41 @@
 					>
 						{#if isSubmitting}
 							<svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-								<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-								<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+								<circle
+									class="opacity-25"
+									cx="12"
+									cy="12"
+									r="10"
+									stroke="currentColor"
+									stroke-width="4"
+								></circle>
+								<path
+									class="opacity-75"
+									fill="currentColor"
+									d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+								></path>
 							</svg>
 							Starting…
 						{:else if isAtLimit}
 							Limit reached for today
 						{:else}
 							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M13 10V3L4 14h7v7l9-11h-7z"
+								/>
 							</svg>
 							Start Analysis
 						{/if}
 					</button>
 
 					<p class="mt-3 text-center text-xs text-muted-foreground">
-						Results appear in the <a href="/dashboard/results" class="text-foreground underline-offset-2 hover:underline">Results</a> tab.
+						Results appear in the <a
+							href="/dashboard/results"
+							class="text-foreground underline-offset-2 hover:underline">Results</a
+						> tab.
 					</p>
 				</div>
 			</div>

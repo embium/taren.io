@@ -76,7 +76,7 @@
 </script>
 
 <svelte:head>
-	<title>Sign In - Taren</title>
+	<title>Sign In — Taren</title>
 </svelte:head>
 
 <div class="flex min-h-screen items-center justify-center bg-[#0a0a0a] px-4 py-12">
