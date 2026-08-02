@@ -52,6 +52,9 @@ class User(Base):
     stripe_customer_id: Mapped[Optional[str]] = mapped_column(
         String(255), nullable=True
     )
+    stripe_subscription_id: Mapped[Optional[str]] = mapped_column(
+        String(255), nullable=True
+    )
 
     # Relationships
     sessions: Mapped[list["Session"]] = relationship(

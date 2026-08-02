@@ -37,29 +37,115 @@ async def create_checkout_session(
 
         price_id = prices.data[0].id
 
-        # Create Checkout Session
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=["card"],
-            client_reference_id=str(user.id),
-            metadata={
-                "tier": (
-                    "Starter"
-                    if request.product_id == settings.stripe_product_id_starter
-                    else "Professional"
-                )
-            },
-            line_items=[
-                {
-                    "price": price_id,
-                    "quantity": 1,
-                }
-            ],
-            mode="subscription",
-            success_url=f"{settings.frontend_url}/dashboard?session_id={{CHECKOUT_SESSION_ID}}",
-            cancel_url=f"{settings.frontend_url}/pricing",
-        )
+        is_starter = request.product_id == settings.stripe_product_id_starter
+
+        # Build subscription_data — include a free trial for the Starter plan
+        subscription_data: dict = {}
+        if is_starter and settings.stripe_starter_trial_days > 0:
+            subscription_data["trial_period_days"] = settings.stripe_starter_trial_days
+            subscription_data["trial_settings"] = {
+                "end_behavior": {"missing_payment_method": "cancel"}
+            }
+
+        # Create Checkout Session — only pass subscription_data when it's non-empty
+        session_kwargs: dict = {
+            "payment_method_types": ["card"],
+            "client_reference_id": str(user.id),
+            "metadata": {"tier": "Starter" if is_starter else "Professional"},
+            "line_items": [{"price": price_id, "quantity": 1}],
+            "mode": "subscription",
+            "success_url": f"{settings.frontend_url}/dashboard?session_id={{CHECKOUT_SESSION_ID}}",
+            "cancel_url": f"{settings.frontend_url}/pricing",
+        }
+        if subscription_data:
+            session_kwargs["subscription_data"] = subscription_data
+
+        checkout_session = stripe.checkout.Session.create(**session_kwargs)
 
         return {"url": checkout_session.url}
+    except stripe.error.StripeError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
+
+
+@router.get("/subscription")
+async def get_subscription(user: User = Depends(get_current_user)):
+    """Get the current user's subscription details from Stripe."""
+    if not user.stripe_subscription_id:
+        return None
+
+    try:
+        subscription = stripe.Subscription.retrieve(
+            str(user.stripe_subscription_id),
+            expand=["items.data.price.product"],
+        )
+
+        item = subscription.items.data[0]
+        price = item.price
+
+        # product may be a Product object or a plain string ID depending on expand
+        product = price.product if hasattr(price, "product") else None
+        product_name = (
+            product.name
+            if product is not None and not isinstance(product, str) and hasattr(product, "name")
+            else None
+        )
+        tier = user.subscription_tier or product_name or "Starter"
+
+        # In Stripe API >= 2025-03-31, current_period_end lives on the item
+        current_period_end = getattr(item, "current_period_end", None) or getattr(
+            subscription, "current_period_end", None
+        )
+
+        # cancel_at_period_end is deprecated; fall back to cancel_at for newer API versions
+        cancel_at_period_end = getattr(subscription, "cancel_at_period_end", False) or bool(
+            getattr(subscription, "cancel_at", None)
+        )
+
+        # recurring can be None on some price types; guard against that
+        recurring = getattr(price, "recurring", None)
+        interval = getattr(recurring, "interval", "month") if recurring else "month"
+
+        return {
+            "status": subscription.status,
+            "trial_end": getattr(subscription, "trial_end", None),
+            "current_period_end": current_period_end,
+            "cancel_at_period_end": cancel_at_period_end,
+            "amount": getattr(price, "unit_amount", 0),
+            "interval": interval,
+            "tier": tier,
+        }
+    except stripe.error.StripeError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
+
+
+@router.post("/cancel-subscription")
+async def cancel_subscription(user: User = Depends(get_current_user)):
+    """Cancel a Stripe Subscription."""
+    try:
+        # We need the active Price ID for the given Product ID
+        if not user.stripe_subscription_id:
+            raise HTTPException(
+                status_code=404,
+                detail="No active subscription found",
+            )
+
+        response = stripe.Subscription.modify(
+            str(user.stripe_subscription_id), cancel_at_period_end=True
+        )
+
+        return {"status": "success", "canceled_at": response.canceled_at}
     except stripe.error.StripeError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
@@ -100,6 +186,7 @@ async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
         tier = getattr(metadata, "tier", "Starter") if metadata else "Starter"
 
         customer_id = getattr(session, "customer", None)
+        subscription_id = getattr(session, "subscription", None)
 
         if user_id:
             from sqlalchemy import select
@@ -109,6 +196,7 @@ async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
             if user:
                 user.subscription_tier = tier
                 user.stripe_customer_id = customer_id
+                user.stripe_subscription_id = subscription_id
                 await db.commit()
                 print(
                     f"Checkout completed. Updated user {user_id} to tier {tier}"

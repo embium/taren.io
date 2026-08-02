@@ -2,10 +2,11 @@
 
 import asyncio
 import logging
+from datetime import datetime, timezone
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -24,6 +25,51 @@ from services.reddit_service import run_reddit_job
 
 router = APIRouter(prefix="/reddit", tags=["Reddit Analysis"])
 logger = logging.getLogger(__name__)
+
+# Plan limits table — single source of truth used by both /usage and /jobs
+PLAN_LIMITS: dict[str, dict] = {
+    "Starter":      {"daily_scans": 10,   "max_subreddits": 3,  "max_posts": 15},
+    "Professional": {"daily_scans": None, "max_subreddits": 10, "max_posts": 50},
+}
+
+
+# ---------------------------------------------------------------------------
+# GET /reddit/usage  — plan limits + today's scan count
+# ---------------------------------------------------------------------------
+
+
+@router.get("/usage", summary="Get current plan limits and today's scan usage")
+async def get_usage(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Return the user's plan limits and how many scans they have run today."""
+    tier = current_user.subscription_tier
+    plan = PLAN_LIMITS.get(tier or "", {})
+
+    scans_today = 0
+    if plan.get("daily_scans") is not None:
+        today_utc = datetime.now(timezone.utc).date()
+        day_start = datetime(today_utc.year, today_utc.month, today_utc.day, tzinfo=timezone.utc)
+        count_result = await db.execute(
+            select(func.count())
+            .select_from(RedditJob)
+            .where(RedditJob.user_id == current_user.id, RedditJob.created_at >= day_start)
+        )
+        scans_today = count_result.scalar() or 0
+
+    return {
+        "tier": tier,
+        "daily_scans": plan.get("daily_scans"),   # None = unlimited
+        "max_subreddits": plan.get("max_subreddits"),
+        "max_posts": plan.get("max_posts"),
+        "scans_today": scans_today,
+        "scans_remaining": (
+            max(0, plan["daily_scans"] - scans_today)
+            if plan.get("daily_scans") is not None
+            else None  # None = unlimited
+        ),
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -44,11 +90,45 @@ async def create_job(
 ) -> JobResponse:
     """Create a job record and immediately launch the background scraper."""
 
-    if current_user.subscription_tier is None:
+    # -----------------------------------------------------------------------
+    # Plan limits
+    # -----------------------------------------------------------------------
+    tier = current_user.subscription_tier
+    if tier not in PLAN_LIMITS:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You must have a subscription to create a job.",
+            detail="You must have an active Starter or Professional subscription to run scans.",
         )
+
+    plan = PLAN_LIMITS[tier]
+
+
+    # Enforce daily scan limit (Starter only)
+    if plan["daily_scans"] is not None:
+        today_utc = datetime.now(timezone.utc).date()
+        day_start = datetime(
+            today_utc.year, today_utc.month, today_utc.day, tzinfo=timezone.utc
+        )
+        count_result = await db.execute(
+            select(func.count())
+            .select_from(RedditJob)
+            .where(
+                RedditJob.user_id == current_user.id,
+                RedditJob.created_at >= day_start,
+            )
+        )
+        scans_today = count_result.scalar() or 0
+        if scans_today >= plan["daily_scans"]:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=(
+                    f"Daily scan limit reached ({plan['daily_scans']}/day on {tier}). "
+                    "Upgrade to Professional for unlimited scans."
+                ),
+            )
+
+    limit_per_job   = min(plan["max_posts"], request.scrape_limit)
+    max_subreddits  = plan["max_subreddits"]
 
     # Normalise subreddits (strip r/ prefix and whitespace)
     subreddits = [
@@ -60,10 +140,12 @@ async def create_job(
             detail="At least one subreddit is required.",
         )
 
+    subreddits = subreddits[:max_subreddits]
+
     job = RedditJob(
         user_id=current_user.id,
         subreddits=",".join(subreddits),
-        scrape_limit=request.scrape_limit,
+        scrape_limit=limit_per_job,
         status="pending",
         post_count=0,
         comment_count=0,

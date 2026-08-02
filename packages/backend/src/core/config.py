@@ -57,8 +57,9 @@ class Settings(BaseSettings):
     stripe_publishable_key: str = ""
     stripe_secret_key: str = ""
     stripe_webhook_secret: str = ""
-    stripe_product_id_starter: str = "prod_UzilBzFZtKK3ms"
-    stripe_product_id_professional: str = "prod_UzilBzFZtKK3ms"
+    stripe_product_id_starter: str = ""
+    stripe_product_id_professional: str = ""
+    stripe_starter_trial_days: int = 7
 
 
 # Global settings instance

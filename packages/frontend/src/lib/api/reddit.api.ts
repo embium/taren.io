@@ -5,6 +5,15 @@ import type {
 	JobResultsResponse
 } from '$lib/types/reddit';
 
+export interface UsageResponse {
+	tier: string | null;
+	daily_scans: number | null;      // null = unlimited
+	max_subreddits: number | null;
+	max_posts: number | null;
+	scans_today: number;
+	scans_remaining: number | null;  // null = unlimited
+}
+
 /**
  * Reddit Analysis API service
  */
@@ -38,5 +47,12 @@ export const redditApi = {
 	 */
 	async getResults(id: string): Promise<JobResultsResponse> {
 		return api.get<JobResultsResponse>(`/reddit/jobs/${id}/results`);
+	},
+
+	/**
+	 * Get the user's plan limits and today's scan usage
+	 */
+	async getUsage(): Promise<UsageResponse> {
+		return api.get<UsageResponse>('/reddit/usage');
 	}
 };
