@@ -116,32 +116,18 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
 		});
 
 		// Handle 401 Unauthorized - try to refresh token
-		if (response.status === 401 && !skipAuth) {
-			if (refreshToken && retries > 0) {
-				try {
-					// Refresh the token
-					await refreshAccessToken();
+		if (response.status === 401 && !skipAuth && refreshToken && retries > 0) {
+			try {
+				// Refresh the token
+				await refreshAccessToken();
 
-					// Retry the request with new token
-					return apiRequest<T>(endpoint, { ...options, retries: retries - 1 });
-				} catch (refreshError) {
-					// If refresh fails, clear all auth state including localStorage
-					clearTokens();
-					storage.removeItem(STORAGE_KEYS.USER);
-					storage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-					if (typeof window !== 'undefined') {
-						window.dispatchEvent(new CustomEvent('auth:expired'));
-					}
-					throw new AuthError('Session expired. Please log in again.', 'SESSION_EXPIRED', 401);
-				}
-			} else {
-				// No refresh token or out of retries
+				// Retry the request with new token
+				return apiRequest<T>(endpoint, { ...options, retries: retries - 1 });
+			} catch (refreshError) {
+				// If refresh fails, clear all auth state including localStorage
 				clearTokens();
 				storage.removeItem(STORAGE_KEYS.USER);
 				storage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-				if (typeof window !== 'undefined') {
-					window.dispatchEvent(new CustomEvent('auth:expired'));
-				}
 				throw new AuthError('Session expired. Please log in again.', 'SESSION_EXPIRED', 401);
 			}
 		}
