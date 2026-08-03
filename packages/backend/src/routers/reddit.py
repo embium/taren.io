@@ -285,7 +285,9 @@ async def get_job_results(
             title=pp.title,
             description=pp.description,
             severity=pp.severity,
-            target_audience=pp.target_audience,
+            target_audience=(
+                str(pp.target_audience) if pp.target_audience else ""
+            ),
             created_at=pp.created_at,
             evidence=[
                 EvidenceResponse(
