@@ -16,6 +16,7 @@ Flow:
 from __future__ import annotations
 
 import asyncio
+import concurrent.futures
 import json
 import logging
 import re
@@ -245,37 +246,43 @@ async def run_reddit_job(
         total_comments = 0
 
         # Map: subreddit → list of comment dicts (for analysis)
-        subreddit_comments: dict[str, list[dict]] = {}
+        subreddit_comments: dict[str, list[dict]] = {sub: [] for sub in subreddit_list}
+        seen_comment_ids: dict[str, set[str]] = {sub: set() for sub in subreddit_list}
+
+        # Step 1: fetch post listing for all subreddits
+        all_post_tasks = []
 
         for subreddit in subreddit_list:
-            logger.info("Job %s: scraping r/%s", job_id, subreddit)
-
-            # Step 1: fetch post listing (blocking, but fast — just one page of HTML)
+            logger.info("Job %s: fetching listing for r/%s", job_id, subreddit)
             try:
                 raw_posts = await loop.run_in_executor(
                     None, _scrape_listing_sync, subreddit, scrape_limit
                 )
+                logger.info(
+                    "Job %s: r/%s — %d posts to scrape",
+                    job_id,
+                    subreddit,
+                    len(raw_posts),
+                )
+                for post_stub in raw_posts:
+                    all_post_tasks.append((subreddit, post_stub))
             except Exception as exc:
                 logger.error(
                     "Job %s: listing error for r/%s: %s", job_id, subreddit, exc
                 )
-                continue
 
-            logger.info(
-                "Job %s: r/%s — %d posts to scrape",
-                job_id,
-                subreddit,
-                len(raw_posts),
-            )
+        # Step 2: scrape each post's comments concurrently
+        max_concurrent = settings.max_concurrent_posts
+        semaphore = asyncio.Semaphore(max_concurrent)
+        executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_concurrent)
 
-            sub_comments_for_analysis: list[dict] = []
-            seen_comment_ids: set[str] = set()
+        async def scrape_and_save_post(subreddit: str, post_stub: dict):
+            nonlocal total_posts, total_comments
 
-            # Step 2: scrape each post's comments individually so we can update live counts
-            for post_stub in raw_posts:
+            async with semaphore:
                 try:
                     post_data, comments = await loop.run_in_executor(
-                        None, _scrape_post_comments_sync, post_stub
+                        executor, _scrape_post_comments_sync, post_stub
                     )
                 except Exception as exc:
                     logger.error(
@@ -284,13 +291,14 @@ async def run_reddit_job(
                         post_stub.get("post_id"),
                         exc,
                     )
-                    continue
+                    return
 
                 if not post_data:
-                    continue
+                    return
 
                 post_id_str = post_data.get("post_id", "")
                 post_comments_count = 0
+                sub_comments_for_analysis = []
 
                 async with session_factory() as session:
                     # Upsert post — ignore conflicts on (job_id, post_id)
@@ -304,9 +312,7 @@ async def run_reddit_job(
                             author=post_data.get("author") or "[deleted]",
                             content=post_data.get("content") or "",
                             score=int(post_data.get("score", 0) or 0),
-                            num_comments=int(
-                                post_data.get("num_comments", 0) or 0
-                            ),
+                            num_comments=int(post_data.get("num_comments", 0) or 0),
                             url=post_data.get("url") or "",
                             created_at=post_data.get("created_at", None),
                         )
@@ -341,9 +347,9 @@ async def run_reddit_job(
 
                         # Skip duplicates seen so far for this subreddit
                         dedup_key = f"{post_db_id}:{comment_id_str}"
-                        if dedup_key in seen_comment_ids:
+                        if dedup_key in seen_comment_ids[subreddit]:
                             continue
-                        seen_comment_ids.add(dedup_key)
+                        seen_comment_ids[subreddit].add(dedup_key)
 
                         comment_stmt = (
                             pg_insert(RedditComment)
@@ -400,7 +406,14 @@ async def run_reddit_job(
                     comment_count=total_comments,
                 )
 
-            subreddit_comments[subreddit] = sub_comments_for_analysis
+                subreddit_comments[subreddit].extend(sub_comments_for_analysis)
+
+        # Run all post scraping tasks concurrently
+        tasks = [scrape_and_save_post(sub, stub) for sub, stub in all_post_tasks]
+        if tasks:
+            await asyncio.gather(*tasks)
+
+        executor.shutdown(wait=False)
 
         # ------------------------------------------------------------------ analyzing
         await _update_job_status(

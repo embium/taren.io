@@ -52,6 +52,7 @@ class Settings(BaseSettings):
     openrouter_model: str = "deepseek/deepseek-v4-flash"
     proxy_url: str = "http://proxy.proxying.io:8080"
     scrape_limit: int = 25
+    max_concurrent_posts: int = 10
 
     # Stripe settings
     stripe_publishable_key: str = ""
