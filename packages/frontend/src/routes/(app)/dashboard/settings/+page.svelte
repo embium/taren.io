@@ -259,10 +259,6 @@
 						class="inline-flex items-center rounded-full border border-emerald-600 bg-emerald-600/20 px-2.5 py-0.5 text-xs font-medium text-emerald-500"
 						>Verified</span
 					>
-					<span
-						class="inline-flex items-center rounded-full border border-blue-600/30 bg-blue-500/10 px-2.5 py-0.5 text-xs font-medium text-blue-400"
-						>Primary</span
-					>
 				</div>
 			</div>
 
