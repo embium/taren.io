@@ -171,7 +171,9 @@
 		<div class="flex h-full gap-5">
 			<!-- Left: Job list -->
 			<div
-				class="shrink-0 flex-col overflow-hidden rounded-xl border border-border bg-card w-full md:w-72 {selectedJob ? 'hidden md:flex' : 'flex'}"
+				class="w-full shrink-0 flex-col overflow-hidden rounded-xl border border-border bg-card md:w-72 {selectedJob
+					? 'hidden md:flex'
+					: 'flex'}"
 			>
 				<div class="flex shrink-0 items-center justify-between border-b border-border px-5 py-3">
 					<p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">Jobs</p>
@@ -245,10 +247,18 @@
 				{#if selectedJob}
 					<button
 						class="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground md:hidden"
-						onclick={() => { selectedJob = null; results = null; }}
+						onclick={() => {
+							selectedJob = null;
+							results = null;
+						}}
 					>
 						<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M10 19l-7-7m0 0l7-7m-7 7h18"
+							/>
 						</svg>
 						Back to jobs
 					</button>
@@ -376,7 +386,11 @@
 						<!-- Stats -->
 						<div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
 							{#each [['Pain Points', selectedJob.pain_point_count, 'text-orange-400'], ['Posts', selectedJob.post_count, 'text-blue-400'], ['Comments', selectedJob.comment_count, 'text-purple-400']] as [label, count, cls]}
-								<div class="rounded-xl border border-border bg-card p-4 sm:p-5 {label === 'Pain Points' ? 'col-span-2 sm:col-span-1' : ''}">
+								<div
+									class="rounded-xl border border-border bg-card p-4 sm:p-5 {label === 'Pain Points'
+										? 'col-span-2 sm:col-span-1'
+										: ''}"
+								>
 									<p class="mb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
 										{label}
 									</p>
@@ -416,12 +430,10 @@
 												<div class="flex items-start justify-between gap-4">
 													<div class="min-w-0 flex-1">
 														<div class="mb-1.5 flex flex-wrap items-center gap-2">
-															{#each pp.subreddits as subreddit}
-																<span
-																	class="inline-flex items-center rounded-full border border-orange-500/30 bg-orange-500/10 px-2.5 py-0.5 text-xs font-medium text-orange-500"
-																	>r/{subreddit}</span
-																>
-															{/each}
+															<span
+																class="inline-flex items-center rounded-full border border-orange-500/30 bg-orange-500/10 px-2.5 py-0.5 text-xs font-medium text-orange-500"
+																>r/{pp.subreddit}</span
+															>
 															<span class="text-xs text-muted-foreground"
 																>{pp.evidence.length} evidence{pp.evidence.length !== 1
 																	? 's'

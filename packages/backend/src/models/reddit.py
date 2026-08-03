@@ -179,7 +179,7 @@ class RedditPainPoint(Base):
         nullable=False,
         index=True,
     )
-    subreddits: Mapped[str] = mapped_column(
+    subreddit: Mapped[str] = mapped_column(
         String(100), nullable=False, index=True
     )
     title: Mapped[str] = mapped_column(String(512), nullable=False)

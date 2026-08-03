@@ -29,7 +29,7 @@ export interface EvidenceResponse {
 export interface PainPointResponse {
 	id: number;
 	job_id: string;
-	subreddits: string[];
+	subreddit: string;
 	title: string;
 	description: string;
 	severity: number; // 0–100

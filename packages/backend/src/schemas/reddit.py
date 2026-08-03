@@ -47,7 +47,7 @@ class PainPointResponse(BaseModel):
 
     id: int
     job_id: str
-    subreddits: List[str]
+    subreddit: str
     title: str
     description: str
     severity: int  # 0–100

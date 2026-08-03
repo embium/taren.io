@@ -246,8 +246,12 @@ async def run_reddit_job(
         total_comments = 0
 
         # Map: subreddit → list of comment dicts (for analysis)
-        subreddit_comments: dict[str, list[dict]] = {sub: [] for sub in subreddit_list}
-        seen_comment_ids: dict[str, set[str]] = {sub: set() for sub in subreddit_list}
+        subreddit_comments: dict[str, list[dict]] = {
+            sub: [] for sub in subreddit_list
+        }
+        seen_comment_ids: dict[str, set[str]] = {
+            sub: set() for sub in subreddit_list
+        }
 
         # Step 1: fetch post listing for all subreddits
         all_post_tasks = []
@@ -274,7 +278,9 @@ async def run_reddit_job(
         # Step 2: scrape each post's comments concurrently
         max_concurrent = settings.max_concurrent_posts
         semaphore = asyncio.Semaphore(max_concurrent)
-        executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_concurrent)
+        executor = concurrent.futures.ThreadPoolExecutor(
+            max_workers=max_concurrent
+        )
 
         async def scrape_and_save_post(subreddit: str, post_stub: dict):
             nonlocal total_posts, total_comments
@@ -312,7 +318,9 @@ async def run_reddit_job(
                             author=post_data.get("author") or "[deleted]",
                             content=post_data.get("content") or "",
                             score=int(post_data.get("score", 0) or 0),
-                            num_comments=int(post_data.get("num_comments", 0) or 0),
+                            num_comments=int(
+                                post_data.get("num_comments", 0) or 0
+                            ),
                             url=post_data.get("url") or "",
                             created_at=post_data.get("created_at", None),
                         )
@@ -409,7 +417,9 @@ async def run_reddit_job(
                 subreddit_comments[subreddit].extend(sub_comments_for_analysis)
 
         # Run all post scraping tasks concurrently
-        tasks = [scrape_and_save_post(sub, stub) for sub, stub in all_post_tasks]
+        tasks = [
+            scrape_and_save_post(sub, stub) for sub, stub in all_post_tasks
+        ]
         if tasks:
             await asyncio.gather(*tasks)
 
@@ -426,14 +436,15 @@ async def run_reddit_job(
 
         total_pain_points = 0
         pain_points_raw = []
-        for subreddit, comments_list in subreddit_comments.items():
+
+        async def analyze_subreddit(subreddit: str, comments_list: list[dict]):
             if not comments_list:
                 logger.info(
                     "Job %s: r/%s has no comments, skipping analysis",
                     job_id,
                     subreddit,
                 )
-                continue
+                return []
 
             logger.info(
                 "Job %s: analyzing %d comments from r/%s",
@@ -447,90 +458,82 @@ async def run_reddit_job(
                 comments_json=json.dumps(comments_list, ensure_ascii=False),
             )
 
-            for attempt in range(3):
-                try:
-                    raw = await _call_openrouter(prompt)
-                    pain_points_raw.extend(json.loads(_strip_json_fence(raw)))
-                    break
-                except Exception as exc:
-                    logger.warning(
-                        "Job %s: LLM attempt %d failed for r/%s: %s",
-                        job_id,
-                        attempt + 1,
-                        subreddit,
-                        exc,
-                    )
+            async with semaphore:
+                for attempt in range(3):
+                    try:
+                        raw = await _call_openrouter(prompt)
+                        parsed = json.loads(_strip_json_fence(raw))
+                        
+                        # Support both {"pain_points": [...]} and direct [...]
+                        pts = parsed.get("pain_points", []) if isinstance(parsed, dict) else parsed
+                        
+                        # Attach subreddit so the saving loop can associate it properly
+                        for pt in pts:
+                            if isinstance(pt, dict):
+                                pt["subreddit"] = subreddit
+                        return pts
+                    except Exception as exc:
+                        logger.warning(
+                            "Job %s: LLM attempt %d failed for r/%s: %s",
+                            job_id,
+                            attempt + 1,
+                            subreddit,
+                            exc,
+                        )
 
-            if not pain_points_raw:
                 logger.warning(
                     "Job %s: all LLM attempts failed for r/%s",
                     job_id,
                     subreddit,
                 )
-                continue
+                return []
 
-        prompt = MERGE_PROMPT_TEMPLATE.format(
-            all_pain_points=json.dumps(pain_points_raw, ensure_ascii=False),
-        )
+        analysis_tasks = [
+            analyze_subreddit(sub, comments) for sub, comments in subreddit_comments.items()
+        ]
+        if analysis_tasks:
+            results = await asyncio.gather(*analysis_tasks)
+            for res in results:
+                if res:
+                    pain_points_raw.extend(res)
 
-        merged_pain_points_raw = []
-        for attempt in range(3):
-            try:
-                raw = await _call_openrouter(prompt)
-                merged_pain_points_raw = json.loads(_strip_json_fence(raw))
-                break
-            except Exception as exc:
-                logger.warning(
-                    "Job %s: LLM attempt %d failed for r/%s: %s",
-                    job_id,
-                    attempt + 1,
-                    exc,
+        # Save pain points + evidence
+        async with session_factory() as session:
+            for item in pain_points_raw:
+                pp = RedditPainPoint(
+                    job_id=job_id,
+                    subreddit=item.get("subreddit", ""),
+                    title=item.get("title", "Untitled"),
+                    description=item.get("description", ""),
+                    severity=int(item.get("severity", 0)),
+                    target_audience=item.get("target_audience", ""),
                 )
+                session.add(pp)
+                await session.flush()
 
-        if not merged_pain_points_raw:
-            logger.warning(
-                "Job %s: all LLM attempts failed for r/%s",
-                job_id,
-            )
-        else:
+                seen_ev_keys = set()
+                for ev in item.get("evidence", []):
+                    comment_id = ev.get("comment_id")
+                    content = ev.get("content", "")
 
-            # Save pain points + evidence
-            async with session_factory() as session:
-                for item in merged_pain_points_raw:
-                    pp = RedditPainPoint(
-                        job_id=job_id,
-                        subreddits=", ".join(item.get("subreddits", [])),
-                        title=item.get("title", "Untitled"),
-                        description=item.get("description", ""),
-                        severity=int(item.get("severity", 0)),
-                        target_audience=item.get("target_audience", ""),
+                    # Deduplicate by comment_id if available, otherwise by exact content match
+                    dedup_key = comment_id if comment_id else content
+                    if dedup_key in seen_ev_keys:
+                        continue
+                    if dedup_key:
+                        seen_ev_keys.add(dedup_key)
+
+                    evidence = RedditEvidence(
+                        pain_point_id=pp.id,
+                        comment_id=comment_id,
+                        content=content,
+                        link=ev.get("link", ""),
                     )
-                    session.add(pp)
-                    await session.flush()
+                    session.add(evidence)
 
-                    seen_ev_keys = set()
-                    for ev in item.get("evidence", []):
-                        comment_id = ev.get("comment_id")
-                        content = ev.get("content", "")
+                total_pain_points += 1
 
-                        # Deduplicate by comment_id if available, otherwise by exact content match
-                        dedup_key = comment_id if comment_id else content
-                        if dedup_key in seen_ev_keys:
-                            continue
-                        if dedup_key:
-                            seen_ev_keys.add(dedup_key)
-
-                        evidence = RedditEvidence(
-                            pain_point_id=pp.id,
-                            comment_id=comment_id,
-                            content=content,
-                            link=ev.get("link", ""),
-                        )
-                        session.add(evidence)
-
-                    total_pain_points += 1
-
-                await session.commit()
+            await session.commit()
 
         # ------------------------------------------------------------------ done
         await _update_job_status(
