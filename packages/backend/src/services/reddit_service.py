@@ -60,7 +60,9 @@ For each pain point:
    - 60–79: Moderate frequency, real frustration, but workarounds exist
    - 40–59: Niche or low-frequency, mild inconvenience
    - Below 40: Edge case or minor preference
-4. List all relevant **evidence** comments. For each, include:
+4. Write a **target_audience** paragraph (3–5 sentences) describing who suffers from \
+this pain point — their role, context, goals, and why existing solutions fail them.
+5. List all relevant **evidence** comments. For each, include:
    - **comment_id**: the original comment_id from the data
    - **content**: the original comment text from the data
    - **link**: the full Reddit URL provided in the data
@@ -74,6 +76,7 @@ Return ONLY valid JSON (no markdown fences) in this exact structure:
     "title": "...",
     "description": "...",
     "severity": 85,
+    "target_audience": "...",
     "evidence": [
       {{
         "comment_id": "...",
@@ -106,6 +109,7 @@ MERGE_PROMPT_TEMPLATE = """Analyze the pain points below and merge related or du
         "title": "...",
         "description": "...",
         "severity": ...,
+        "target_audience": "...",
         "evidence": [
         {{
             "comment_id": "...",
@@ -486,6 +490,7 @@ async def run_reddit_job(
                         title=item.get("title", "Untitled"),
                         description=item.get("description", ""),
                         severity=int(item.get("severity", 0)),
+                        target_audience=item.get("target_audience", ""),
                     )
                     session.add(pp)
                     await session.flush()

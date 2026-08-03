@@ -20,6 +20,7 @@ from exceptions import (
     EmailAlreadyExistsError,
     EmailNotVerifiedError,
     InvalidCredentialsError,
+    InvalidProviderError,
     InvalidTokenError,
     UserNotFoundError,
     UsernameAlreadyExistsError,
@@ -113,6 +114,9 @@ class AuthService:
         user = await db.scalar(select(User).where(User.email == data.email))
         if not user:
             raise InvalidCredentialsError()
+
+        if not user.password_hash:
+            raise InvalidProviderError()
 
         # Verify password
         is_valid, _ = password_service.verify_password(

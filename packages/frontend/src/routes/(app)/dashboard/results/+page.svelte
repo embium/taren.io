@@ -446,6 +446,16 @@
 															{pp.description}
 														</p>
 													</div>
+													<div class="mb-6">
+														<p
+															class="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase"
+														>
+															Target Audience
+														</p>
+														<p class="text-sm leading-relaxed text-foreground/90">
+															{pp.target_audience}
+														</p>
+													</div>
 													<div class="space-y-4">
 														{#if pp.evidence.length > 0}
 															<div>

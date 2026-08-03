@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
 	import Navigation from '$lib/components/Navigation.svelte';
 	import { goto } from '$app/navigation';
 	import { Search, Brain, BarChart2, Zap, ArrowRight, CheckCircle2 } from '@lucide/svelte';
@@ -111,65 +111,128 @@
 		</div>
 	</section>
 
-	<!-- ───── SOCIAL PROOF / PAIN POINTS PREVIEW ───── -->
+	<!-- ───── REAL PAIN POINTS ───── -->
 	<section class="border-t border-border bg-secondary/30 px-6 py-24 lg:px-12">
-		<div class="mx-auto max-w-5xl">
-			<div class="grid items-center gap-12 lg:grid-cols-2">
-				<div>
-					<p class="mb-3 text-sm font-semibold uppercase tracking-widest text-orange-500">Real results</p>
-					<h2 class="mb-5 text-4xl font-bold leading-tight">Stop guessing what to build next</h2>
-					<p class="mb-8 text-lg text-muted-foreground leading-relaxed">
-						Founders and product teams use Taren to validate ideas before writing a single line of code.
-						Instead of months of interviews, get evidence-backed pain points in minutes.
-					</p>
-					<ul class="space-y-3">
-						{#each [
-							'Validated pain points with real comment evidence',
-							'Severity scores so you prioritize the right problems',
-							'Target audience breakdown per pain point',
-							'Export results to share with your team',
-						] as point}
-							<li class="flex items-start gap-3">
-								<CheckCircle2 class="mt-0.5 h-5 w-5 shrink-0 text-orange-500" />
-								<span class="text-muted-foreground">{point}</span>
-							</li>
-						{/each}
-					</ul>
-					<button
-						onclick={() => goto('/register')}
-						class="mt-8 inline-flex items-center gap-2 rounded-xl bg-foreground px-6 py-3 text-sm font-semibold text-background transition-opacity hover:opacity-80"
-					>
-						Try it free
-						<ArrowRight class="h-4 w-4" />
-					</button>
+		<div class="mx-auto max-w-4xl">
+			<div class="mb-12 text-center">
+				<h2 class="mb-4 text-3xl font-bold lg:text-5xl">Real Pain Points We've Discovered</h2>
+				<p class="mx-auto max-w-2xl text-lg text-muted-foreground leading-relaxed">
+					Here's a small sample from the thousands of validated pain points in our system. Each was discovered by analyzing real Reddit conversations.
+				</p>
+			</div>
+
+			<div class="space-y-6">
+				<!-- Pain Point 1 -->
+				<div class="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+					<div class="px-5 py-4 lg:px-7 lg:py-5">
+						<div class="flex items-start justify-between gap-4">
+							<div class="min-w-0 flex-1">
+								<div class="mb-2 flex flex-wrap items-center gap-2">
+									<span class="inline-flex items-center rounded-full border border-orange-500/30 bg-orange-500/10 px-2.5 py-0.5 text-xs font-medium text-orange-500">r/ai_agents</span>
+									<span class="text-xs text-muted-foreground">6 evidences</span>
+								</div>
+								<h3 class="text-base font-semibold text-foreground lg:text-lg">Browser agents waste tokens on DOM/screenshot navigation</h3>
+							</div>
+							<div class="flex shrink-0 flex-col items-end gap-1">
+								<span class="text-2xl font-bold text-red-400">80</span>
+								<span class="text-xs font-medium text-red-400">Critical</span>
+							</div>
+						</div>
+						<div class="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
+							<div class="h-full rounded-full bg-red-500" style="width: 80%"></div>
+						</div>
+					</div>
+					<div class="border-t border-border bg-card/50 px-5 py-5 lg:px-7 lg:py-6">
+						<div class="mb-6">
+							<p class="mb-2 text-xs font-bold tracking-wide text-muted-foreground uppercase">Description</p>
+							<p class="text-sm leading-relaxed text-foreground/90">
+								Users repeatedly flag that browser-based agents waste tokens on screenshot-per-action loops and DOM navigation instead of using structured APIs or cached workflows.
+							</p>
+						</div>
+						<div class="mb-6">
+							<p class="mb-2 text-xs font-bold tracking-wide text-muted-foreground uppercase">Target Audience</p>
+							<p class="text-sm leading-relaxed text-foreground/90">
+								AI developers and researchers looking to optimize agent efficiency and reduce token costs during automated web tasks.
+							</p>
+						</div>
+						<div class="space-y-3">
+							<p class="mb-2 text-xs font-bold tracking-wide text-muted-foreground uppercase">Evidence Quotes</p>
+							<div class="rounded-xl border border-border bg-card p-4">
+								<p class="text-sm italic leading-relaxed text-foreground/80">
+									"This is like trying to navigate a city by staring at a satellite photo and guessing where the doors are. The problem isn't the 'navigation'—it's that we're treating the DOM like a visual puzzle instead of a structured API."
+								</p>
+							</div>
+							<div class="rounded-xl border border-border bg-card p-4">
+								<p class="text-sm italic leading-relaxed text-foreground/80">
+									"yes, but the biggest cost isn't navigation clicks, it's the screenshot-per-action loop... most browser agents default to vision because it's simpler to build, but the real move is hybrid."
+								</p>
+							</div>
+						</div>
+					</div>
 				</div>
 
-				<!-- Mock results card -->
-				<div class="rounded-2xl border border-border bg-card p-6 shadow-xl shadow-foreground/5">
-					<p class="mb-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Example pain point</p>
-					<div class="mb-4 flex items-center justify-between">
-						<h4 class="font-semibold text-foreground">No affordable automation tools for solopreneurs</h4>
-						<span class="ml-3 shrink-0 rounded-full bg-red-500/10 px-2.5 py-0.5 text-xs font-bold text-red-400">Severity 87</span>
-					</div>
-					<p class="mb-5 text-sm text-muted-foreground leading-relaxed">
-						Users in r/Entrepreneur frequently express frustration that existing automation platforms are priced for enterprises, leaving solo operators unable to afford them.
-					</p>
-					<div class="space-y-2">
-						<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Evidence</p>
-						{#each [
-							'"I tried Zapier but $50/month is ridiculous for 5 zaps…"',
-							'"Why is there nothing in the $5–15/month range that actually works?"',
-						] as quote}
-							<div class="rounded-lg border border-border bg-secondary/50 px-3 py-2">
-								<p class="text-xs italic text-muted-foreground">{quote}</p>
+				<!-- Pain Point 2 -->
+				<div class="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+					<div class="px-5 py-4 lg:px-7 lg:py-5">
+						<div class="flex items-start justify-between gap-4">
+							<div class="min-w-0 flex-1">
+								<div class="mb-2 flex flex-wrap items-center gap-2">
+									<span class="inline-flex items-center rounded-full border border-orange-500/30 bg-orange-500/10 px-2.5 py-0.5 text-xs font-medium text-orange-500">r/LocalLLaMA</span>
+									<span class="text-xs text-muted-foreground">2 evidences</span>
+								</div>
+								<h3 class="text-base font-semibold text-foreground lg:text-lg">Repetitive Reposting and Duplicate Content Clutter</h3>
 							</div>
-						{/each}
+							<div class="flex shrink-0 flex-col items-end gap-1">
+								<span class="text-2xl font-bold text-orange-400">62</span>
+								<span class="text-xs font-medium text-orange-400">High</span>
+							</div>
+						</div>
+						<div class="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
+							<div class="h-full rounded-full bg-orange-500" style="width: 62%"></div>
+						</div>
 					</div>
-					<div class="mt-4 flex items-center gap-2">
-						<span class="rounded-full border border-orange-500/30 bg-orange-500/10 px-2.5 py-0.5 text-xs font-medium text-orange-500">r/Entrepreneur</span>
-						<span class="text-xs text-muted-foreground">· Target: Solo founders</span>
+					<div class="border-t border-border bg-card/50 px-5 py-5 lg:px-7 lg:py-6">
+						<div class="mb-6">
+							<p class="mb-2 text-xs font-bold tracking-wide text-muted-foreground uppercase">Description</p>
+							<p class="text-sm leading-relaxed text-foreground/90">
+								Users are frustrated by the same news and announcements being reposted constantly, cluttering the subreddit and drowning out original, substantive discussion.
+							</p>
+						</div>
+						<div class="mb-6">
+							<p class="mb-2 text-xs font-bold tracking-wide text-muted-foreground uppercase">Target Audience</p>
+							<p class="text-sm leading-relaxed text-foreground/90">
+								Active community members, hobbyists, and developers who value deep discussions and curated original content over repetitive announcements.
+							</p>
+						</div>
+						<div class="space-y-3">
+							<p class="mb-2 text-xs font-bold tracking-wide text-muted-foreground uppercase">Evidence Quotes</p>
+							<div class="rounded-xl border border-border bg-card p-4">
+								<p class="text-sm italic leading-relaxed text-foreground/80">
+									"Can we stop re-posting the same thing 70 times"
+								</p>
+							</div>
+							<div class="rounded-xl border border-border bg-card p-4">
+								<p class="text-sm italic leading-relaxed text-foreground/80">
+									"this like the 350017777333444 time this got posted in a day.. jesus christ"
+								</p>
+							</div>
+						</div>
 					</div>
 				</div>
+			</div>
+
+			<div class="mt-20 text-center">
+				<h3 class="mb-6 text-3xl font-bold lg:text-4xl">Ready to uncover the hidden needs in your niche?</h3>
+				<p class="mx-auto mb-8 max-w-2xl text-lg text-muted-foreground">
+					Stop guessing what your target audience wants. Let Taren's AI find the exact problems they are begging you to solve.
+				</p>
+				<button
+					onclick={() => goto('/register')}
+					class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-orange-500/25 transition-all hover:from-orange-600 hover:to-pink-600 hover:shadow-orange-500/40"
+				>
+					Scan your first subreddit free
+					<ArrowRight class="h-4 w-4" />
+				</button>
 			</div>
 		</div>
 	</section>

@@ -19,6 +19,13 @@ class InvalidCredentialsError(AuthError):
         super().__init__(detail="Invalid email or password")
 
 
+class InvalidProviderError(AuthError):
+    """Invalid OAuth provider."""
+
+    def __init__(self):
+        super().__init__(detail="User signed up with a different provider")
+
+
 class UserNotFoundError(AuthError):
     """User not found."""
 

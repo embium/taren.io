@@ -205,14 +205,20 @@
 							Your public name shown across Taren. Max 32 characters.
 						</p>
 					</div>
-					<Button size="sm" disabled={isSavingName} onclick={handleSaveName} class="shrink-0">
+					<Button
+						size="sm"
+						variant="outline"
+						disabled={isSavingName}
+						onclick={handleSaveName}
+						class="shrink-0"
+					>
 						{isSavingName ? 'Saving…' : 'Save'}
 					</Button>
 				</div>
 				<Input bind:value={displayName} maxlength={32} placeholder="Your name" type="text" />
 			</div>
 
-			<!-- Username -->
+			<!-- Username
 			<div class="rounded-xl border border-border bg-card p-5">
 				<div class="mb-4 flex items-start justify-between gap-4">
 					<div>
@@ -225,6 +231,7 @@
 					</div>
 					<Button
 						size="sm"
+						variant="outline"
 						disabled={isSavingUsername}
 						onclick={handleSaveUsername}
 						class="shrink-0"
@@ -234,6 +241,7 @@
 				</div>
 				<Input bind:value={username} maxlength={30} placeholder="your_username" type="text" />
 			</div>
+			-->
 
 			<!-- Email -->
 			<div class="rounded-xl border border-border bg-card p-5">
@@ -258,7 +266,7 @@
 				</div>
 			</div>
 
-			<!-- User ID -->
+			<!-- User ID
 			<div class="rounded-xl border border-border bg-card p-5">
 				<p class="mb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
 					User ID
@@ -281,26 +289,7 @@
 					</Button>
 				</div>
 			</div>
-
-			<div class="rounded-xl border border-border bg-card p-5">
-				<p class="mb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">Theme</p>
-				<p class="mb-4 text-sm text-muted-foreground">Update your theme.</p>
-				<div class="grid grid-cols-2 gap-2">
-					{#each ['light', 'dark'] as t}
-						<Button
-							onclick={() => setMode(t as any)}
-							class="flex flex-col items-center gap-2 rounded-lg border border-border p-3 text-sm font-medium capitalize transition-colors hover:bg-accent {mode ==
-							null
-								? ''
-								: (mode as any) === t || (mode as any).current === t
-									? 'text-bg border-primary bg-accent'
-									: 'text-muted'}"
-						>
-							{t}
-						</Button>
-					{/each}
-				</div>
-			</div>
+			-->
 
 			<!-- Danger Zone -->
 			<div class="rounded-xl border border-red-500/30 bg-card p-5">
@@ -319,6 +308,31 @@
 					>
 						Delete Account
 					</Button>
+				</div>
+			</div>
+		</div>
+		<div class="mt-8 mb-8">
+			<h2 class="text-2xl font-bold">Appearance Settings</h2>
+			<p class="mt-1 text-muted-foreground">Manage your appearance preferences.</p>
+		</div>
+		<div class="max-w-2xl space-y-4">
+			<div class="rounded-xl border border-border bg-card p-5">
+				<p class="mb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">Theme</p>
+				<p class="mb-4 text-sm text-muted-foreground">Update your theme.</p>
+				<div class="grid grid-cols-2 gap-2">
+					{#each ['light', 'dark'] as t}
+						<Button
+							onclick={() => setMode(t as any)}
+							class="flex flex-col items-center gap-2 rounded-lg border border-border p-3 text-sm font-medium capitalize transition-colors hover:bg-accent {mode ==
+							null
+								? ''
+								: (mode as any) === t || (mode as any).current === t
+									? 'text-bg border-primary bg-accent'
+									: 'text-muted'}"
+						>
+							{t}
+						</Button>
+					{/each}
 				</div>
 			</div>
 		</div>

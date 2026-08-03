@@ -285,6 +285,7 @@ async def get_job_results(
             title=pp.title,
             description=pp.description,
             severity=pp.severity,
+            target_audience=pp.target_audience,
             created_at=pp.created_at,
             evidence=[
                 EvidenceResponse(

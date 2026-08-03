@@ -51,6 +51,7 @@ class PainPointResponse(BaseModel):
     title: str
     description: str
     severity: int  # 0–100
+    target_audience: str
     created_at: datetime
     evidence: List[EvidenceResponse] = []
 
