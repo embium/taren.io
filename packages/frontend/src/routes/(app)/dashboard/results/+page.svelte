@@ -2,6 +2,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { page } from '$app/state';
+	import { Check, X, RefreshCw, Cpu, Circle } from '@lucide/svelte';
 	import { redditApi } from '$lib/api/reddit.api';
 	import type { JobResponse, JobResultsResponse } from '$lib/types/reddit';
 
@@ -123,15 +124,15 @@
 	function statusIcon(status: string) {
 		switch (status) {
 			case 'done':
-				return '✓';
+				return Check;
 			case 'failed':
-				return '✗';
+				return X;
 			case 'scraping':
-				return '⟳';
+				return RefreshCw;
 			case 'analyzing':
-				return '◈';
+				return Cpu;
 			default:
-				return '○';
+				return Circle;
 		}
 	}
 	function formatDate(iso: string) {
@@ -196,6 +197,7 @@
 						</div>
 					{:else}
 						{#each jobs as job (job.id)}
+							{@const Icon = statusIcon(job.status)}
 							<button
 								id="job-{job.id}-btn"
 								onclick={() => selectJob(job)}
@@ -215,11 +217,12 @@
 											job.status
 										)}"
 									>
-										<span
+										<Icon
+											size={14}
 											class={job.status === 'scraping' || job.status === 'analyzing'
 												? 'animate-spin'
-												: ''}>{statusIcon(job.status)}</span
-										>
+												: ''}
+										/>
 									</span>
 								</div>
 								<div class="flex items-center gap-2 text-xs text-muted-foreground">

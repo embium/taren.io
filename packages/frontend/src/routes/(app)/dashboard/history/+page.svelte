@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { Check, X, RefreshCw, Cpu, Circle } from '@lucide/svelte';
 	import { redditApi } from '$lib/api/reddit.api';
 	import type { JobResponse } from '$lib/types/reddit';
 
@@ -33,15 +34,15 @@
 	function statusIcon(status: string) {
 		switch (status) {
 			case 'done':
-				return '✓';
+				return Check;
 			case 'failed':
-				return '✗';
+				return X;
 			case 'scraping':
-				return '⟳';
+				return RefreshCw;
 			case 'analyzing':
-				return '◈';
+				return Cpu;
 			default:
-				return '○';
+				return Circle;
 		}
 	}
 	function formatDate(iso: string) {
@@ -177,6 +178,7 @@
 						</thead>
 						<tbody class="divide-y divide-border">
 							{#each jobs as job (job.id)}
+								{@const Icon = statusIcon(job.status)}
 								<tr
 									class="cursor-pointer transition-colors hover:bg-accent/30"
 									onclick={() => goto(`/dashboard/results?job=${job.id}`)}
@@ -203,7 +205,7 @@
 												job.status
 											)}"
 										>
-											{statusIcon(job.status)}
+											<Icon size={14} class={job.status === 'scraping' || job.status === 'analyzing' ? 'animate-spin' : ''} />
 											{job.status}
 										</span>
 									</td>
