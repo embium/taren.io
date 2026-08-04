@@ -50,7 +50,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 ANALYSIS_PROMPT_TEMPLATE = """\
-You are a market research analyst. Analyze the Reddit comments below from r/{subreddit} \
+You are a market research analyst. Analyze the Reddit posts and their comments below from r/{subreddit} \
 and identify distinct pain points expressed by users.
 
 For each pain point:
@@ -63,13 +63,14 @@ For each pain point:
    - Below 40: Edge case or minor preference
 4. Write a **target_audience** paragraph (3–5 sentences) describing who suffers from \
 this pain point — their role, context, goals, and why existing solutions fail them.
-5. List all relevant **evidence** comments. For each, include:
-   - **comment_id**: the original comment_id from the data
-   - **content**: the original comment text from the data
-   - **link**: the full Reddit URL provided in the data
+5. List all relevant **evidence**. For each evidence item, specify:
+   - **post_id**: the ID of the post if the evidence comes from a post, otherwise null/omitted.
+   - **comment_id**: the ID of the comment if the evidence comes from a comment, otherwise null/omitted.
+   - **content**: the original text from the data.
+   - **link**: the full Reddit URL provided in the data.
 
-Only include pain points that have at least 2 supporting comments. \
-Do not invent or paraphrase evidence quotes — use exact words from the comments.
+Only include pain points that have at least 2 supporting evidence items. \
+Do not invent or paraphrase evidence quotes — use exact words from the posts/comments.
 
 Return ONLY valid JSON (no markdown fences) in this exact structure:
 [
@@ -80,6 +81,7 @@ Return ONLY valid JSON (no markdown fences) in this exact structure:
     "target_audience": "...",
     "evidence": [
       {{
+        "post_id": "...",
         "comment_id": "...",
         "content": "...",
         "link": "..."
@@ -88,8 +90,8 @@ Return ONLY valid JSON (no markdown fences) in this exact structure:
   }}
 ]
 
---- COMMENTS ---
-{comments_json}
+--- REDDIT DATA ---
+{data_json}
 """
 
 MERGE_PROMPT_TEMPLATE = """Analyze the pain points below and merge related or duplicate entries into consolidated pain points.
@@ -113,6 +115,7 @@ MERGE_PROMPT_TEMPLATE = """Analyze the pain points below and merge related or du
         "target_audience": "...",
         "evidence": [
         {{
+            "post_id": "...",
             "comment_id": "...",
             "content": "...",
             "link": "..."
@@ -136,8 +139,10 @@ def _strip_json_fence(text: str) -> str:
     return match.group(1) if match else text
 
 
-def _build_reddit_link(subreddit: str, post_id: str, comment_id: str) -> str:
-    return f"https://reddit.com/r/{subreddit}/comments/{post_id}/comment/{comment_id}"
+def _build_reddit_link(subreddit: str, post_id: str, comment_id: Optional[str] = None) -> str:
+    if comment_id:
+        return f"https://reddit.com/r/{subreddit}/comments/{post_id}/comment/{comment_id}"
+    return f"https://reddit.com/r/{subreddit}/comments/{post_id}"
 
 
 async def _call_openrouter(prompt: str) -> str:
@@ -246,6 +251,9 @@ async def run_reddit_job(
         total_comments = 0
 
         # Map: subreddit → list of comment dicts (for analysis)
+        subreddit_posts: dict[str, list[dict]] = {
+            sub: [] for sub in subreddit_list
+        }
         subreddit_comments: dict[str, list[dict]] = {
             sub: [] for sub in subreddit_list
         }
@@ -304,6 +312,7 @@ async def run_reddit_job(
 
                 post_id_str = post_data.get("post_id", "")
                 post_comments_count = 0
+                sub_posts_for_analysis = []
                 sub_comments_for_analysis = []
 
                 async with session_factory() as session:
@@ -346,6 +355,15 @@ async def run_reddit_job(
 
                     post_db_id = returned_id
 
+                    sub_posts_for_analysis.append(
+                        {
+                            "post_id": post_id_str,
+                            "title": post_data.get("title", ""),
+                            "content": post_data.get("content") or "",
+                            "link": post_data.get("url") or _build_reddit_link(subreddit, post_id_str),
+                        }
+                    )
+
                     # Save comments
                     for c in comments:
                         body = c.get("body", "")
@@ -382,6 +400,7 @@ async def run_reddit_job(
                         # Prepare for LLM
                         sub_comments_for_analysis.append(
                             {
+                                "post_id": post_id_str,
                                 "comment_id": comment_id_str,
                                 "content": body,
                                 "subreddit": subreddit,
@@ -414,6 +433,7 @@ async def run_reddit_job(
                     comment_count=total_comments,
                 )
 
+                subreddit_posts[subreddit].extend(sub_posts_for_analysis)
                 subreddit_comments[subreddit].extend(sub_comments_for_analysis)
 
         # Run all post scraping tasks concurrently
@@ -437,25 +457,49 @@ async def run_reddit_job(
         total_pain_points = 0
         pain_points_raw = []
 
-        async def analyze_subreddit(subreddit: str, comments_list: list[dict]):
-            if not comments_list:
+        async def analyze_subreddit(
+            subreddit: str, posts_list: list[dict], comments_list: list[dict]
+        ):
+            if not posts_list and not comments_list:
                 logger.info(
-                    "Job %s: r/%s has no comments, skipping analysis",
+                    "Job %s: r/%s has no posts or comments, skipping analysis",
                     job_id,
                     subreddit,
                 )
                 return []
 
             logger.info(
-                "Job %s: analyzing %d comments from r/%s",
+                "Job %s: analyzing %d posts + %d comments from r/%s",
                 job_id,
+                len(posts_list),
                 len(comments_list),
                 subreddit,
             )
 
+            posts_by_id = {}
+            for p in posts_list:
+                posts_by_id[p["post_id"]] = {
+                    "post_id": p["post_id"],
+                    "title": p.get("title", ""),
+                    "content": p.get("content", ""),
+                    "link": p.get("link", ""),
+                    "comments": []
+                }
+            
+            for c in comments_list:
+                p_id = c.get("post_id")
+                if p_id in posts_by_id:
+                    posts_by_id[p_id]["comments"].append({
+                        "comment_id": c.get("comment_id"),
+                        "content": c.get("content", ""),
+                        "link": c.get("link", "")
+                    })
+            
+            data_json_list = list(posts_by_id.values())
+
             prompt = ANALYSIS_PROMPT_TEMPLATE.format(
                 subreddit=subreddit,
-                comments_json=json.dumps(comments_list, ensure_ascii=False),
+                data_json=json.dumps(data_json_list, ensure_ascii=False),
             )
 
             async with semaphore:
@@ -463,10 +507,14 @@ async def run_reddit_job(
                     try:
                         raw = await _call_openrouter(prompt)
                         parsed = json.loads(_strip_json_fence(raw))
-                        
+
                         # Support both {"pain_points": [...]} and direct [...]
-                        pts = parsed.get("pain_points", []) if isinstance(parsed, dict) else parsed
-                        
+                        pts = (
+                            parsed.get("pain_points", [])
+                            if isinstance(parsed, dict)
+                            else parsed
+                        )
+
                         # Attach subreddit so the saving loop can associate it properly
                         for pt in pts:
                             if isinstance(pt, dict):
@@ -489,7 +537,12 @@ async def run_reddit_job(
                 return []
 
         analysis_tasks = [
-            analyze_subreddit(sub, comments) for sub, comments in subreddit_comments.items()
+            analyze_subreddit(
+                sub, 
+                subreddit_posts.get(sub, []), 
+                subreddit_comments.get(sub, [])
+            )
+            for sub in subreddit_posts.keys()
         ]
         if analysis_tasks:
             results = await asyncio.gather(*analysis_tasks)
@@ -514,17 +567,24 @@ async def run_reddit_job(
                 seen_ev_keys = set()
                 for ev in item.get("evidence", []):
                     comment_id = ev.get("comment_id")
+                    post_id = ev.get("post_id")
                     content = ev.get("content", "")
 
-                    # Deduplicate by comment_id if available, otherwise by exact content match
-                    dedup_key = comment_id if comment_id else content
+                    # Deduplicate by comment_id if available, then post_id, otherwise exact content
+                    if comment_id:
+                        dedup_key = f"c_{comment_id}"
+                    elif post_id:
+                        dedup_key = f"p_{post_id}"
+                    else:
+                        dedup_key = f"content_{content}"
+
                     if dedup_key in seen_ev_keys:
                         continue
-                    if dedup_key:
-                        seen_ev_keys.add(dedup_key)
+                    seen_ev_keys.add(dedup_key)
 
                     evidence = RedditEvidence(
                         pain_point_id=pp.id,
+                        post_id=post_id,
                         comment_id=comment_id,
                         content=content,
                         link=ev.get("link", ""),
