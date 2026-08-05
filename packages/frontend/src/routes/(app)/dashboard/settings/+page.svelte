@@ -150,18 +150,12 @@
 
 		<div class="max-w-2xl space-y-4">
 			<!-- Avatar -->
-			<div class="rounded-xl border border-border bg-card p-5">
-				<div class="mb-4 flex items-center justify-between">
-					<div>
-						<p class="mb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-							Avatar
-						</p>
-						<p class="text-sm text-muted-foreground">
-							Click to upload a custom image (JPG, PNG, or WebP · max 1MB).
-						</p>
+				<div class="rounded-xl border border-border bg-card">
+					<div class="items-center justify-between border-b border-border px-5 py-3">
+					<p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">Avatar</p>
 					</div>
-				</div>
-				<div class="flex items-center gap-4">
+				<div class="gap-4">
+					<div class="flex items-center gap-4 px-5 py-5">
 					<button
 						onclick={() => avatarInput?.click()}
 						aria-label="Upload avatar"
@@ -182,6 +176,10 @@
 						<p class="text-sm font-medium">{authState.user?.name ?? 'User'}</p>
 						<p class="text-xs text-muted-foreground">{authState.user?.email ?? ''}</p>
 					</div>
+					</div>
+					<p class="border-t border-border py-3 px-5 text-sm text-muted-foreground bg-muted/20 rounded-b-xl">
+						Click to upload a custom image (JPG, PNG, or WebP · max 1MB).
+					</p>
 				</div>
 				<input
 					bind:this={avatarInput}
@@ -194,16 +192,11 @@
 			</div>
 
 			<!-- Display Name -->
-			<div class="rounded-xl border border-border bg-card p-5">
-				<div class="mb-4 flex items-start justify-between gap-4">
-					<div>
-						<p class="mb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-							Display Name
-						</p>
-						<p class="text-sm text-muted-foreground">
-							Your public name shown across Taren. Max 32 characters.
-						</p>
-					</div>
+
+			
+			<div class="rounded-xl border border-border bg-card">
+				<div class="flex items-center justify-between border-b border-border px-5 py-3">
+					<p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">Display Name</p>
 					<Button
 						size="sm"
 						variant="outline"
@@ -214,7 +207,14 @@
 						{isSavingName ? 'Saving…' : 'Save'}
 					</Button>
 				</div>
-				<Input bind:value={displayName} maxlength={32} placeholder="Your name" type="text" />
+				<div class="gap-4">
+					<div class="px-5 py-5">
+						<Input bind:value={displayName} maxlength={32} placeholder="Your name" type="text" />
+					</div>
+					<p class="border-t border-border py-3 px-5 text-sm text-muted-foreground bg-muted/20 rounded-b-xl">
+						Your public name shown across Taren. Max 32 characters.
+					</p>
+				</div>
 			</div>
 
 			<!-- Username
@@ -243,21 +243,25 @@
 			-->
 
 			<!-- Email -->
-			<div class="rounded-xl border border-border bg-card p-5">
-				<p class="mb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-					Email Address
-				</p>
-				<p class="mb-4 text-sm text-muted-foreground">The email you use to sign in to Taren.</p>
-				<div class="flex items-center gap-3">
-					<div
-						class="flex-1 rounded-lg border border-border bg-secondary/30 px-3 py-2 text-sm font-medium"
-					>
-						{authState.user?.email}
+			<div class="rounded-xl border border-border bg-card">
+				<div class="flex items-center justify-between border-b border-border px-5 py-3">
+					<p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">Email Address</p>
+				</div>
+				<div class="gap-4">
+					<div class="flex items-center gap-3 px-5 py-5">
+						<div
+							class="flex-1 rounded-lg border border-border bg-secondary/30 px-3 py-2 text-sm font-medium"
+						>
+							{authState.user?.email}
+						</div>
+						<span
+							class="inline-flex items-center rounded-full border border-emerald-600 bg-emerald-600/20 px-2.5 py-0.5 text-xs font-medium text-emerald-500"
+							>Verified</span
+						>
 					</div>
-					<span
-						class="inline-flex items-center rounded-full border border-emerald-600 bg-emerald-600/20 px-2.5 py-0.5 text-xs font-medium text-emerald-500"
-						>Verified</span
-					>
+					<p class="border-t border-border py-3 px-5 text-sm text-muted-foreground bg-muted/20 rounded-b-xl">
+						The email you use to sign in to Taren.
+					</p>
 				</div>
 			</div>
 
@@ -287,14 +291,9 @@
 			-->
 
 			<!-- Danger Zone -->
-			<div class="rounded-xl border border-red-500/30 bg-card p-5">
-				<div class="flex items-start justify-between gap-4">
-					<div>
-						<p class="mb-1 text-xs font-medium tracking-wide text-red-400 uppercase">Danger Zone</p>
-						<p class="text-sm text-muted-foreground">
-							Permanently deactivate your account. This action cannot be undone.
-						</p>
-					</div>
+			<div class="rounded-xl border border-red-500/30 bg-card">
+				<div class="flex items-center justify-between border-b border-red-500/30 px-5 py-3">
+					<p class="text-xs font-medium tracking-wide text-red-400 uppercase">Danger Zone</p>
 					<Button
 						variant="destructive"
 						size="sm"
@@ -304,6 +303,11 @@
 						Delete Account
 					</Button>
 				</div>
+				<div class="gap-4">
+					<p class="border-t border-red-500/30 py-3 px-5 text-sm text-muted-foreground bg-red-500/5 rounded-b-xl">
+						Permanently deactivate your account. This action cannot be undone.
+					</p>
+				</div>
 			</div>
 		</div>
 		<div class="mt-8 mb-8">
@@ -311,10 +315,12 @@
 			<p class="mt-1 text-muted-foreground">Manage your appearance preferences.</p>
 		</div>
 		<div class="max-w-2xl space-y-4">
-			<div class="rounded-xl border border-border bg-card p-5">
-				<p class="mb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">Theme</p>
-				<p class="mb-4 text-sm text-muted-foreground">Update your theme.</p>
-				<div class="grid grid-cols-2 gap-2">
+			<div class="rounded-xl border border-border bg-card">
+				<div class="flex items-center justify-between border-b border-border px-5 py-3">
+					<p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">Theme</p>
+				</div>
+				<div class="gap-4">
+					<div class="grid grid-cols-2 gap-2 px-5 py-5">
 					{#each ['light', 'dark'] as t}
 						<Button
 							onclick={() => setMode(t as any)}
@@ -328,6 +334,10 @@
 							{t}
 						</Button>
 					{/each}
+					</div>
+					<p class="border-t border-border py-3 px-5 text-sm text-muted-foreground bg-muted/20 rounded-b-xl">
+						Update your theme.
+					</p>
 				</div>
 			</div>
 		</div>

@@ -93,7 +93,7 @@
 			</div>
 
 			<!-- History table -->
-			<div class="overflow-hidden rounded-xl border border-border bg-card">
+			<div class="rounded-xl border border-border bg-card">
 				<div class="flex items-center justify-between border-b border-border px-5 py-3">
 					<p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">All Scans</p>
 					<span class="text-xs text-muted-foreground">{jobs.length} total</span>

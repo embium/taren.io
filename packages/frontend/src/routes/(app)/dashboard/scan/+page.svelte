@@ -137,8 +137,10 @@
 			<!-- Left: form -->
 			<div class="space-y-4 lg:col-span-2">
 				<!-- Subreddits -->
-				<div class="rounded-xl border border-border bg-card p-5">
-					<div class="mb-3 flex items-center justify-between">
+
+
+				<div class="rounded-xl border border-border bg-card">
+					<div class="flex items-center justify-between border-b border-border px-5 py-3">
 						<p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">
 							Subreddits
 						</p>
@@ -151,24 +153,26 @@
 							</span>
 						{/if}
 					</div>
-					<textarea
-						id="subreddits-input"
-						bind:value={subredditsInput}
-						placeholder="learnprogramming, Python, webdev"
-						rows={7}
-						class="w-full resize-none rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm placeholder-muted-foreground transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none"
-					></textarea>
-					<p class="mt-2 text-xs text-muted-foreground">
-						One per line or comma-separated. The <code class="rounded bg-secondary px-1 py-0.5"
-							>r/</code
-						>
-						prefix is optional.
-						{#if usage && parsedSubreddits.length >= maxSubs}
-							<span class="font-medium text-amber-400">
-								Only the first {maxSubs} will be used.</span
+					<div class="overflow-x-auto p-5">
+						<textarea
+							id="subreddits-input"
+							bind:value={subredditsInput}
+							placeholder="learnprogramming, Python, webdev"
+							rows={7}
+							class="w-full resize-none rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm placeholder-muted-foreground transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none"
+						></textarea>
+						<p class="mt-2 text-xs text-muted-foreground">
+							One per line or comma-separated. The <code class="rounded bg-secondary px-1 py-0.5"
+								>r/</code
 							>
-						{/if}
-					</p>
+							prefix is optional.
+							{#if usage && parsedSubreddits.length >= maxSubs}
+								<span class="font-medium text-amber-400">
+									Only the first {maxSubs} will be used.</span
+								>
+							{/if}
+						</p>
+					</div>
 
 					{#if parsedSubreddits.length > 0}
 						<div class="mt-3 flex flex-wrap gap-1.5">
@@ -184,8 +188,11 @@
 				</div>
 
 				<!-- Posts per subreddit -->
-				<div class="rounded-xl border border-border bg-card p-5">
-					<div class="mb-4 flex items-center justify-between">
+
+
+
+				<div class="rounded-xl border border-border bg-card">
+					<div class="flex items-center justify-between border-b border-border px-5 py-3">
 						<p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">
 							Posts per subreddit
 						</p>
@@ -201,30 +208,33 @@
 							>
 						</div>
 					</div>
-					<input
-						id="scrape-limit"
-						type="range"
-						min="5"
-						max={Math.max(5, maxPosts)}
-						step="5"
-						bind:value={scrapeLimit}
-						class="h-2 w-full cursor-pointer appearance-none rounded-full bg-secondary accent-orange-500"
-					/>
-					<div class="mt-2 flex justify-between text-xs text-muted-foreground">
-						<span>5 — quick</span>
-						<span>{maxPosts} — max ({usage?.tier ?? '…'})</span>
+					<div class="p-5">
+						<input
+							id="scrape-limit"
+							type="range"
+							min="5"
+							max={Math.max(5, maxPosts)}
+							step="5"
+							bind:value={scrapeLimit}
+							class="h-2 w-full cursor-pointer appearance-none rounded-full bg-secondary accent-orange-500"
+						/>
+						<div class="mt-2 flex justify-between text-xs text-muted-foreground">
+							<span>5 — quick</span>
+							<span>{maxPosts} — max ({usage?.tier ?? '…'})</span>
+						</div>
 					</div>
 				</div>
 			</div>
 
 			<!-- Right: summary + submit -->
 			<div class="lg:col-span-1">
-				<div class="rounded-xl border border-border bg-card p-5">
-					<p class="mb-4 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-						Summary
-					</p>
-
-					<div class="mb-5 space-y-3">
+				<div class="rounded-xl border border-border bg-card">
+					<div class="flex items-center justify-between border-b border-border px-5 py-3">
+						<p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+							Summary
+						</p>
+					</div>
+					<div class="p-5 space-y-3">
 						<div class="flex items-center justify-between">
 							<span class="text-sm text-muted-foreground">Subreddits</span>
 							<span class="text-sm font-semibold">
@@ -245,11 +255,11 @@
 								>{parsedSubreddits.length > 0 ? parsedSubreddits.length * scrapeLimit : '—'}</span
 							>
 						</div>
-					</div>
+
 
 					<!-- Scan usage meter -->
 					{#if usage && !isUnlimited && scansTotal !== null}
-						<div class="mb-5 rounded-lg border border-border bg-secondary/30 p-3">
+						<div class="mb-5 rounded-lg border border-border p-3">
 							<div class="mb-2 flex items-center justify-between">
 								<span class="text-xs font-medium text-muted-foreground">Scans today</span>
 								<span class="text-xs font-bold {scanUsageColor()}">{scansToday} / {scansTotal}</span
@@ -327,6 +337,7 @@
 						> tab.
 					</p>
 				</div>
+			</div>
 			</div>
 		</div>
 	</div>

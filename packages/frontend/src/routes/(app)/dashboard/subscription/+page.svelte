@@ -157,9 +157,9 @@
 				{/if}
 
 				<!-- Main card -->
-				<div class="overflow-hidden rounded-xl border border-border bg-card">
+				<div class="rounded-xl border border-border bg-card p-5">
 					<!-- Card header -->
-					<div class="flex items-center justify-between border-b border-border px-6 py-5">
+					<div class="mb-4 flex items-center justify-between">
 						<div class="flex items-center gap-3">
 							<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/15">
 								<Zap class="h-5 w-5 text-indigo-400" />
@@ -195,9 +195,9 @@
 					</div>
 
 					<!-- Details rows -->
-					<div class="divide-y divide-border">
+					<div class="mb-5 space-y-3">
 						<!-- Billing amount -->
-						<div class="flex items-center justify-between px-6 py-4">
+						<div class="flex items-center justify-between">
 							<div class="flex items-center gap-3">
 								<CreditCard class="h-4 w-4 text-muted-foreground" />
 								<span class="text-sm text-muted-foreground">Billing amount</span>
@@ -217,7 +217,7 @@
 						</div>
 
 						<!-- Billing interval -->
-						<div class="flex items-center justify-between px-6 py-4">
+						<div class="flex items-center justify-between">
 							<div class="flex items-center gap-3">
 								<Calendar class="h-4 w-4 text-muted-foreground" />
 								<span class="text-sm text-muted-foreground">Billing interval</span>
@@ -228,7 +228,7 @@
 						<!-- Trial / next billing dates -->
 						{#if isTrialingAndCancelled && subscription.trial_end}
 							<!-- Cancelled during trial: show trial end as the access end date -->
-							<div class="flex items-center justify-between px-6 py-4">
+							<div class="flex items-center justify-between">
 								<div class="flex items-center gap-3">
 									<Clock class="h-4 w-4 text-muted-foreground" />
 									<span class="text-sm text-muted-foreground">Access ends</span>
@@ -238,7 +238,7 @@
 								>
 							</div>
 						{:else if isTrialing && subscription.trial_end}
-							<div class="flex items-center justify-between px-6 py-4">
+							<div class="flex items-center justify-between">
 								<div class="flex items-center gap-3">
 									<Clock class="h-4 w-4 text-muted-foreground" />
 									<span class="text-sm text-muted-foreground">Trial ends</span>
@@ -247,7 +247,7 @@
 									>{formatDate(subscription.trial_end)}</span
 								>
 							</div>
-							<div class="flex items-center justify-between px-6 py-4">
+							<div class="flex items-center justify-between">
 								<div class="flex items-center gap-3">
 									<Calendar class="h-4 w-4 text-muted-foreground" />
 									<span class="text-sm text-muted-foreground">First charge on</span>
@@ -255,7 +255,7 @@
 								<span class="text-sm font-semibold">{formatDate(subscription.trial_end)}</span>
 							</div>
 						{:else}
-							<div class="flex items-center justify-between px-6 py-4">
+							<div class="flex items-center justify-between">
 								<div class="flex items-center gap-3">
 									<Calendar class="h-4 w-4 text-muted-foreground" />
 									<span class="text-sm text-muted-foreground">
@@ -271,7 +271,8 @@
 
 					<!-- Cancel action -->
 					{#if !isCancelledAtEnd}
-						<div class="border-t border-border bg-muted/30 px-6 py-5">
+						<div class="my-5 h-px bg-border"></div>
+						<div>
 							{#if !showCancelConfirm}
 								<button
 									id="cancel-subscription-btn"
