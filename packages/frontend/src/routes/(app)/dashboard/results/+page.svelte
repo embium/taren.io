@@ -86,8 +86,8 @@
 	async function selectJob(job: JobResponse) {
 		selectedJob = job;
 		results = null;
+		goto("/dashboard/results?job=" + job.id);
 		if (job.status === 'done') {
-			goto("/dashboard/results?job=" + job.id);
 			await loadResults(job.id);
 		}
 	}
