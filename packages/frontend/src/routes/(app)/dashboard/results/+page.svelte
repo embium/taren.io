@@ -260,52 +260,74 @@
 						</p>
 					</div>
 				{:else if selectedJob.status === 'pending' || selectedJob.status === 'scraping' || selectedJob.status === 'analyzing'}
-					<div class="rounded-xl border border-border bg-card p-8">
-						<div class="mb-6 flex items-center gap-4">
-							<div class="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500/10">
-								<svg class="h-6 w-6 animate-spin text-blue-400" fill="none" viewBox="0 0 24 24">
-									<circle
-										class="opacity-25"
-										cx="12"
-										cy="12"
-										r="10"
-										stroke="currentColor"
-										stroke-width="4"
-									></circle>
-									<path
-										class="opacity-75"
-										fill="currentColor"
-										d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-									></path>
+					{@const stepIndex = ['pending', 'scraping', 'analyzing', 'done'].indexOf(selectedJob.status)}
+					{@const progressWidth = Math.max(0, (stepIndex / 3) * 100)}
+					<div class="rounded-xl border border-border bg-card p-5">
+						<div class="mb-8 flex items-center gap-4">
+							<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-500/10">
+								<svg class="h-6 w-6 animate-spin text-blue-500" fill="none" viewBox="0 0 24 24">
+									<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+									<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
 								</svg>
 							</div>
-							<div>
-								<h3 class="text-lg font-semibold">Job #{selectedJob.id} in progress</h3>
-								<p class="text-sm text-blue-400 capitalize">{selectedJob.status}…</p>
+							<div class="min-w-0">
+								<h3 class="truncate text-lg font-semibold" title={selectedJob.id}>
+									Job #{selectedJob.id.substring(0, 8)} in progress
+								</h3>
+								<p class="text-sm font-medium text-blue-500 capitalize">{selectedJob.status}…</p>
 							</div>
 						</div>
 
-						<div class="mb-6 space-y-3">
-							{#each [{s: 'pending', label: 'Queued', Icon: Circle}, {s: 'scraping', label: 'Scraping Reddit', Icon: RefreshCw}, {s: 'analyzing', label: 'AI Analysis', Icon: Cpu}, {s: 'done', label: 'Complete', Icon: Check}] as {s, label, Icon}}
+						<!-- Horizontal Stepper -->
+						<div class="relative mb-10 hidden px-2 sm:block">
+							<!-- Connecting line -->
+							<div class="absolute left-[12.5%] right-[12.5%] top-6 z-0 h-[2px] bg-secondary">
+								<div class="h-full bg-blue-500 transition-all duration-1000 ease-in-out" style="width: {progressWidth}%"></div>
+							</div>
+							
+							<div class="relative z-10 flex justify-between">
+								{#each [{s: 'pending', label: 'Queued', Icon: Circle}, {s: 'scraping', label: 'Scraping', Icon: RefreshCw}, {s: 'analyzing', label: 'Analysis', Icon: Cpu}, {s: 'done', label: 'Complete', Icon: Check}] as {s, label, Icon}, i}
+									<div class="flex w-1/4 flex-col items-center">
+										<!-- Background wrapper blocks line bleed-through -->
+										<div class="rounded-full bg-card p-1">
+											<div class="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-500
+												{i < stepIndex ? 'bg-emerald-500/20 text-emerald-500' : 
+												 i === stepIndex ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20 ring-4 ring-blue-500/20' : 
+												 'bg-secondary text-muted-foreground'}
+											">
+												<Icon size={16} />
+											</div>
+										</div>
+										<p class="mt-2 text-xs font-semibold tracking-wide uppercase
+											{i < stepIndex ? 'text-emerald-500' : 
+											 i === stepIndex ? 'text-blue-500' : 
+											 'text-muted-foreground'}
+										">
+											{label}
+										</p>
+									</div>
+								{/each}
+							</div>
+						</div>
+
+						<!-- Mobile Vertical Stepper -->
+						<div class="mb-8 space-y-4 sm:hidden">
+							{#each [{s: 'pending', label: 'Queued', Icon: Circle}, {s: 'scraping', label: 'Scraping Reddit', Icon: RefreshCw}, {s: 'analyzing', label: 'AI Analysis', Icon: Cpu}, {s: 'done', label: 'Complete', Icon: Check}] as {s, label, Icon}, i}
 								<div class="flex items-center gap-3">
-									<div
-										class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold
-										{selectedJob.status === s
-											? 'bg-blue-500 text-white'
-											: ['pending', 'scraping', 'analyzing', 'done'].indexOf(selectedJob.status) >
-												  ['pending', 'scraping', 'analyzing', 'done'].indexOf(s as string)
-												? 'bg-emerald-500/20 text-emerald-400'
-												: 'bg-secondary text-muted-foreground'}"
-									>
+									<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-bold
+										{i < stepIndex ? 'bg-emerald-500/20 text-emerald-500' : 
+										 i === stepIndex ? 'bg-blue-500 text-white shadow-sm ring-2 ring-blue-500/20' : 
+										 'bg-secondary text-muted-foreground'}">
 										<Icon size={14} />
 									</div>
-									<p class="text-sm font-medium {selectedJob.status === s ? 'text-blue-400' : ''}">
+									<p class="text-sm font-medium {i < stepIndex ? 'text-emerald-500' : i === stepIndex ? 'text-blue-500' : 'text-muted-foreground'}">
 										{label}
 									</p>
 								</div>
 							{/each}
 						</div>
 
+						<!-- Live Metrics -->
 						<div class="grid grid-cols-2 gap-4">
 							<div class="rounded-xl border border-border bg-card p-5 text-center">
 								<p class="text-2xl font-bold">{selectedJob.post_count}</p>
@@ -320,8 +342,11 @@
 								</p>
 							</div>
 						</div>
-						<p class="mt-4 text-center text-xs text-muted-foreground">
-							Auto-refreshing every 5 seconds…
+						
+						<!-- Footer Text -->
+						<p class="mt-6 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+							<RefreshCw size={12} class="animate-spin opacity-70" />
+							<span>Auto-refreshing every 5 seconds…</span>
 						</p>
 					</div>
 				{:else if selectedJob.status === 'failed'}
