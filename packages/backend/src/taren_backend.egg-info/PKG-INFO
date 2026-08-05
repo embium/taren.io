@@ -21,3 +21,4 @@ Requires-Dist: resend==2.6.0
 Requires-Dist: jinja2==3.1.6
 Requires-Dist: arq>=0.25.0
 Requires-Dist: redis>=5.0.0
+Requires-Dist: slowapi>=0.1.10

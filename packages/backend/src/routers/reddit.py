@@ -5,10 +5,11 @@ import logging
 from datetime import datetime, timezone
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
+from core.rate_limit import limiter
 
 from core.database import get_db, AsyncSessionLocal
 from core.dependencies import get_current_user
@@ -92,8 +93,10 @@ async def get_usage(
     status_code=status.HTTP_201_CREATED,
     summary="Start a new Reddit scrape + analysis job",
 )
+@limiter.limit("5/minute")
 async def create_job(
-    request: CreateJobRequest,
+    request: Request,
+    job_data: CreateJobRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> JobResponse:
@@ -135,12 +138,12 @@ async def create_job(
                 ),
             )
 
-    limit_per_job = min(plan["max_posts"], request.scrape_limit)
+    limit_per_job = min(plan["max_posts"], job_data.scrape_limit)
     max_subreddits = plan["max_subreddits"]
 
     # Normalise subreddits (strip r/ prefix and whitespace)
     subreddits = [
-        s.strip().lstrip("r/").strip() for s in request.subreddits if s.strip()
+        s.strip().lstrip("r/").strip() for s in job_data.subreddits if s.strip()
     ]
     if not subreddits:
         raise HTTPException(
@@ -170,7 +173,7 @@ async def create_job(
         "run_reddit_job",
         job_id=job_id,
         subreddit_list=subreddits,
-        scrape_limit=request.scrape_limit,
+        scrape_limit=job_data.scrape_limit,
     )
 
     logger.info(

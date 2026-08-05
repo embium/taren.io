@@ -13,6 +13,10 @@ from routers import auth, users, stripe as stripe_router
 from routers import reddit as reddit_router
 from services.email_service import EmailService
 from core.queue import init_redis_pool, close_redis_pool
+from core.rate_limit import limiter
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 import models.reddit  # noqa: F401 — registers reddit tables with Base.metadata
 
 # Configure logging
@@ -54,6 +58,11 @@ app = FastAPI(
     version="2.0.0",
     lifespan=lifespan,
 )
+
+# Configure Rate Limiting
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
 
 # Configure CORS
 app.add_middleware(
