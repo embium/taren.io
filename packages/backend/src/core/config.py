@@ -17,6 +17,7 @@ class Settings(BaseSettings):
 
     # Database settings
     database_url: str = "postgresql://user:password@localhost:5432/taren_auth"
+    redis_url: str = "redis://localhost:6379"
 
     # JWT settings
     jwt_secret_key: str = "your-secret-key-change-this-in-production"

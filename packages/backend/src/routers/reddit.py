@@ -21,7 +21,7 @@ from schemas.reddit import (
     PainPointResponse,
     EvidenceResponse,
 )
-from services.reddit_service import run_reddit_job
+from core.queue import get_redis_pool
 
 router = APIRouter(prefix="/reddit", tags=["Reddit Analysis"])
 logger = logging.getLogger(__name__)
@@ -165,13 +165,12 @@ async def create_job(
     await db.commit()
 
     # Fire-and-forget background task
-    asyncio.create_task(
-        run_reddit_job(
-            job_id=job_id,
-            subreddit_list=subreddits,
-            scrape_limit=request.scrape_limit,
-            session_factory=AsyncSessionLocal,
-        )
+    redis_pool = get_redis_pool()
+    await redis_pool.enqueue_job(
+        "run_reddit_job",
+        job_id=job_id,
+        subreddit_list=subreddits,
+        scrape_limit=request.scrape_limit,
     )
 
     logger.info(

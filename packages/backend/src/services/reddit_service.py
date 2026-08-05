@@ -28,6 +28,7 @@ from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from core.database import AsyncSessionLocal
 from core.config import settings
 from models.reddit import (
     RedditJob,
@@ -231,10 +232,10 @@ def _scrape_post_comments_sync(post: dict) -> tuple[dict | None, list[dict]]:
 
 
 async def run_reddit_job(
+    ctx: dict,
     job_id: str,
     subreddit_list: list[str],
     scrape_limit: int,
-    session_factory: async_sessionmaker,
 ) -> None:
     """
     Full scrape + analysis pipeline for a Reddit job.
@@ -244,7 +245,7 @@ async def run_reddit_job(
 
     try:
         # ------------------------------------------------------------------ scraping
-        await _update_job_status(session_factory, job_id, "scraping")
+        await _update_job_status(AsyncSessionLocal, job_id, "scraping")
 
         loop = asyncio.get_event_loop()
         total_posts = 0
@@ -315,7 +316,7 @@ async def run_reddit_job(
                 sub_posts_for_analysis = []
                 sub_comments_for_analysis = []
 
-                async with session_factory() as session:
+                async with AsyncSessionLocal() as session:
                     # Upsert post — ignore conflicts on (job_id, post_id)
                     post_stmt = (
                         pg_insert(RedditPost)
@@ -426,7 +427,7 @@ async def run_reddit_job(
                     total_comments,
                 )
                 await _update_job_status(
-                    session_factory,
+                    AsyncSessionLocal,
                     job_id,
                     "scraping",
                     post_count=total_posts,
@@ -447,7 +448,7 @@ async def run_reddit_job(
 
         # ------------------------------------------------------------------ analyzing
         await _update_job_status(
-            session_factory,
+            AsyncSessionLocal,
             job_id,
             "analyzing",
             post_count=total_posts,
@@ -551,7 +552,7 @@ async def run_reddit_job(
                     pain_points_raw.extend(res)
 
         # Save pain points + evidence
-        async with session_factory() as session:
+        async with AsyncSessionLocal() as session:
             for item in pain_points_raw:
                 pp = RedditPainPoint(
                     job_id=job_id,
@@ -597,7 +598,7 @@ async def run_reddit_job(
 
         # ------------------------------------------------------------------ done
         await _update_job_status(
-            session_factory,
+            AsyncSessionLocal,
             job_id,
             "done",
             post_count=total_posts,
@@ -615,7 +616,7 @@ async def run_reddit_job(
     except Exception as exc:
         logger.error("Job %s: unhandled error: %s", job_id, exc, exc_info=True)
         await _update_job_status(
-            session_factory,
+            AsyncSessionLocal,
             job_id,
             "failed",
             error_message=str(exc),

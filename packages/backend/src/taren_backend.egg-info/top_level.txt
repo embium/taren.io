@@ -1,5 +1,6 @@
-api
-application
 config
-domain
-infrastructure
+core
+models
+routers
+schemas
+services

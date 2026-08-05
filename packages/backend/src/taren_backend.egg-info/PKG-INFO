@@ -19,3 +19,5 @@ Requires-Dist: python-dotenv==1.2.1
 Requires-Dist: email-validator==2.3.0
 Requires-Dist: resend==2.6.0
 Requires-Dist: jinja2==3.1.6
+Requires-Dist: arq>=0.25.0
+Requires-Dist: redis>=5.0.0
