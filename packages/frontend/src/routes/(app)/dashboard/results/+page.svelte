@@ -2,9 +2,14 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { page } from '$app/state';
-	import { Check, X, RefreshCw, Cpu, Circle } from '@lucide/svelte';
+	import { Check, RefreshCw, Cpu, Circle } from '@lucide/svelte';
 	import { redditApi } from '$lib/api/reddit.api';
 	import type { JobResponse, JobResultsResponse } from '$lib/types/reddit';
+	import PageContainer from '$lib/components/dashboard/PageContainer.svelte';
+	import PageHeader from '$lib/components/dashboard/PageHeader.svelte';
+	import PageContent from '$lib/components/dashboard/PageContent.svelte';
+	import StatCard from '$lib/components/dashboard/StatCard.svelte';
+	import StatusBadge from '$lib/components/dashboard/StatusBadge.svelte';
 
 	let jobs = $state<JobResponse[]>([]);
 	let loadingJobs = $state(true);
@@ -108,33 +113,7 @@
 		if (s >= 40) return 'Medium';
 		return 'Low';
 	}
-	function statusBadgeClass(status: string) {
-		switch (status) {
-			case 'done':
-				return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
-			case 'failed':
-				return 'bg-red-500/20 text-red-400 border-red-500/30';
-			case 'scraping':
-			case 'analyzing':
-				return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-			default:
-				return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
-		}
-	}
-	function statusIcon(status: string) {
-		switch (status) {
-			case 'done':
-				return Check;
-			case 'failed':
-				return X;
-			case 'scraping':
-				return RefreshCw;
-			case 'analyzing':
-				return Cpu;
-			default:
-				return Circle;
-		}
-	}
+
 	function formatDate(iso: string) {
 		return new Date(iso).toLocaleString(undefined, {
 			month: 'short',
@@ -155,20 +134,19 @@
 	<title>Results — Taren</title>
 </svelte:head>
 
-<div class="flex h-full flex-col">
-	<div
-		class="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-4 sm:px-6 md:px-8 md:py-5"
-	>
-		<h1 class="text-lg font-semibold">Results</h1>
-		{#if hasActiveJobs}
-			<div class="flex items-center gap-1.5">
-				<span class="h-2 w-2 animate-pulse rounded-full bg-blue-400"></span>
-				<span class="text-xs font-medium text-blue-400">Live</span>
-			</div>
-		{/if}
-	</div>
+<PageContainer>
+	<PageHeader title="Results">
+		{#snippet actions()}
+			{#if hasActiveJobs}
+				<div class="flex items-center gap-1.5">
+					<span class="h-2 w-2 animate-pulse rounded-full bg-blue-400"></span>
+					<span class="text-xs font-medium text-blue-400">Live</span>
+				</div>
+			{/if}
+		{/snippet}
+	</PageHeader>
 
-	<div class="flex-1 overflow-hidden px-4 py-5 sm:px-6 md:px-8 md:py-6">
+	<PageContent class="overflow-hidden">
 		<div class="flex h-full gap-5">
 			<!-- Left: Job list -->
 			<div
@@ -197,7 +175,6 @@
 						</div>
 					{:else}
 						{#each jobs as job (job.id)}
-							{@const Icon = statusIcon(job.status)}
 							<button
 								id="job-{job.id}-btn"
 								onclick={() => selectJob(job)}
@@ -212,18 +189,7 @@
 											.map((s) => `r/${s}`)
 											.join(', ')}
 									</p>
-									<span
-										class="inline-flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-0.5 text-xs font-medium {statusBadgeClass(
-											job.status
-										)}"
-									>
-										<Icon
-											size={14}
-											class={job.status === 'scraping' || job.status === 'analyzing'
-												? 'animate-spin'
-												: ''}
-										/>
-									</span>
+									<StatusBadge status={job.status} class="shrink-0" />
 								</div>
 								<div class="flex items-center gap-2 text-xs text-muted-foreground">
 									{#if job.status === 'done'}
@@ -388,18 +354,9 @@
 					<div class="space-y-5">
 						<!-- Stats -->
 						<div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
-							{#each [['Pain Points', selectedJob.pain_point_count, 'text-orange-400'], ['Posts', selectedJob.post_count, 'text-blue-400'], ['Comments', selectedJob.comment_count, 'text-purple-400']] as [label, count, cls]}
-								<div
-									class="rounded-xl border border-border bg-card p-4 sm:p-5 {label === 'Pain Points'
-										? 'col-span-2 sm:col-span-1'
-										: ''}"
-								>
-									<p class="mb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-										{label}
-									</p>
-									<p class="text-2xl font-bold {cls}">{count}</p>
-								</div>
-							{/each}
+							<StatCard title="Pain Points" value={selectedJob.pain_point_count} valueClass="text-orange-400" class="col-span-2 sm:col-span-1" />
+							<StatCard title="Posts" value={selectedJob.post_count} valueClass="text-blue-400" />
+							<StatCard title="Comments" value={selectedJob.comment_count} valueClass="text-purple-400" />
 						</div>
 
 						<!-- Pain points -->
@@ -543,5 +500,5 @@
 				{/if}
 			</div>
 		</div>
-	</div>
-</div>
+	</PageContent>
+</PageContainer>

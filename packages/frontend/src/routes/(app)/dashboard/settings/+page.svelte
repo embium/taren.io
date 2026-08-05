@@ -8,6 +8,9 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { setMode, mode } from 'mode-watcher';
+	import PageContainer from '$lib/components/dashboard/PageContainer.svelte';
+	import PageHeader from '$lib/components/dashboard/PageHeader.svelte';
+	import PageContent from '$lib/components/dashboard/PageContent.svelte';
 
 	const authState = getAuthState();
 
@@ -134,14 +137,10 @@
 	<title>Settings — Taren</title>
 </svelte:head>
 
-<div class="flex h-full flex-col">
-	<div
-		class="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-4 sm:px-6 md:px-8 md:py-5"
-	>
-		<h1 class="text-lg font-semibold">Settings</h1>
-	</div>
+<PageContainer>
+	<PageHeader title="Settings" />
 
-	<div class="flex-1 overflow-y-auto px-4 py-5 sm:px-6 md:px-8 md:py-6">
+	<PageContent>
 		<div class="mb-8">
 			<h2 class="text-2xl font-bold">Account Settings</h2>
 			<p class="mt-1 text-muted-foreground">
@@ -332,8 +331,8 @@
 				</div>
 			</div>
 		</div>
-	</div>
-</div>
+	</PageContent>
+</PageContainer>
 
 <!-- Delete Confirmation Dialog -->
 {#if showDeleteDialog}

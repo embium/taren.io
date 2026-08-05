@@ -12,6 +12,9 @@
 	} from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import { stripeApi, type SubscriptionDetails } from '$lib/api/stripe.api';
+	import PageContainer from '$lib/components/dashboard/PageContainer.svelte';
+	import PageHeader from '$lib/components/dashboard/PageHeader.svelte';
+	import PageContent from '$lib/components/dashboard/PageContent.svelte';
 
 	let subscription = $state<SubscriptionDetails | null>(null);
 	let loading = $state(true);
@@ -69,16 +72,12 @@
 	<title>Billing — Taren</title>
 </svelte:head>
 
-<div class="flex h-full flex-col">
+<PageContainer>
 	<!-- Title bar -->
-	<div
-		class="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-4 sm:px-6 md:px-8 md:py-5"
-	>
-		<h1 class="text-lg font-semibold">Billing</h1>
-	</div>
+	<PageHeader title="Billing" />
 
 	<!-- Content -->
-	<div class="flex-1 overflow-y-auto px-4 py-6 sm:px-6 md:px-8">
+	<PageContent>
 		<div class="mx-auto max-w-2xl space-y-5">
 			{#if loading}
 				<!-- Skeleton -->
@@ -357,5 +356,5 @@
 				{/if}
 			{/if}
 		</div>
-	</div>
-</div>
+	</PageContent>
+</PageContainer>

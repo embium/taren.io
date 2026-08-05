@@ -1,9 +1,13 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { Check, X, RefreshCw, Cpu, Circle } from '@lucide/svelte';
 	import { redditApi } from '$lib/api/reddit.api';
 	import type { JobResponse } from '$lib/types/reddit';
+	import PageContainer from '$lib/components/dashboard/PageContainer.svelte';
+	import PageHeader from '$lib/components/dashboard/PageHeader.svelte';
+	import PageContent from '$lib/components/dashboard/PageContent.svelte';
+	import StatCard from '$lib/components/dashboard/StatCard.svelte';
+	import StatusBadge from '$lib/components/dashboard/StatusBadge.svelte';
 
 	let jobs = $state<JobResponse[]>([]);
 	let loadingJobs = $state(true);
@@ -18,33 +22,7 @@
 		}
 	});
 
-	function statusBadgeClass(status: string) {
-		switch (status) {
-			case 'done':
-				return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
-			case 'failed':
-				return 'bg-red-500/20 text-red-400 border-red-500/30';
-			case 'scraping':
-			case 'analyzing':
-				return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-			default:
-				return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
-		}
-	}
-	function statusIcon(status: string) {
-		switch (status) {
-			case 'done':
-				return Check;
-			case 'failed':
-				return X;
-			case 'scraping':
-				return RefreshCw;
-			case 'analyzing':
-				return Cpu;
-			default:
-				return Circle;
-		}
-	}
+
 	function formatDate(iso: string) {
 		return new Date(iso).toLocaleString(undefined, {
 			month: 'short',
@@ -69,14 +47,10 @@
 	<title>Scan History — Taren</title>
 </svelte:head>
 
-<div class="flex h-full flex-col">
-	<div
-		class="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-4 sm:px-6 md:px-8 md:py-5"
-	>
-		<h1 class="text-lg font-semibold">History</h1>
-	</div>
+<PageContainer>
+	<PageHeader title="History" />
 
-	<div class="flex-1 overflow-y-auto px-4 py-5 sm:px-6 md:px-8 md:py-6">
+	<PageContent>
 		{#if loadingJobs}
 			<div class="space-y-3">
 				{#each [1, 2, 3, 4] as _}
@@ -112,32 +86,10 @@
 		{:else}
 			<!-- Summary stats -->
 			<div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-				<div class="rounded-xl border border-border bg-card p-5">
-					<p class="mb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-						Total Scans
-					</p>
-					<p class="text-2xl font-bold">{jobs.length}</p>
-				</div>
-				<div class="rounded-xl border border-border bg-card p-5">
-					<p class="mb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-						Completed
-					</p>
-					<p class="text-2xl font-bold text-emerald-400">{doneJobs}</p>
-				</div>
-				<div class="rounded-xl border border-border bg-card p-5">
-					<p class="mb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-						Pain Points Found
-					</p>
-					<p class="text-2xl font-bold text-orange-400">{totalPainPoints}</p>
-				</div>
-				<div class="rounded-xl border border-border bg-card p-5">
-					<p class="mb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-						Failed
-					</p>
-					<p class="text-2xl font-bold {failedJobs > 0 ? 'text-red-400' : 'text-muted-foreground'}">
-						{failedJobs}
-					</p>
-				</div>
+				<StatCard title="Total Scans" value={jobs.length} />
+				<StatCard title="Completed" value={doneJobs} valueClass="text-emerald-400" />
+				<StatCard title="Pain Points Found" value={totalPainPoints} valueClass="text-orange-400" />
+				<StatCard title="Failed" value={failedJobs} valueClass={failedJobs > 0 ? 'text-red-400' : 'text-muted-foreground'} />
 			</div>
 
 			<!-- History table -->
@@ -178,7 +130,6 @@
 						</thead>
 						<tbody class="divide-y divide-border">
 							{#each jobs as job (job.id)}
-								{@const Icon = statusIcon(job.status)}
 								<tr
 									class="cursor-pointer transition-colors hover:bg-accent/30"
 									onclick={() => goto(`/dashboard/results?job=${job.id}`)}
@@ -200,14 +151,7 @@
 										</div>
 									</td>
 									<td class="px-5 py-3.5">
-										<span
-											class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium {statusBadgeClass(
-												job.status
-											)}"
-										>
-											<Icon size={14} class={job.status === 'scraping' || job.status === 'analyzing' ? 'animate-spin' : ''} />
-											{job.status}
-										</span>
+										<StatusBadge status={job.status} />
 									</td>
 									<td class="px-5 py-3.5 text-muted-foreground">{job.post_count}</td>
 									<td class="px-5 py-3.5">
@@ -227,5 +171,5 @@
 				</div>
 			</div>
 		{/if}
-	</div>
-</div>
+	</PageContent>
+</PageContainer>
