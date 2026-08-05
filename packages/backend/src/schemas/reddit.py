@@ -36,7 +36,7 @@ class EvidenceResponse(BaseModel):
 
     id: int
     comment_id: Optional[str] = None
-    content: str
+    quote: str
     link: str
 
     model_config = {"from_attributes": True}

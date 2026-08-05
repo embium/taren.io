@@ -51,7 +51,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 ANALYSIS_PROMPT_TEMPLATE = """\
-You are a market research analyst. Analyze the Reddit posts and their comments below from r/{subreddit} \
+You are a market research analyst. Analyze the Reddit posts and their comments below from r/{subreddit} 
 and identify distinct pain points expressed by users.
 
 For each pain point:
@@ -62,16 +62,16 @@ For each pain point:
    - 60–79: Moderate frequency, real frustration, but workarounds exist
    - 40–59: Niche or low-frequency, mild inconvenience
    - Below 40: Edge case or minor preference
-4. Write a **target_audience** paragraph (3–5 sentences) describing who suffers from \
+4. Write a **target_audience** paragraph (3–5 sentences) describing who suffers from 
 this pain point — their role, context, goals, and why existing solutions fail them.
 5. List all relevant **evidence**. For each evidence item, specify:
    - **post_id**: the ID of the post if the evidence comes from a post, otherwise null/omitted.
    - **comment_id**: the ID of the comment if the evidence comes from a comment, otherwise null/omitted.
-   - **content**: the original text from the data.
+   - **quote**: a direct quote from the original content, max 1-2 sentences, verbatim with no paraphrasing.
    - **link**: the full Reddit URL provided in the data.
 
-Only include pain points that have at least 2 supporting evidence items. \
-Do not invent or paraphrase evidence quotes — use exact words from the posts/comments.
+Only include pain points that have at least 2 supporting evidence items. 
+Do not invent or paraphrase evidence — use exact words from the posts/comments.
 
 Return ONLY valid JSON (no markdown fences) in this exact structure:
 [
@@ -84,7 +84,7 @@ Return ONLY valid JSON (no markdown fences) in this exact structure:
       {{
         "post_id": "...",
         "comment_id": "...",
-        "content": "...",
+        "quote": "...",
         "link": "..."
       }}
     ]
@@ -118,13 +118,11 @@ MERGE_PROMPT_TEMPLATE = """Analyze the pain points below and merge related or du
         {{
             "post_id": "...",
             "comment_id": "...",
-            "content": "...",
+            "quote": "...",
             "link": "..."
         }}
         ],
-        "subreddits": [
-            "...",
-        ]
+        "subreddit": "..."
     }}
     ]
 
@@ -140,7 +138,9 @@ def _strip_json_fence(text: str) -> str:
     return match.group(1) if match else text
 
 
-def _build_reddit_link(subreddit: str, post_id: str, comment_id: Optional[str] = None) -> str:
+def _build_reddit_link(
+    subreddit: str, post_id: str, comment_id: Optional[str] = None
+) -> str:
     if comment_id:
         return f"https://reddit.com/r/{subreddit}/comments/{post_id}/comment/{comment_id}"
     return f"https://reddit.com/r/{subreddit}/comments/{post_id}"
@@ -361,7 +361,8 @@ async def run_reddit_job(
                             "post_id": post_id_str,
                             "title": post_data.get("title", ""),
                             "content": post_data.get("content") or "",
-                            "link": post_data.get("url") or _build_reddit_link(subreddit, post_id_str),
+                            "link": post_data.get("url")
+                            or _build_reddit_link(subreddit, post_id_str),
                         }
                     )
 
@@ -484,18 +485,20 @@ async def run_reddit_job(
                     "title": p.get("title", ""),
                     "content": p.get("content", ""),
                     "link": p.get("link", ""),
-                    "comments": []
+                    "comments": [],
                 }
-            
+
             for c in comments_list:
                 p_id = c.get("post_id")
                 if p_id in posts_by_id:
-                    posts_by_id[p_id]["comments"].append({
-                        "comment_id": c.get("comment_id"),
-                        "content": c.get("content", ""),
-                        "link": c.get("link", "")
-                    })
-            
+                    posts_by_id[p_id]["comments"].append(
+                        {
+                            "comment_id": c.get("comment_id"),
+                            "content": c.get("content", ""),
+                            "link": c.get("link", ""),
+                        }
+                    )
+
             data_json_list = list(posts_by_id.values())
 
             prompt = ANALYSIS_PROMPT_TEMPLATE.format(
@@ -539,9 +542,9 @@ async def run_reddit_job(
 
         analysis_tasks = [
             analyze_subreddit(
-                sub, 
-                subreddit_posts.get(sub, []), 
-                subreddit_comments.get(sub, [])
+                sub,
+                subreddit_posts.get(sub, []),
+                subreddit_comments.get(sub, []),
             )
             for sub in subreddit_posts.keys()
         ]
@@ -569,7 +572,7 @@ async def run_reddit_job(
                 for ev in item.get("evidence", []):
                     comment_id = ev.get("comment_id")
                     post_id = ev.get("post_id")
-                    content = ev.get("content", "")
+                    quote = ev.get("quote", "")
 
                     # Deduplicate by comment_id if available, then post_id, otherwise exact content
                     if comment_id:
@@ -577,7 +580,7 @@ async def run_reddit_job(
                     elif post_id:
                         dedup_key = f"p_{post_id}"
                     else:
-                        dedup_key = f"content_{content}"
+                        dedup_key = f"quote_{quote}"
 
                     if dedup_key in seen_ev_keys:
                         continue
@@ -587,7 +590,7 @@ async def run_reddit_job(
                         pain_point_id=pp.id,
                         post_id=post_id,
                         comment_id=comment_id,
-                        content=content,
+                        quote=quote,
                         link=ev.get("link", ""),
                     )
                     session.add(evidence)

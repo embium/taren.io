@@ -295,7 +295,7 @@ async def get_job_results(
                 EvidenceResponse(
                     id=ev.id,
                     comment_id=ev.comment_id,
-                    content=ev.content,
+                    quote=ev.quote,
                     link=ev.link,
                 )
                 for ev in pp.evidence

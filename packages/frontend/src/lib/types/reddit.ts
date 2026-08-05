@@ -22,7 +22,7 @@ export interface JobResponse {
 export interface EvidenceResponse {
 	id: number;
 	comment_id?: string;
-	content: string;
+	quote: string;
 	link: string;
 }
 

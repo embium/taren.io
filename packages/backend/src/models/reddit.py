@@ -222,7 +222,7 @@ class RedditEvidence(Base):
     )
     post_id: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     comment_id: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
-    content: Mapped[str] = mapped_column(Text, nullable=False)
+    quote: Mapped[str] = mapped_column(Text, nullable=False)
     link: Mapped[str] = mapped_column(Text, nullable=False)
 
     # Relationships

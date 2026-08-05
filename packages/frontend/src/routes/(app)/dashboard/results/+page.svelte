@@ -385,7 +385,7 @@
 						<div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
 							<StatCard title="Pain Points" value={selectedJob.pain_point_count} valueClass="text-orange-400" class="col-span-2 sm:col-span-1" />
 							<StatCard title="Posts" value={selectedJob.post_count} valueClass="text-blue-400" />
-							<StatCard title="Comments" value={selectedJob.comment_count} valueClass="text-purple-400" />
+							<StatCard title="Evidence" value={selectedJob.comment_count} valueClass="text-purple-400" />
 						</div>
 
 						<!-- Pain points -->
@@ -481,7 +481,7 @@
 																	{#each pp.evidence as ev (ev.id)}
 																		<div class="rounded-xl border border-border bg-card p-3">
 																			<p class="text-sm leading-relaxed text-foreground/80">
-																				"{ev.content}"
+																				"{ev.quote}"
 																			</p>
 																			<a
 																				href={ev.link}
