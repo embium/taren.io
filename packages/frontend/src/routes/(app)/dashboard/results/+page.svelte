@@ -2,6 +2,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { page } from '$app/state';
+	import { goto } from "$app/navigation";
 	import { Check, RefreshCw, Cpu, Circle } from '@lucide/svelte';
 	import { redditApi } from '$lib/api/reddit.api';
 	import type { JobResponse, JobResultsResponse } from '$lib/types/reddit';
@@ -85,7 +86,10 @@
 	async function selectJob(job: JobResponse) {
 		selectedJob = job;
 		results = null;
-		if (job.status === 'done') await loadResults(job.id);
+		if (job.status === 'done') {
+			goto("/dashboard/results?job=" + job.id);
+			await loadResults(job.id);
+		}
 	}
 
 	function togglePainPoint(id: number) {

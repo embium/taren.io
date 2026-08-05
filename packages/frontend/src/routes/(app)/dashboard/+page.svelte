@@ -1,13 +1,17 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { goto } from "$app/navigation";
 	import { getAuthState } from '$lib/stores/auth.svelte';
 	import { redditApi } from '$lib/api/reddit.api';
-	import type { JobResponse } from '$lib/types/reddit';
+	import type { JobResponse, JobResultsResponse } from '$lib/types/reddit';
+	import StatusBadge from '$lib/components/dashboard/StatusBadge.svelte';
 
 	const authState = getAuthState();
 
 	let jobs = $state<JobResponse[]>([]);
 	let loadingJobs = $state(true);
+	let selectedJob = $state<JobResponse | null>(null);
+	let results = $state<JobResultsResponse | null>(null);
 
 	onMount(async () => {
 		try {
@@ -18,6 +22,13 @@
 			loadingJobs = false;
 		}
 	});
+
+	async function selectJob(job: JobResponse) {
+		selectedJob = job;
+		results = null;
+		if (job.status === 'done')  goto("/dashboard/results?job=" + job.id);
+	}
+
 
 	function statusBadgeClass(status: string) {
 		switch (status) {
@@ -140,15 +151,37 @@
 					</div>
 					<div class="divide-y divide-border">
 						{#each jobs.slice(0, 5) as job (job.id)}
-							<div class="flex items-center justify-between px-5 py-3">
-								<div class="min-w-0">
-									<p class="truncate text-sm font-medium">{subredditList(job.subreddits).map((s) => `r/${s}`).join(', ')}</p>
-									<p class="text-xs text-muted-foreground">{formatDate(job.created_at)}</p>
+<button
+								id="job-{job.id}-btn"
+								onclick={() => selectJob(job)}
+								class="group w-full px-5 py-3.5 text-left transition hover:bg-accent/50 {selectedJob?.id ===
+								job.id
+									? 'bg-orange-500/10'
+									: ''}"
+							>
+								<div class="mb-1 flex items-start justify-between gap-2">
+									<p class="truncate text-sm font-medium">
+										{subredditList(job.subreddits)
+											.map((s) => `r/${s}`)
+											.join(', ')}
+									</p>
+									<StatusBadge status={job.status} class="shrink-0" />
 								</div>
-								<span class="ml-4 inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium {statusBadgeClass(job.status)}">
-									{job.status}
-								</span>
-							</div>
+								<div class="flex items-center gap-2 text-xs text-muted-foreground">
+									{#if job.status === 'done'}
+										<span class="text-orange-500"
+											>{job.pain_point_count} pain point{job.pain_point_count !== 1
+												? 's'
+												: ''}</span
+										>
+									{:else if job.status === 'failed'}
+										<span class="text-red-400">Failed</span>
+									{:else}
+										<span>{job.post_count} post{job.post_count !== 1 ? 's' : ''}</span>
+									{/if}
+								</div>
+								<p class="mt-0.5 text-xs text-muted-foreground/60">{formatDate(job.created_at)}</p>
+							</button>
 						{/each}
 					</div>
 				</div>
