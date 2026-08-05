@@ -131,12 +131,14 @@
 
 			<!-- Recent scans -->
 			{#if !loadingJobs && jobs.length > 0}
-				<div class="rounded-xl border border-border bg-card p-5">
-					<div class="mb-4 flex items-center justify-between">
-						<p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">Recent Scans</p>
+				<div class="rounded-xl border border-border bg-card">
+					<div class="flex items-center justify-between px-5 py-3 border-b border-border">
+						<p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+							Recent Scans
+						</p>
 						<a href="/dashboard/history" class="text-xs text-muted-foreground hover:text-foreground transition-colors">View all →</a>
 					</div>
-					<div class="divide-y divide-border rounded-lg border border-border">
+					<div class="divide-y divide-border">
 						{#each jobs.slice(0, 5) as job (job.id)}
 							<div class="flex items-center justify-between px-5 py-3">
 								<div class="min-w-0">
