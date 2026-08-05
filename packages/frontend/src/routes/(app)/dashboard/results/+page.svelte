@@ -320,18 +320,18 @@
 						</div>
 
 						<div class="mb-6 space-y-3">
-							{#each [['pending', 'Queued', '○'], ['scraping', 'Scraping Reddit', '⟳'], ['analyzing', 'AI Analysis', '◈'], ['done', 'Complete', '✓']] as [s, label, icon]}
+							{#each [{s: 'pending', label: 'Queued', Icon: Circle}, {s: 'scraping', label: 'Scraping Reddit', Icon: RefreshCw}, {s: 'analyzing', label: 'AI Analysis', Icon: Cpu}, {s: 'done', label: 'Complete', Icon: Check}] as {s, label, Icon}}
 								<div class="flex items-center gap-3">
 									<div
 										class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold
 										{selectedJob.status === s
 											? 'bg-blue-500 text-white'
 											: ['pending', 'scraping', 'analyzing', 'done'].indexOf(selectedJob.status) >
-												  ['pending', 'scraping', 'analyzing', 'done'].indexOf(s)
+												  ['pending', 'scraping', 'analyzing', 'done'].indexOf(s as string)
 												? 'bg-emerald-500/20 text-emerald-400'
 												: 'bg-secondary text-muted-foreground'}"
 									>
-										{icon}
+										<Icon size={14} />
 									</div>
 									<p class="text-sm font-medium {selectedJob.status === s ? 'text-blue-400' : ''}">
 										{label}
