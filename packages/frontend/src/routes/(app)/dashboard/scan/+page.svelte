@@ -172,7 +172,6 @@
 								>
 							{/if}
 						</p>
-					</div>
 
 					{#if parsedSubreddits.length > 0}
 						<div class="mt-3 flex flex-wrap gap-1.5">
@@ -186,6 +185,7 @@
 						</div>
 					{/if}
 				</div>
+			</div>
 
 				<!-- Posts per subreddit -->
 
