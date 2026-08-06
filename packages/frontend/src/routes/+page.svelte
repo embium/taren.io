@@ -111,6 +111,92 @@
 		</div>
 	</section>
 
+	<!-- ───── DISCOVER NICHES FEATURE ───── -->
+	<section class="border-t border-border px-6 py-24 lg:px-12 relative overflow-hidden">
+		<div class="absolute -right-40 -top-40 h-[500px] w-[500px] rounded-full bg-orange-500/10 blur-[100px] pointer-events-none"></div>
+		<div class="absolute -left-40 -bottom-40 h-[500px] w-[500px] rounded-full bg-pink-500/10 blur-[100px] pointer-events-none"></div>
+		
+		<div class="mx-auto max-w-6xl">
+			<div class="grid items-center gap-16 lg:grid-cols-2">
+				<div class="order-2 lg:order-1">
+					<div class="mb-4 inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-xs font-semibold text-orange-500 uppercase tracking-wide">
+						<Search class="h-3.5 w-3.5" />
+						New Feature
+					</div>
+					<h2 class="mb-6 text-3xl font-bold lg:text-4xl leading-tight">Don't know what to scan? <br/><span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-pink-500">Discover Niches instantly.</span></h2>
+					<p class="mb-8 text-lg text-muted-foreground leading-relaxed">
+						Stop guessing where your target audience hangs out. Browse our curated database of professions and let Taren instantly recommend the most active, relevant subreddits to scan for pain points.
+					</p>
+					
+					<ul class="space-y-4 mb-8">
+						<li class="flex items-start gap-3 text-muted-foreground">
+							<div class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-500">
+								<svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+							</div>
+							<span>Browse over 100+ highly targeted professions and niches.</span>
+						</li>
+						<li class="flex items-start gap-3 text-muted-foreground">
+							<div class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-500">
+								<svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+							</div>
+							<span>See subscriber counts and activity levels for every community.</span>
+						</li>
+						<li class="flex items-start gap-3 text-muted-foreground">
+							<div class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-500">
+								<svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+							</div>
+							<span>Build a list and launch a targeted scan with one click.</span>
+						</li>
+					</ul>
+
+					<a
+						href="/register"
+						class="inline-flex items-center gap-2 rounded-xl bg-secondary px-6 py-3 font-semibold text-foreground transition-colors hover:bg-secondary/80 border border-border"
+					>
+						Try it for free
+						<ArrowRight class="h-4 w-4" />
+					</a>
+				</div>
+				
+				<div class="order-1 lg:order-2">
+					<div class="relative rounded-2xl border border-border bg-card shadow-2xl p-4">
+						<div class="absolute -top-3 -right-3 h-24 w-24 rounded-full bg-orange-500/20 blur-2xl"></div>
+						<div class="rounded-xl border border-border/50 bg-background/50 p-6 backdrop-blur-sm">
+							<div class="mb-4 text-sm font-medium">Profession / Niche</div>
+							<div class="mb-6 flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3">
+								<span class="text-sm">Software Developers</span>
+								<svg class="h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+							</div>
+							<div class="space-y-3">
+								<div class="flex items-center justify-between rounded-lg border border-orange-500/30 bg-orange-500/10 px-4 py-3">
+									<div>
+										<div class="font-semibold text-orange-500 text-sm">r/learnprogramming</div>
+										<div class="text-xs text-orange-500/70">4.1m subscribers</div>
+									</div>
+									<div class="rounded-full bg-orange-500 px-3 py-1 text-xs font-semibold text-white">Selected</div>
+								</div>
+								<div class="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3">
+									<div>
+										<div class="font-semibold text-sm">r/webdev</div>
+										<div class="text-xs text-muted-foreground">1.8m subscribers</div>
+									</div>
+									<div class="rounded-full bg-secondary px-3 py-1 text-xs font-semibold">Add to list</div>
+								</div>
+								<div class="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3">
+									<div>
+										<div class="font-semibold text-sm">r/reactjs</div>
+										<div class="text-xs text-muted-foreground">360k subscribers</div>
+									</div>
+									<div class="rounded-full bg-secondary px-3 py-1 text-xs font-semibold">Add to list</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
 	<!-- ───── REAL PAIN POINTS ───── -->
 	<section class="border-t border-border bg-secondary/30 px-6 py-24 lg:px-12">
 		<div class="mx-auto max-w-4xl">
