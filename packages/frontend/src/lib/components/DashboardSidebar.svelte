@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { Zap, LayoutDashboard, ScanSearch, BarChart2, History, Settings, LogOut, Menu, CreditCard } from '@lucide/svelte';
+	import { Zap, LayoutDashboard, Search, ScanSearch, BarChart2, History, Settings, LogOut, Menu, CreditCard } from '@lucide/svelte';
 	import { goto } from '$app/navigation';
 	import { toast } from 'svelte-sonner';
 	import { getAuthState, logout } from '$lib/stores/auth.svelte';
@@ -11,6 +11,7 @@
 
 	const NAV_ITEMS = [
 		{ icon: LayoutDashboard, label: 'Overview', href: '/dashboard' },
+		{ icon: Search,          label: 'Discover', href: '/dashboard/discover' },
 		{ icon: ScanSearch,      label: 'Scan',     href: '/dashboard/scan' },
 		{ icon: BarChart2,       label: 'Results',  href: '/dashboard/results' },
 		{ icon: History,         label: 'History',  href: '/dashboard/history' },

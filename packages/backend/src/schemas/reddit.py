@@ -82,3 +82,29 @@ class JobResultsResponse(BaseModel):
     job_id: str
     status: str
     pain_points: List[PainPointResponse]
+
+
+class ProfessionResponse(BaseModel):
+    """A profession with its generated slug."""
+
+    name: str
+    slug: str
+
+
+class SubredditDetailResponse(BaseModel):
+    """Details for a subreddit associated with a profession."""
+
+    name: str
+    description: Optional[str] = None
+    subscribers: Optional[int] = None
+    activity_level: Optional[str] = None
+
+    model_config = {"from_attributes": True}
+
+
+class ProfessionSubredditsResponse(BaseModel):
+    """Response containing a profession and its associated subreddits."""
+
+    success: bool = True
+    name: str
+    subreddits: List[SubredditDetailResponse]

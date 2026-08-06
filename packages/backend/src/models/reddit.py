@@ -232,3 +232,62 @@ class RedditEvidence(Base):
 
     def __repr__(self) -> str:
         return f"<RedditEvidence(id={self.id}, pain_point_id={self.pain_point_id})>"
+
+
+class RedditProfession(Base):
+    """A target profession / audience for Reddit scraping."""
+
+    __tablename__ = "reddit_professions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+
+    # Relationships
+    subreddits: Mapped[List["RedditSubreddit"]] = relationship(
+        "RedditSubreddit",
+        secondary="reddit_subreddit_professions",
+        back_populates="professions",
+    )
+
+
+class RedditSubreddit(Base):
+    """A subreddit discovered and associated with a profession."""
+
+    __tablename__ = "reddit_subreddits"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    subscribers: Mapped[Optional[int]] = mapped_column(Integer, default=0, nullable=True)
+    activity_level: Mapped[Optional[str]] = mapped_column(String(50), default="", nullable=True)
+
+    # Relationships
+    professions: Mapped[List["RedditProfession"]] = relationship(
+        "RedditProfession",
+        secondary="reddit_subreddit_professions",
+        back_populates="subreddits",
+    )
+
+
+class RedditSubredditProfession(Base):
+    """Many-to-many relationship between Subreddits and Professions."""
+
+    __tablename__ = "reddit_subreddit_professions"
+    __table_args__ = (
+        UniqueConstraint("subreddit_id", "profession_id", name="uq_reddit_subreddit_profession"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    subreddit_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("reddit_subreddits.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    profession_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("reddit_professions.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+

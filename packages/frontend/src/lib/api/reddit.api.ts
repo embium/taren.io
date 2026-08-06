@@ -2,7 +2,9 @@ import { api } from './client';
 import type {
 	CreateJobRequest,
 	JobResponse,
-	JobResultsResponse
+	JobResultsResponse,
+	ProfessionResponse,
+	ProfessionSubredditsResponse
 } from '$lib/types/reddit';
 
 export interface UsageResponse {
@@ -54,5 +56,19 @@ export const redditApi = {
 	 */
 	async getUsage(): Promise<UsageResponse> {
 		return api.get<UsageResponse>('/reddit/usage');
+	},
+
+	/**
+	 * List all discovered professions
+	 */
+	async listProfessions(): Promise<ProfessionResponse[]> {
+		return api.get<ProfessionResponse[]>('/reddit/professions');
+	},
+
+	/**
+	 * Get subreddits for a specific profession
+	 */
+	async getProfessionSubreddits(slug: string): Promise<ProfessionSubredditsResponse> {
+		return api.get<ProfessionSubredditsResponse>(`/reddit/professions/${slug}/subreddits`);
 	}
 };

@@ -3,7 +3,7 @@
 import asyncio
 import logging
 from datetime import datetime, timezone
-from typing import List
+from typing import List, cast
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy import func, select
@@ -14,13 +14,22 @@ from core.rate_limit import limiter
 from core.database import get_db, AsyncSessionLocal
 from core.dependencies import get_current_user
 from models.user import User
-from models.reddit import RedditJob, RedditPainPoint, RedditEvidence
+from models.reddit import (
+    RedditJob,
+    RedditPainPoint,
+    RedditEvidence,
+    RedditProfession,
+    RedditSubreddit,
+)
 from schemas.reddit import (
     CreateJobRequest,
     JobResponse,
     JobResultsResponse,
     PainPointResponse,
     EvidenceResponse,
+    ProfessionResponse,
+    SubredditDetailResponse,
+    ProfessionSubredditsResponse,
 )
 from core.queue import get_redis_pool
 
@@ -282,15 +291,15 @@ async def get_job_results(
     pain_point_responses = [
         PainPointResponse(
             id=pp.id,
-            job_id=pp.job_id,
-            subreddit=pp.subreddit,
-            title=pp.title,
-            description=pp.description,
+            job_id=str(pp.job_id),
+            subreddit=str(pp.subreddit),
+            title=str(pp.title),
+            description=str(pp.description),
             severity=pp.severity,
             target_audience=(
                 str(pp.target_audience) if pp.target_audience else ""
             ),
-            created_at=pp.created_at,
+            created_at=cast(datetime, pp.created_at),
             evidence=[
                 EvidenceResponse(
                     id=ev.id,
@@ -306,6 +315,81 @@ async def get_job_results(
 
     return JobResultsResponse(
         job_id=job_id,
-        status=job.status,
+        status=str(job.status),
         pain_points=pain_point_responses,
+    )
+
+
+# ---------------------------------------------------------------------------
+# GET /reddit/professions  — list professions
+# ---------------------------------------------------------------------------
+
+
+@router.get(
+    "/professions",
+    response_model=List[ProfessionResponse],
+    summary="List all discovered professions",
+)
+async def list_professions(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> List[ProfessionResponse]:
+    """Return all professions with generated slugs."""
+    result = await db.execute(
+        select(RedditProfession).order_by(RedditProfession.name.asc())
+    )
+    professions = result.scalars().all()
+
+    return [
+        ProfessionResponse(
+            name=str(p.name),
+            slug=p.name.lower().replace(" ", "-").replace("/", "-"),
+        )
+        for p in professions
+    ]
+
+
+# ---------------------------------------------------------------------------
+# GET /reddit/professions/{slug}/subreddits  — list subreddits for profession
+# ---------------------------------------------------------------------------
+
+
+@router.get(
+    "/professions/{slug}/subreddits",
+    response_model=ProfessionSubredditsResponse,
+    summary="Get subreddits associated with a specific profession",
+)
+async def get_profession_subreddits(
+    slug: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> ProfessionSubredditsResponse:
+    """Return subreddits for a profession by its generated slug."""
+    result = await db.execute(
+        select(RedditProfession).options(
+            selectinload(RedditProfession.subreddits)
+        )
+    )
+    professions = result.scalars().all()
+
+    target_prof = None
+    for p in professions:
+        p_slug = p.name.lower().replace(" ", "-").replace("/", "-")
+        if p_slug == slug:
+            target_prof = p
+            break
+
+    if not target_prof:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Profession not found.",
+        )
+
+    return ProfessionSubredditsResponse(
+        success=True,
+        name=str(target_prof.name),
+        subreddits=[
+            SubredditDetailResponse.model_validate(sub)
+            for sub in target_prof.subreddits
+        ],
     )

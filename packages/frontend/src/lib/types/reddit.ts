@@ -43,3 +43,21 @@ export interface JobResultsResponse {
 	status: string;
 	pain_points: PainPointResponse[];
 }
+
+export interface ProfessionResponse {
+	name: string;
+	slug: string;
+}
+
+export interface SubredditDetailResponse {
+	name: string;
+	description?: string;
+	subscribers?: number;
+	activity_level?: string;
+}
+
+export interface ProfessionSubredditsResponse {
+	success: boolean;
+	name: string;
+	subreddits: SubredditDetailResponse[];
+}

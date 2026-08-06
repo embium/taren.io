@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import { redditApi, type UsageResponse } from '$lib/api/reddit.api';
 	import { AlertTriangle, Zap } from '@lucide/svelte';
 
@@ -41,6 +42,26 @@
 			usage = await redditApi.getUsage();
 		} catch {
 			// ignore — limits will show fallbacks
+		}
+
+		// Handle adding subreddit from query parameter
+		const addSub = $page.url.searchParams.get('add');
+		if (addSub) {
+			const toAdd = addSub.split(',').map(s => s.trim()).filter(Boolean);
+			const current = subredditsInput.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
+			
+			for (const sub of toAdd) {
+				if (!current.includes(sub)) {
+					current.push(sub);
+				}
+			}
+			
+			subredditsInput = current.join('\n');
+			
+			// Remove the query parameter without reloading the page
+			const newUrl = new URL($page.url);
+			newUrl.searchParams.delete('add');
+			goto(newUrl, { replaceState: true, keepFocus: true });
 		}
 	});
 
