@@ -39,7 +39,7 @@ async def lifespan(app: FastAPI):
     # Startup: Create database tables
     async with async_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    
+
     await init_redis_pool()
     logger.info("Application started successfully")
 
@@ -53,8 +53,8 @@ async def lifespan(app: FastAPI):
 
 # Create FastAPI application
 app = FastAPI(
-    title="Taren Authentication API",
-    description="Simple and powerful authentication system",
+    title="Taren API",
+    description="",
     version="2.0.0",
     lifespan=lifespan,
 )
@@ -84,9 +84,6 @@ app.include_router(stripe_router.router)
 async def root():
     """Root endpoint for health check."""
     return {
-        "message": "Taren API",
-        "version": "2.0.0",
-        "architecture": "3-layer",
         "status": "running",
     }
 

@@ -174,7 +174,7 @@
 								onclick={() => toggleSubredditSelection(sub.name)}
 								class={selectedSubreddits.includes(sub.name)
 									? "cursor-pointer rounded-full bg-orange-500 px-3 py-1 text-xs font-semibold text-white shadow-sm transition-all focus:outline-none"
-									: "cursor-pointer rounded-full bg-orange-500/10 px-3 py-1 text-xs font-semibold text-orange-500 opacity-0 transition-all hover:bg-orange-500 hover:text-white group-hover:opacity-100 focus:opacity-100 focus:outline-none"}
+									: "cursor-pointer rounded-full bg-orange-500/10 px-3 py-1 text-xs font-semibold text-orange-500 opacity-100 lg:opacity-0 transition-all hover:bg-orange-500 hover:text-white group-hover:opacity-100 focus:opacity-100 focus:outline-none"}
 							>
 								{selectedSubreddits.includes(sub.name) ? 'Selected' : 'Add to list'}
 							</button>
