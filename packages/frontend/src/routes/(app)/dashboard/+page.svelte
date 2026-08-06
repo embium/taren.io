@@ -156,7 +156,7 @@
 <button
 								id="job-{job.id}-btn"
 								onclick={() => selectJob(job)}
-								class="group w-full px-5 py-3.5 text-left transition hover:bg-accent/50 {selectedJob?.id ===
+								class="cursor-pointer group w-full px-5 py-3.5 text-left transition hover:bg-accent/50 {selectedJob?.id ===
 								job.id
 									? 'bg-orange-500/10'
 									: ''}"

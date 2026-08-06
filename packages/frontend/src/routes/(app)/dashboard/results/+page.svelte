@@ -182,7 +182,7 @@
 							<button
 								id="job-{job.id}-btn"
 								onclick={() => selectJob(job)}
-								class="group w-full px-5 py-3.5 text-left transition hover:bg-accent/50 {selectedJob?.id ===
+								class="cursor-pointer group w-full px-5 py-3.5 text-left transition hover:bg-accent/50 {selectedJob?.id ===
 								job.id
 									? 'bg-orange-500/10'
 									: ''}"
@@ -414,7 +414,7 @@
 											<button
 												id="painpoint-{pp.id}-toggle"
 												onclick={() => togglePainPoint(pp.id)}
-												class="w-full px-5 py-4 text-left transition hover:bg-accent/50"
+												class="cursor-pointer w-full px-5 py-4 text-left transition hover:bg-accent/50"
 											>
 												<div class="flex items-start justify-between gap-4">
 													<div class="min-w-0 flex-1">
