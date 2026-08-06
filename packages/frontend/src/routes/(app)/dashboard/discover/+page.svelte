@@ -135,7 +135,7 @@
 							r/{sub}
 							<button
 								onclick={() => toggleSubredditSelection(sub)}
-								class="ml-1 text-orange-500/70 hover:text-orange-500 focus:outline-none"
+								class="cursor-pointer ml-1 text-orange-500/70 hover:text-orange-500 focus:outline-none"
 								aria-label="Remove subreddit"
 							>
 								<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -173,8 +173,8 @@
 							<button
 								onclick={() => toggleSubredditSelection(sub.name)}
 								class={selectedSubreddits.includes(sub.name)
-									? "rounded-full bg-orange-500 px-3 py-1 text-xs font-semibold text-white shadow-sm transition-all focus:outline-none"
-									: "rounded-full bg-orange-500/10 px-3 py-1 text-xs font-semibold text-orange-500 opacity-0 transition-all hover:bg-orange-500 hover:text-white group-hover:opacity-100 focus:opacity-100 focus:outline-none"}
+									? "cursor-pointer rounded-full bg-orange-500 px-3 py-1 text-xs font-semibold text-white shadow-sm transition-all focus:outline-none"
+									: "cursor-pointer rounded-full bg-orange-500/10 px-3 py-1 text-xs font-semibold text-orange-500 opacity-0 transition-all hover:bg-orange-500 hover:text-white group-hover:opacity-100 focus:opacity-100 focus:outline-none"}
 							>
 								{selectedSubreddits.includes(sub.name) ? 'Selected' : 'Add to list'}
 							</button>
