@@ -1,7 +1,8 @@
 """User model with business logic."""
 
+from sqlalchemy import ColumnElement
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from typing import Literal, Optional
 from uuid import uuid4
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text
@@ -19,9 +20,6 @@ class User(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, index=True)
     email: Mapped[str] = mapped_column(
         String(255), unique=True, nullable=False, index=True
-    )
-    username: Mapped[str] = mapped_column(
-        String(30), unique=True, nullable=False, index=True
     )
     name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     password_hash: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
@@ -46,9 +44,6 @@ class User(Base):
     is_email_verified: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=False
     )
-    username_last_changed_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
     subscription_tier: Mapped[Optional[str]] = mapped_column(
         String(50), nullable=True, default=None
     )
@@ -70,7 +65,6 @@ class User(Base):
     def __init__(
         self,
         email: str,
-        username: str,
         password_hash: Optional[str] = None,
         name: Optional[str] = None,
         avatar: Optional[str] = None,
@@ -82,7 +76,6 @@ class User(Base):
         super().__init__(
             id=id or str(uuid4()),
             email=email,
-            username=username,
             password_hash=password_hash,
             name=name,
             avatar=avatar,
@@ -120,7 +113,6 @@ class User(Base):
         name: Optional[str] = None,
         email: Optional[str] = None,
         avatar: Optional[str] = None,
-        username: Optional[str] = None,
     ) -> None:
         """Update user profile information."""
         if name is not None:
@@ -129,20 +121,7 @@ class User(Base):
             self.email = email
         if avatar is not None:
             self.avatar = avatar
-        if username is not None and username != self.username:
-            # Only update timestamp if username is actually changing
-            self.username = username
-            self.username_last_changed_at = datetime.now(timezone.utc)
         self.updated_at = datetime.now(timezone.utc)
-
-    def can_change_username(self) -> bool:
-        """Check if user can change username (30-day restriction)."""
-        if not self.username_last_changed_at:
-            return True
-        days_since_change = (
-            datetime.now(timezone.utc) - self.username_last_changed_at
-        ).days
-        return days_since_change >= 30
 
     def __repr__(self) -> str:
         return f"<User(id={self.id}, email={self.email}, username={self.username})>"
@@ -197,13 +176,13 @@ class Session(Base):
     # Business methods
     def is_valid(self) -> bool:
         """Check if session is valid (not expired and not revoked)."""
-        return (
+        return bool(
             not self.is_revoked and datetime.now(timezone.utc) < self.expires_at
         )
 
     def is_expired(self) -> bool:
         """Check if session has expired."""
-        return datetime.now(timezone.utc) >= self.expires_at
+        return bool(datetime.now(timezone.utc) >= self.expires_at)
 
     def revoke(self) -> None:
         """Revoke the session (logout)."""
@@ -284,11 +263,13 @@ class EmailVerification(Base):
     # Business methods
     def is_valid(self) -> bool:
         """Check if verification token is valid (not expired and not used)."""
-        return not self.is_used and datetime.now(timezone.utc) < self.expires_at
+        return bool(
+            not self.is_used and datetime.now(timezone.utc) < self.expires_at
+        )
 
     def is_expired(self) -> bool:
         """Check if verification token has expired."""
-        return datetime.now(timezone.utc) >= self.expires_at
+        return bool(datetime.now(timezone.utc) >= self.expires_at)
 
     def mark_as_used(self) -> None:
         """Mark the verification token as used."""

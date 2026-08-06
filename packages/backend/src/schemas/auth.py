@@ -72,13 +72,11 @@ class UserResponse(BaseModel):
 
     id: str
     email: str
-    username: str
     name: Optional[str] = None
     avatar: Optional[str] = None
     created_at: datetime
     is_active: bool
     is_email_verified: bool
-    username_last_changed_at: Optional[datetime] = None
     subscription_tier: Optional[str] = None
 
     class Config:
@@ -100,7 +98,6 @@ class RegisterUserResponse(BaseModel):
 
     user_id: str
     email: str
-    username: str
     created_at: datetime
     message: str = "User registered successfully"
     access_token: Optional[str] = None
@@ -140,7 +137,6 @@ class UpdateUserRequest(BaseModel):
     name: Optional[str] = Field(None, max_length=255)
     email: Optional[EmailStr] = None
     avatar: Optional[str] = Field(None, description="Base64 encoded image")
-    username: Optional[str] = Field(None, max_length=30)
 
 
 class ChangePasswordRequest(BaseModel):

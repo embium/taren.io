@@ -33,7 +33,7 @@ async def update_user_profile(
     db: AsyncSession = Depends(get_db),
 ) -> UserResponse:
     """Update user profile."""
-    return await user_service.update_user(db, current_user.id, request)
+    return await user_service.update_user(db, str(current_user.id), request)
 
 
 @router.post("/me/password")
@@ -43,7 +43,7 @@ async def change_password(
     db: AsyncSession = Depends(get_db),
 ) -> MessageResponse:
     """Change user password."""
-    await user_service.change_password(db, current_user.id, request)
+    await user_service.change_password(db, str(current_user.id), request)
     return MessageResponse(message="Password changed successfully")
 
 
@@ -55,7 +55,7 @@ async def delete_account(
     db: AsyncSession = Depends(get_db),
 ) -> MessageResponse:
     """Delete (deactivate) user account."""
-    await user_service.delete_user(db, current_user.id, request.password)
+    await user_service.delete_user(db, str(current_user.id), request.password)
 
     # Clear cookies
     response.delete_cookie(key="access_token")

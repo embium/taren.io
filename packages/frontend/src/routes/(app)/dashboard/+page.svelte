@@ -132,7 +132,9 @@
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
 							</svg>
 						</div>
-						<a href="/pricing" class="rounded-full border border-indigo-600/30 bg-indigo-600/10 px-2.5 py-0.5 text-xs font-medium text-indigo-400 hover:bg-indigo-600/20 transition-colors">Upgrade</a>
+						{#if authState.user.subscription_tier !== 'Professional'}
+							<a href="/pricing" class="rounded-full border border-indigo-600/30 bg-indigo-600/10 px-2.5 py-0.5 text-xs font-medium text-indigo-400 hover:bg-indigo-600/20 transition-colors">Upgrade</a>
+						{/if}
 					</div>
 					<p class="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Subscription Plan</p>
 					<!-- @ts-ignore - Demonstrating where subscription field would go -->

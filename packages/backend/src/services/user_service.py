@@ -34,28 +34,6 @@ class UserService:
         """Update user profile."""
         user = await self.get_user_by_id(db, user_id)
 
-        # Check username change restrictions
-        if data.username:
-            if data.username == user.username:
-                raise UsernameAlreadyCurrentError()
-
-            # Check if username already exists
-            existing = await db.scalar(
-                select(User).where(User.username == data.username)
-            )
-            if existing and existing.id != user.id:
-                raise UsernameAlreadyExistsError()
-
-            if not user.can_change_username():
-                days_remaining = 30
-                if user.username_last_changed_at:
-                    days_since = (
-                        datetime.now(timezone.utc)
-                        - user.username_last_changed_at
-                    ).days
-                    days_remaining = 30 - days_since
-                raise UsernameChangeRestrictedError(days_remaining)
-
         # Check email uniqueness if changing
         if data.email and data.email != user.email:
             existing = await db.scalar(
@@ -69,7 +47,6 @@ class UserService:
             name=data.name,
             email=data.email,
             avatar=data.avatar,
-            username=data.username,
         )
 
         await db.commit()
@@ -85,7 +62,7 @@ class UserService:
 
         # Verify current password
         is_valid, _ = password_service.verify_password(
-            data.current_password, user.password_hash
+            data.current_password, str(user.password_hash)
         )
         if not is_valid:
             raise InvalidCredentialsError()
@@ -104,7 +81,7 @@ class UserService:
 
         # Verify password
         is_valid, _ = password_service.verify_password(
-            password, user.password_hash
+            password, str(user.password_hash)
         )
         if not is_valid:
             raise InvalidCredentialsError()

@@ -13,23 +13,30 @@
 		getPasswordStrengthInfo
 	} from '$lib/utils/validation';
 	import { mapErrorToMessage } from '$lib/utils/errors';
-	import { authApi } from '$lib/api/auth.api';
 	import { env } from '$env/dynamic/public';
+	import { register, getAuthState } from '$lib/stores/auth.svelte';
 
 	let email = $state('');
 	let username = $state('');
 	let password = $state('');
 	let confirmPassword = $state('');
 	let emailError = $state('');
-	let usernameError = $state('');
 	let passwordError = $state('');
 	let confirmPasswordError = $state('');
 	let isSubmitting = $state(false);
 
+	const authState = getAuthState();
 	const PUBLIC_API_URL = env.PUBLIC_API_URL;
 
 	const passwordStrength = $derived(getPasswordStrength(password));
 	const strengthInfo = $derived(getPasswordStrengthInfo(passwordStrength));
+
+	// Redirect if already authenticated
+	$effect(() => {
+		if (authState.isAuthenticated) {
+			goto('/dashboard');
+		}
+	});
 
 	async function validateForm(): Promise<boolean> {
 		let isValid = true;
@@ -40,20 +47,6 @@
 			isValid = false;
 		} else {
 			emailError = '';
-		}
-
-		const usernameValidation = validateUsername(username);
-		if (!usernameValidation.valid) {
-			usernameError = usernameValidation.error || '';
-			isValid = false;
-		} else {
-			const usernameExist = await authApi.checkUsernameExists(username);
-			if (usernameExist) {
-				usernameError = 'Username already exists';
-				isValid = false;
-			} else {
-				usernameError = '';
-			}
 		}
 
 		const passwordValidation = validatePassword(password);
@@ -86,7 +79,7 @@
 		isSubmitting = true;
 
 		try {
-			await authApi.register({ email, username, password });
+			await register({ email, password });
 			goto('/dashboard');
 		} catch (error) {
 			const errorMessage = mapErrorToMessage(error);
@@ -99,10 +92,6 @@
 
 	function handleEmailInput() {
 		if (emailError) emailError = '';
-	}
-
-	function handleUsernameInput() {
-		if (usernameError) usernameError = '';
 	}
 
 	function handlePasswordInput() {
@@ -147,25 +136,6 @@
 					/>
 					{#if emailError}
 						<p class="text-sm text-red-500">{emailError}</p>
-					{/if}
-				</div>
-
-				<div class="space-y-2">
-					<Label for="username" class="font-medium text-[#fafafa]">Username</Label>
-					<Input
-						id="username"
-						type="text"
-						placeholder="Create a username"
-						bind:value={username}
-						oninput={handleUsernameInput}
-						disabled={isSubmitting}
-						class="border-[#262626] bg-[#0a0a0a] text-[#fafafa] focus:border-[#3b82f6] focus:ring-[#3b82f6] {usernameError
-							? 'border-red-500'
-							: ''}"
-						required
-					/>
-					{#if usernameError}
-						<p class="text-sm text-red-500">{usernameError}</p>
 					{/if}
 				</div>
 

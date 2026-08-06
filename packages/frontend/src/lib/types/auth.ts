@@ -59,7 +59,6 @@ export const loginRequestSchema = z.object({
 
 export const registerUserRequestSchema = z.object({
 	email: emailSchema,
-	username: usernameSchema,
 	password: passwordSchema
 });
 
@@ -102,7 +101,6 @@ export const userSchema = z.object({
 	created_at: z.string(),
 	is_active: z.boolean(),
 	is_email_verified: z.boolean(),
-	username_last_changed_at: z.string().nullable().optional(),
 	subscription_tier: z.string().nullable().optional()
 });
 
@@ -116,8 +114,7 @@ export const loginResponseSchema = z.object({
 
 export const registerUserResponseSchema = z.object({
 	user_id: z.string(),
-	email: z.string().email(),
-	username: z.string(),
+	email: z.email(),
 	created_at: z.string(),
 	message: z.string().optional()
 });

@@ -1,7 +1,7 @@
 """Authentication service - handles all authentication-related business logic."""
 
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Optional, cast
 import re
 
 import httpx
@@ -73,8 +73,8 @@ class AuthService:
 
         # Create email verification
         verification = EmailVerification(
-            user_id=user.id,
-            email=user.email,
+            user_id=str(user.id),
+            email=str(user.email),
             token=generate_verification_token(),
             verification_type="registration",
         )
@@ -89,18 +89,21 @@ class AuthService:
         )
 
         # Create session and tokens to auto-login
-        session = Session(user_id=user.id)
+        session = Session(user_id=str(user.id))
         db.add(session)
         await db.commit()
 
-        access_token = token_service.create_access_token(user.id, session.id)
-        refresh_token = token_service.create_refresh_token(user.id, session.id)
+        access_token = token_service.create_access_token(
+            str(user.id), str(session.id)
+        )
+        refresh_token = token_service.create_refresh_token(
+            str(user.id), str(session.id)
+        )
 
         return RegisterUserResponse(
-            user_id=user.id,
-            email=user.email,
-            username=user.username,
-            created_at=user.created_at,
+            user_id=str(user.id),
+            email=str(user.email),
+            created_at=cast(datetime, user.created_at),
             access_token=access_token,
             refresh_token=refresh_token,
             expires_in=token_service.get_access_token_expiry_seconds(),
@@ -120,7 +123,7 @@ class AuthService:
 
         # Verify password
         is_valid, _ = password_service.verify_password(
-            data.password, user.password_hash
+            data.password, str(user.password_hash)
         )
         if not is_valid:
             raise InvalidCredentialsError()
@@ -130,13 +133,17 @@ class AuthService:
             raise AccountInactiveError()
 
         # Create session
-        session = Session(user_id=user.id)
+        session = Session(user_id=str(user.id))
         db.add(session)
         await db.commit()
 
         # Generate tokens
-        access_token = token_service.create_access_token(user.id, session.id)
-        refresh_token = token_service.create_refresh_token(user.id, session.id)
+        access_token = token_service.create_access_token(
+            str(user.id), str(session.id)
+        )
+        refresh_token = token_service.create_refresh_token(
+            str(user.id), str(session.id)
+        )
 
         return LoginResponse(
             access_token=access_token,
@@ -174,7 +181,7 @@ class AuthService:
 
         # Generate new access token
         access_token = token_service.create_access_token(
-            session.user_id, session.id
+            str(session.user_id), str(session.id)
         )
 
         return RefreshTokenResponse(
@@ -209,16 +216,20 @@ class AuthService:
         await db.commit()
 
         # Create session and auto-login
-        session = Session(user_id=user.id)
+        session = Session(user_id=str(user.id))
         db.add(session)
         await db.commit()
 
-        access_token = token_service.create_access_token(user.id, session.id)
-        refresh_token = token_service.create_refresh_token(user.id, session.id)
+        access_token = token_service.create_access_token(
+            str(user.id), str(session.id)
+        )
+        refresh_token = token_service.create_refresh_token(
+            str(user.id), str(session.id)
+        )
 
         return VerifyEmailResponse(
             message="Email verified successfully",
-            email=user.email,
+            email=str(user.email),
             access_token=access_token,
             refresh_token=refresh_token,
             expires_in=token_service.get_access_token_expiry_seconds(),
@@ -250,8 +261,8 @@ class AuthService:
 
         # Create new verification
         verification = EmailVerification(
-            user_id=user.id,
-            email=user.email,
+            user_id=str(user.id),
+            email=str(user.email),
             token=generate_verification_token(),
             verification_type="registration",
         )
@@ -287,8 +298,8 @@ class AuthService:
 
         # Create password reset token
         verification = EmailVerification(
-            user_id=user.id,
-            email=user.email,
+            user_id=str(user.id),
+            email=str(user.email),
             token=generate_verification_token(),
             verification_type="password_reset",
             expiry_hours=1,  # Password reset tokens expire quickly
@@ -458,12 +469,16 @@ class AuthService:
             await db.refresh(user)
 
         # Create session
-        session = Session(user_id=user.id)
+        session = Session(user_id=str(user.id))
         db.add(session)
         await db.commit()
 
-        access_token = token_service.create_access_token(user.id, session.id)
-        refresh_token = token_service.create_refresh_token(user.id, session.id)
+        access_token = token_service.create_access_token(
+            str(user.id), str(session.id)
+        )
+        refresh_token = token_service.create_refresh_token(
+            str(user.id), str(session.id)
+        )
         expires_in = token_service.get_access_token_expiry_seconds()
 
         return access_token, refresh_token, expires_in
