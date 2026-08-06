@@ -70,7 +70,7 @@ this pain point — their role, context, goals, and why existing solutions fail 
    - **quote**: a direct quote from the original content, max 1-2 sentences, verbatim with no paraphrasing.
    - **link**: the full Reddit URL provided in the data.
 
-Only include pain points that have at least 2 supporting evidence items. 
+**CRITICAL: Only include pain points that have at least 2 supporting evidence items. Every pain point must have a minimum of 2 pieces of evidence.**
 Do not invent or paraphrase evidence — use exact words from the posts/comments.
 
 Return ONLY valid JSON (no markdown fences) in this exact structure:
