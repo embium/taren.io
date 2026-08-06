@@ -14,6 +14,20 @@
 	let selectedSubreddits = $state<string[]>([]);
 	let usage = $state<UsageResponse | null>(null);
 
+	let searchQuery = $state('');
+	let showDropdown = $state(false);
+
+	const filteredProfessions = $derived(
+		professions.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
+	);
+
+	function selectProfession(prof: ProfessionResponse) {
+		searchQuery = prof.name;
+		selectedSlug = prof.slug;
+		showDropdown = false;
+		onProfessionChange();
+	}
+
 	// Derived plan caps (with safe fallbacks while loading)
 	const tier = $derived(usage?.tier || '');
 	const isProfessional = $derived(tier === 'Professional');
@@ -93,23 +107,36 @@
 				Profession / Niche
 			</label>
 			<div class="relative">
-				<select
+				<input
 					id="profession"
-					bind:value={selectedSlug}
-					onchange={onProfessionChange}
+					type="text"
+					bind:value={searchQuery}
+					oninput={() => { showDropdown = true; selectedSlug = ''; subreddits = []; }}
+					onfocus={() => showDropdown = true}
+					onblur={() => setTimeout(() => showDropdown = false, 150)}
 					disabled={loadingProfessions}
-					class="w-full appearance-none rounded-xl border border-border bg-card px-4 py-3 pr-10 text-sm font-medium shadow-sm transition-colors focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20 disabled:opacity-50"
-				>
-					<option value="">Select a profession...</option>
-					{#each professions as prof}
-						<option value={prof.slug}>{prof.name}</option>
-					{/each}
-				</select>
+					placeholder={loadingProfessions ? "Loading professions..." : "Search for a profession..."}
+					autocomplete="off"
+					class="w-full rounded-xl border border-border bg-card px-4 py-3 pr-10 text-sm font-medium shadow-sm transition-colors focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20 disabled:opacity-50"
+				/>
 				<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-muted-foreground">
-					<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-					</svg>
+					<Search class="h-4 w-4" />
 				</div>
+				
+				{#if showDropdown && filteredProfessions.length > 0}
+					<ul class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-border bg-card py-1 shadow-lg focus:outline-none text-sm">
+						{#each filteredProfessions as prof}
+							<!-- svelte-ignore a11y_click_events_have_key_events -->
+							<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+							<li
+								class="cursor-pointer select-none px-4 py-2 hover:bg-orange-500/10 hover:text-orange-500"
+								onclick={() => selectProfession(prof)}
+							>
+								{prof.name}
+							</li>
+						{/each}
+					</ul>
+				{/if}
 			</div>
 		</div>
 
