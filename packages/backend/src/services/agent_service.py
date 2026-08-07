@@ -237,13 +237,19 @@ def run_agent_search(keyword: str, model: str | None = None) -> list[dict]:
 
         # Clean up output and map to what frontend expects
         cleaned_subs = []
+        seen = set()
+        
         for s in subreddits:
             sub_name = s.get("subreddit", "").strip()
             # Remove prefix
             if sub_name.startswith("r/"):
                 sub_name = sub_name[2:]
 
-            if sub_name:
+            # Normalize to lowercase for duplicate checking, but preserve original case for display
+            sub_name_lower = sub_name.lower()
+
+            if sub_name and sub_name_lower not in seen:
+                seen.add(sub_name_lower)
                 cleaned_subs.append(
                     {
                         "name": sub_name,
