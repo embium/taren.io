@@ -331,7 +331,7 @@
 							{/each}
 						</div>
 
-						<!-- Live Metrics -->
+						<!-- Live Metrics
 						<div class="grid grid-cols-2 gap-4">
 							<div class="rounded-xl border border-border bg-card p-5 text-center">
 								<p class="text-2xl font-bold">{selectedJob.post_count}</p>
@@ -346,6 +346,7 @@
 								</p>
 							</div>
 						</div>
+						-->
 						
 						<!-- Footer Text -->
 						<p class="mt-6 flex items-center justify-center gap-2 text-xs text-muted-foreground">

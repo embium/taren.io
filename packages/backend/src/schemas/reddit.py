@@ -67,8 +67,8 @@ class JobResponse(BaseModel):
     scrape_limit: int
     status: str
     error_message: Optional[str] = None
-    post_count: int
-    comment_count: int
+    # post_count: int
+    # comment_count: int
     pain_point_count: int
     created_at: datetime
     updated_at: datetime
