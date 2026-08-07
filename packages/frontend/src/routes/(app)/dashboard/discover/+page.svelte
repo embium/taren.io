@@ -26,7 +26,7 @@
 		searchQuery = prof.name;
 		selectedSlug = prof.slug;
 		showDropdown = false;
-		aiSearchQuery = ''; // clear AI search query when picking a profession
+		// aiSearchQuery = ''; // clear AI search query when picking a profession
 		onProfessionChange();
 	}
 
@@ -166,7 +166,7 @@
 							showDropdown = true;
 							selectedSlug = '';
 							subreddits = [];
-							aiSearchQuery = '';
+							// aiSearchQuery = '';
 						}}
 						onfocus={() => (showDropdown = true)}
 						onblur={() => setTimeout(() => (showDropdown = false), 150)}
