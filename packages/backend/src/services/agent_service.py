@@ -8,10 +8,7 @@ import concurrent.futures
 from bs4 import BeautifulSoup
 from cloakbrowser import launch
 from ddgs import DDGS
-from sqlalchemy import select
 
-from models.reddit import RedditSubreddit
-from core.database import AsyncSessionLocal
 from core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -164,9 +161,7 @@ def access_webpage(urls: list[str] | str) -> list[dict] | str:
     return content
 
 
-async def run_agent_search(
-    keyword: str, model: str | None = None
-) -> list[dict]:
+def run_agent_search(keyword: str, model: str | None = None) -> list[dict]:
     """
     Run the agent to search for subreddits matching a keyword.
     Intended to be run in a threadpool since it is synchronous.
@@ -179,20 +174,22 @@ async def run_agent_search(
         model=model,
     )
 
-    # agent.register_tool(
-    #     func=search_duckduckgo,
-    #     description="Searches the web using DuckDuckGo to get up-to-date information.",
-    #     parameters={
-    #         "type": "object",
-    #         "properties": {
-    #             "query": {
-    #                 "type": "string",
-    #                 "description": "The search query.",
-    #             }
-    #         },
-    #         "required": ["query"],
-    #     },
-    # )
+    # Tools are too slow...
+
+    agent.register_tool(
+        func=search_duckduckgo,
+        description="Searches the web using DuckDuckGo to get up-to-date information.",
+        parameters={
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "The search query.",
+                }
+            },
+            "required": ["query"],
+        },
+    )
 
     # agent.register_tool(
     #     func=access_webpage,
@@ -210,18 +207,8 @@ async def run_agent_search(
     #     },
     # )
 
-    async with AsyncSessionLocal() as session:
-        stmt = select(RedditSubreddit.name, RedditSubreddit.description)
-        result = await session.execute(stmt)
-        all = result.all()
-        subreddits = [
-            {"name": r.name, "description": r.description} for r in all
-        ]
-
     prompt = f"""
-    Pick the most likely subreddits that match the keyword(s) "{keyword}".
-
-    Choose from these available Subreddits: {subreddits}
+    Please search the web to find the top 10 best subreddits for the keyword(s) "{keyword}". You may need to enter them in one by one in search if there are multiples of them.
 
     Return ONLY valid JSON (no markdown fences) in this exact structure:
     {{
@@ -243,12 +230,13 @@ async def run_agent_search(
     if answer.endswith("```"):
         answer = answer[:-3]
     answer = answer.strip()
+
     try:
         data = json.loads(answer)
         subreddits = data.get("subreddits", [])
 
-        # Get list of subreddit names from AI response
-        ai_sub_names = []
+        # Clean up output and map to what frontend expects
+        cleaned_subs = []
         for s in subreddits:
             sub_name = s.get("subreddit", "").strip()
             # Remove prefix
@@ -256,40 +244,11 @@ async def run_agent_search(
                 sub_name = sub_name[2:]
 
             if sub_name:
-                ai_sub_names.append(sub_name)
-
-        cleaned_subs = []
-        if ai_sub_names:
-            # Query the database for matching subreddits to get their details
-            async with AsyncSessionLocal() as session:
-                stmt = select(
-                    RedditSubreddit.name,
-                    RedditSubreddit.description,
-                    RedditSubreddit.subscribers,
-                    RedditSubreddit.activity_level
-                ).where(RedditSubreddit.name.in_(ai_sub_names))
-                result = await session.execute(stmt)
-                
-                # Map the results for quick lookup
-                db_subs_map = {
-                    r.name: {
-                        "description": r.description,
-                        "subscribers": r.subscribers,
-                        "activity_level": r.activity_level
+                cleaned_subs.append(
+                    {
+                        "name": sub_name,
                     }
-                    for r in result.all()
-                }
-
-            # Build the final response list matching the frontend's expected format
-            for name in ai_sub_names:
-                db_data = db_subs_map.get(name, {})
-                cleaned_subs.append({
-                    "name": name,
-                    "description": db_data.get("description"),
-                    "subscribers": db_data.get("subscribers"),
-                    "activity_level": db_data.get("activity_level"),
-                })
-
+                )
         return cleaned_subs
     except json.JSONDecodeError as e:
         logger.error(f"Failed to parse agent JSON response: {answer}")
@@ -302,4 +261,4 @@ async def run_agent_search_task(
     """
     ARQ background task wrapper for run_agent_search.
     """
-    return await run_agent_search(keyword, model)
+    return await asyncio.to_thread(run_agent_search, keyword, model)
