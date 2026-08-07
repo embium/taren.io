@@ -61,3 +61,19 @@ export interface ProfessionSubredditsResponse {
 	name: string;
 	subreddits: SubredditDetailResponse[];
 }
+
+export interface SubredditSearchRequest {
+	keyword: string;
+	model?: string;
+}
+
+export interface SubredditSearchJobResponse {
+	success: boolean;
+	job_id: string;
+}
+
+export interface SubredditSearchJobStatusResponse {
+	status: 'pending' | 'complete' | 'failed';
+	keyword?: string;
+	subreddits?: SubredditDetailResponse[];
+}

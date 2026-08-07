@@ -30,8 +30,14 @@ from schemas.reddit import (
     ProfessionResponse,
     SubredditDetailResponse,
     ProfessionSubredditsResponse,
+    SubredditSearchRequest,
+    SubredditSearchJobResponse,
+    SubredditSearchJobStatusResponse,
 )
 from core.queue import get_redis_pool
+from services.agent_service import run_agent_search
+from fastapi.concurrency import run_in_threadpool
+from config.settings import settings
 
 router = APIRouter(prefix="/reddit", tags=["Reddit Analysis"])
 logger = logging.getLogger(__name__)
@@ -393,3 +399,86 @@ async def get_profession_subreddits(
             for sub in target_prof.subreddits
         ],
     )
+
+
+# ---------------------------------------------------------------------------
+# POST /reddit/search-subreddits  — AI search for subreddits
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/search-subreddits",
+    response_model=SubredditSearchJobResponse,
+    summary="Search for subreddits using AI based on a keyword",
+)
+async def search_subreddits(
+    request: SubredditSearchRequest,
+    current_user: User = Depends(get_current_user),
+) -> SubredditSearchJobResponse:
+    """Use AI Agent to find subreddits related to a keyword in the background."""
+    if not request.keyword or not request.keyword.strip():
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Keyword is required.",
+        )
+
+    try:
+        redis_pool = get_redis_pool()
+        job = await redis_pool.enqueue_job(
+            "run_agent_search_task",
+            request.keyword,
+            settings.openrouter_keywords_model,
+        )
+
+        return SubredditSearchJobResponse(
+            success=True,
+            job_id=job.job_id,
+        )
+    except Exception as e:
+        logger.error(f"AI search enqueue failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"AI search enqueue failed: {str(e)}",
+        )
+
+@router.get(
+    "/search-subreddits/{job_id}",
+    response_model=SubredditSearchJobStatusResponse,
+    summary="Check status of an AI subreddit search job",
+)
+async def get_search_subreddits_status(
+    job_id: str,
+    current_user: User = Depends(get_current_user),
+) -> SubredditSearchJobStatusResponse:
+    from arq.jobs import Job, JobStatus
+    redis_pool = get_redis_pool()
+    job = Job(job_id, redis_pool)
+    
+    try:
+        status_val = await job.status()
+        if status_val == JobStatus.complete:
+            result = await job.result()
+            return SubredditSearchJobStatusResponse(
+                status="complete",
+                subreddits=[SubredditDetailResponse(**sub) for sub in result],
+            )
+        elif status_val in (JobStatus.in_progress, JobStatus.queued, JobStatus.deferred):
+            return SubredditSearchJobStatusResponse(
+                status="pending",
+            )
+        elif status_val == JobStatus.not_found:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Job not found or expired.",
+            )
+        else:
+            return SubredditSearchJobStatusResponse(
+                status="failed",
+            )
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise
+        logger.error(f"Error checking job status for {job_id}: {e}")
+        return SubredditSearchJobStatusResponse(
+            status="failed",
+        )

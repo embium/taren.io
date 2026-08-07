@@ -153,7 +153,7 @@ async def _call_openrouter(prompt: str) -> str:
             "https://openrouter.ai/api/v1/chat/completions",
             headers={"Authorization": f"Bearer {settings.openrouter_api_key}"},
             json={
-                "model": settings.openrouter_model,
+                "model": settings.openrouter_scraping_model,
                 "messages": [{"role": "user", "content": prompt}],
             },
         )

@@ -108,3 +108,17 @@ class ProfessionSubredditsResponse(BaseModel):
     success: bool = True
     name: str
     subreddits: List[SubredditDetailResponse]
+
+class SubredditSearchRequest(BaseModel):
+    keyword: str
+    model: Optional[str] = None
+
+class SubredditSearchJobResponse(BaseModel):
+    success: bool
+    job_id: str
+
+class SubredditSearchJobStatusResponse(BaseModel):
+    status: str
+    keyword: Optional[str] = None
+    subreddits: Optional[List[SubredditDetailResponse]] = None
+

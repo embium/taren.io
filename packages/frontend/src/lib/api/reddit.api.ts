@@ -4,7 +4,10 @@ import type {
 	JobResponse,
 	JobResultsResponse,
 	ProfessionResponse,
-	ProfessionSubredditsResponse
+	ProfessionSubredditsResponse,
+	SubredditSearchRequest,
+	SubredditSearchJobResponse,
+	SubredditSearchJobStatusResponse
 } from '$lib/types/reddit';
 
 export interface UsageResponse {
@@ -70,5 +73,22 @@ export const redditApi = {
 	 */
 	async getProfessionSubreddits(slug: string): Promise<ProfessionSubredditsResponse> {
 		return api.get<ProfessionSubredditsResponse>(`/reddit/professions/${slug}/subreddits`);
+	},
+
+	/**
+	 * Search for subreddits using AI based on a keyword (starts background job)
+	 */
+	async searchSubreddits(keyword: string, model?: string): Promise<SubredditSearchJobResponse> {
+		return api.post<SubredditSearchJobResponse>('/reddit/search-subreddits', {
+			keyword,
+			model
+		} satisfies SubredditSearchRequest);
+	},
+
+	/**
+	 * Check status of an AI subreddit search job
+	 */
+	async getSearchSubredditsStatus(jobId: string): Promise<SubredditSearchJobStatusResponse> {
+		return api.get<SubredditSearchJobStatusResponse>(`/reddit/search-subreddits/${jobId}`);
 	}
 };

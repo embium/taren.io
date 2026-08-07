@@ -6,6 +6,7 @@ src/core/config.py
 src/core/database.py
 src/core/dependencies.py
 src/core/queue.py
+src/core/rate_limit.py
 src/core/security.py
 src/models/__init__.py
 src/models/reddit.py
