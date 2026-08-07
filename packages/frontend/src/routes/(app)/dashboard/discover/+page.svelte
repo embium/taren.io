@@ -320,7 +320,7 @@
 						></path>
 					</svg>
 					<p class="text-sm font-medium">
-						{isAiSearching ? 'AI is analyzing our database...' : 'Finding communities...'}
+						{isAiSearching ? 'AI is searching the web...' : 'Finding communities...'}
 					</p>
 				</div>
 			</div>
@@ -349,6 +349,12 @@
 								{selectedSubreddits.includes(sub.name) ? 'Selected' : 'Add to list'}
 							</button>
 						</div>
+
+						{#if !sub.description && !sub.subscribers && !sub.activity_level}
+							<p class="mb-4 line-clamp-3 text-sm text-muted-foreground">
+								We need more information about this subreddit to provide relevant information.
+							</p>
+						{/if}
 
 						{#if sub.description}
 							<p class="mb-4 line-clamp-3 text-sm text-muted-foreground">
