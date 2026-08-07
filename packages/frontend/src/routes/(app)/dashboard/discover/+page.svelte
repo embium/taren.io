@@ -320,7 +320,7 @@
 						></path>
 					</svg>
 					<p class="text-sm font-medium">
-						{isAiSearching ? 'AI is searching the web...' : 'Finding communities...'}
+						{isAiSearching ? 'AI is analyzing our database...' : 'Finding communities...'}
 					</p>
 				</div>
 			</div>
