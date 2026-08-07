@@ -217,7 +217,7 @@
 							{#if sub.subscribers}
 								<div class="flex items-center gap-1.5">
 									<Users class="h-3.5 w-3.5" />
-									<span>{(sub.subscribers / 1000).toFixed(1)}k</span>
+									<span>{(sub.subscribers / 1000).toFixed(0)}k</span>
 								</div>
 							{/if}
 							{#if sub.activity_level}
