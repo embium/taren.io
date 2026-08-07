@@ -107,22 +107,45 @@ class OpenRouterAgent:
         return response_message.get("content")
 
 
-def search_duckduckgo(query: str) -> str:
-    logger.info(f"--> [AGENT] Executing Web Search for: {query}")
-    # Using the proxy from settings
-    results = DDGS(proxy=settings.proxy_url).text(query, max_results=5)
-    return json.dumps(results)
+def search(query: str) -> str:
+    for i in range(3):
+        try:
+            logger.info(f"--> [AGENT] Executing Web Search for: {query}")
+            results = DDGS(proxy=settings.proxy_url).text(
+                query, backend="brave", max_results=5
+            )
+            logger.info(f"--> [AGENT] Search Results: {results}")
+            return json.dumps(results)
+        except Exception as e:
+            logger.error(f"Error searching: {e}")
+            if i == 2:
+                return str(e)
+            continue
+    return "Error searching"
 
 
 def _access_webpage(url: str) -> str:
-    browser = launch(headless=True, proxy=settings.proxy_url)
-    page = browser.new_page()
-    page.goto(url)
-    html_content = page.content()
-    clean_text = re.sub(r"\n+", " ", html_content)
-    clean_text = BeautifulSoup(clean_text, "lxml").text
-    browser.close()
-    return clean_text
+    for i in range(3):
+        try:
+            logger.info(f"--> [CLIENT] Accessing Webpage: {url}")
+            response = requests.get(
+                url,
+                proxies={
+                    "http": settings.proxy_url,
+                    "https": settings.proxy_url,
+                },
+                timeout=5,
+            )
+            clean_text = re.sub(r"\n+", " ", response.text)
+            clean_text = BeautifulSoup(clean_text, "lxml").text
+            logger.info(f"--> [CLIENT] Page Content: {clean_text}")
+            return clean_text or "There was a problem requesting the page"
+        except Exception as e:
+            if i == 2:
+                logger.error(f"Error accessing webpage {url}: {e}")
+                return str(e)
+            continue
+    return "Error accessing webpage"
 
 
 def access_webpage(urls: list[str] | str) -> list[dict] | str:
@@ -177,8 +200,8 @@ def run_agent_search(keyword: str, model: str | None = None) -> list[dict]:
     # Tools are too slow...
 
     agent.register_tool(
-        func=search_duckduckgo,
-        description="Searches the web using DuckDuckGo to get up-to-date information.",
+        func=search,
+        description="Searches the web to get up-to-date information.",
         parameters={
             "type": "object",
             "properties": {
@@ -191,24 +214,24 @@ def run_agent_search(keyword: str, model: str | None = None) -> list[dict]:
         },
     )
 
-    # agent.register_tool(
-    #     func=access_webpage,
-    #     description="Accesses the webpages provided and returns their content.",
-    #     parameters={
-    #         "type": "object",
-    #         "properties": {
-    #             "urls": {
-    #                 "type": "array",
-    #                 "items": {"type": "string"},
-    #                 "description": "The URLs of the webpages you want to access.",
-    #             }
-    #         },
-    #         "required": ["urls"],
-    #     },
-    # )
+    agent.register_tool(
+        func=access_webpage,
+        description="Accesses the webpages provided and returns their content.",
+        parameters={
+            "type": "object",
+            "properties": {
+                "urls": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "The URLs of the webpages you want to access.",
+                }
+            },
+            "required": ["urls"],
+        },
+    )
 
     prompt = f"""
-    Please search the web to find the top 10 best subreddits for the keyword(s) "{keyword}". You may need to enter them in one by one in search if there are multiples of them.
+    Please search the web and access the pages from the results to find the top 10 best subreddits for the keyword(s) "{keyword}". You may need to enter them in one by one in search if there are multiples of them.
 
     Return ONLY valid JSON (no markdown fences) in this exact structure:
     {{
@@ -238,7 +261,7 @@ def run_agent_search(keyword: str, model: str | None = None) -> list[dict]:
         # Clean up output and map to what frontend expects
         cleaned_subs = []
         seen = set()
-        
+
         for s in subreddits:
             sub_name = s.get("subreddit", "").strip()
             # Remove prefix
