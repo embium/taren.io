@@ -37,7 +37,7 @@ from schemas.reddit import (
 from core.queue import get_redis_pool
 from services.agent_service import run_agent_search
 from fastapi.concurrency import run_in_threadpool
-from config.settings import settings
+from core.config import settings
 
 router = APIRouter(prefix="/reddit", tags=["Reddit Analysis"])
 logger = logging.getLogger(__name__)
@@ -429,17 +429,19 @@ async def search_subreddits(
             request.keyword,
             settings.openrouter_keywords_model,
         )
-
-        return SubredditSearchJobResponse(
-            success=True,
-            job_id=job.job_id,
-        )
+        if job:
+            return SubredditSearchJobResponse(
+                success=True,
+                job_id=job.job_id,
+            )
+        return SubredditSearchJobResponse(success=False, job_id="")
     except Exception as e:
         logger.error(f"AI search enqueue failed: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"AI search enqueue failed: {str(e)}",
         )
+
 
 @router.get(
     "/search-subreddits/{job_id}",
@@ -451,9 +453,10 @@ async def get_search_subreddits_status(
     current_user: User = Depends(get_current_user),
 ) -> SubredditSearchJobStatusResponse:
     from arq.jobs import Job, JobStatus
+
     redis_pool = get_redis_pool()
     job = Job(job_id, redis_pool)
-    
+
     try:
         status_val = await job.status()
         if status_val == JobStatus.complete:
@@ -462,7 +465,11 @@ async def get_search_subreddits_status(
                 status="complete",
                 subreddits=[SubredditDetailResponse(**sub) for sub in result],
             )
-        elif status_val in (JobStatus.in_progress, JobStatus.queued, JobStatus.deferred):
+        elif status_val in (
+            JobStatus.in_progress,
+            JobStatus.queued,
+            JobStatus.deferred,
+        ):
             return SubredditSearchJobStatusResponse(
                 status="pending",
             )

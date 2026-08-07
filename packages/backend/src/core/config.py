@@ -50,7 +50,8 @@ class Settings(BaseSettings):
 
     # Reddit scraper settings
     openrouter_api_key: str = ""
-    openrouter_model: str = "deepseek/deepseek-v4-flash"
+    openrouter_scraping_model: str = "deepseek/deepseek-v4-flash"
+    openrouter_keywords_model: str = "openai/gpt-4o-mini-2024-07-18"
     proxy_url: str = "http://proxy.proxying.io:8080"
     scrape_limit: int = 25
     max_concurrent_posts: int = 10
