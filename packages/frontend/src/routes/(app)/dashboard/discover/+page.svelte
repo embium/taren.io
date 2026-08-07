@@ -366,7 +366,7 @@
 							{#if sub.subscribers}
 								<div class="flex items-center gap-1.5">
 									<Users class="h-3.5 w-3.5" />
-									<span>{(sub.subscribers / 1000).toFixed(0)}k</span>
+									<span>{Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(sub.subscribers)}</span>
 								</div>
 							{/if}
 							{#if sub.activity_level}

@@ -236,7 +236,10 @@ def run_agent_search(keyword: str, model: str | None = None) -> list[dict]:
     Return ONLY valid JSON (no markdown fences) in this exact structure:
     {{
         "subreddits": [
-            {{"subreddit": "r/subreddit"}}
+            {{"subreddit": "r/subreddit",
+              "description": "...",
+              "subscribers": 1000000
+            }}
         ]
     }}
     """
@@ -270,12 +273,19 @@ def run_agent_search(keyword: str, model: str | None = None) -> list[dict]:
 
             # Normalize to lowercase for duplicate checking, but preserve original case for display
             sub_name_lower = sub_name.lower()
+            if re.search(r"[^a-zA-Z0-9_]", sub_name_lower):
+                logger.warning(
+                    f"--> [AGENT] Skipping subreddit with special characters in name: {sub_name}"
+                )
+                continue
 
             if sub_name and sub_name_lower not in seen:
                 seen.add(sub_name_lower)
                 cleaned_subs.append(
                     {
                         "name": sub_name,
+                        "description": s.get("description", ""),
+                        "subscribers": s.get("subscribers", ""),
                     }
                 )
         return cleaned_subs
