@@ -51,10 +51,34 @@
 
 	<PageContent>
 		{#if loadingJobs}
-			<div class="space-y-3">
+			<div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				{#each [1, 2, 3, 4] as _}
-					<div class="h-16 animate-pulse rounded-xl border border-border bg-card p-5"></div>
+					<div class="h-24 animate-pulse rounded-xl border border-border bg-card p-5">
+						<div class="mb-1 h-4 w-24 rounded bg-secondary/60"></div>
+						<div class="h-8 w-16 rounded bg-secondary"></div>
+					</div>
 				{/each}
+			</div>
+			<div class="rounded-xl border border-border bg-card">
+				<div class="border-b border-border px-5 py-3">
+					<div class="h-4 w-24 animate-pulse rounded bg-secondary"></div>
+				</div>
+				<div class="divide-y divide-border">
+					{#each [1, 2, 3, 4, 5] as _}
+						<div class="flex items-center justify-between px-5 py-3.5 hidden sm:flex">
+							<div class="h-4 w-16 animate-pulse rounded bg-secondary"></div>
+							<div class="flex gap-1"><div class="h-5 w-16 animate-pulse rounded-full bg-secondary"></div></div>
+							<div class="h-5 w-16 animate-pulse rounded-full bg-secondary"></div>
+							<div class="h-4 w-8 animate-pulse rounded bg-secondary"></div>
+							<div class="h-4 w-8 animate-pulse rounded bg-secondary"></div>
+							<div class="h-4 w-24 animate-pulse rounded bg-secondary"></div>
+						</div>
+						<div class="flex flex-col gap-2 px-5 py-3.5 sm:hidden">
+							<div class="h-4 w-16 animate-pulse rounded bg-secondary"></div>
+							<div class="h-5 w-16 animate-pulse rounded-full bg-secondary"></div>
+						</div>
+					{/each}
+				</div>
 			</div>
 		{:else if jobs.length === 0}
 			<div

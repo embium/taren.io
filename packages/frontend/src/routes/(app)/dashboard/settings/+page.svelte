@@ -141,6 +141,24 @@
 	<PageHeader title="Settings" />
 
 	<PageContent>
+		{#if !authState.user}
+			<div class="mb-8">
+				<div class="mb-2 h-8 w-48 animate-pulse rounded bg-secondary"></div>
+				<div class="h-4 w-64 animate-pulse rounded bg-secondary/60"></div>
+			</div>
+			<div class="max-w-2xl space-y-4">
+				{#each [1, 2, 3, 4] as _}
+					<div class="rounded-xl border border-border bg-card">
+						<div class="border-b border-border px-5 py-3">
+							<div class="h-4 w-24 animate-pulse rounded bg-secondary"></div>
+						</div>
+						<div class="px-5 py-5">
+							<div class="h-10 w-full animate-pulse rounded-lg bg-secondary/50"></div>
+						</div>
+					</div>
+				{/each}
+			</div>
+		{:else}
 		<div class="mb-8">
 			<h2 class="text-2xl font-bold">Account Settings</h2>
 			<p class="mt-1 text-muted-foreground">
@@ -341,6 +359,7 @@
 				</div>
 			</div>
 		</div>
+		{/if}
 	</PageContent>
 </PageContainer>
 

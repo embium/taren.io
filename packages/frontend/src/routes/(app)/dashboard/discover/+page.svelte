@@ -304,25 +304,28 @@
 		{/if}
 
 		{#if loadingSubreddits || isAiSearching}
-			<div class="flex items-center justify-center py-12">
-				<div class="flex flex-col items-center gap-3 text-muted-foreground">
-					<svg
-						class="h-8 w-8 animate-spin {isAiSearching ? 'text-pink-500' : 'text-orange-500'}"
-						fill="none"
-						viewBox="0 0 24 24"
-					>
-						<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
-						></circle>
-						<path
-							class="opacity-75"
-							fill="currentColor"
-							d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-						></path>
-					</svg>
-					<p class="text-sm font-medium">
-						{isAiSearching ? 'AI is searching the web...' : 'Finding communities...'}
-					</p>
-				</div>
+			<div class="mb-6 flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground">
+				<svg class="h-4 w-4 animate-spin {isAiSearching ? 'text-pink-500' : 'text-orange-500'}" fill="none" viewBox="0 0 24 24">
+					<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+					<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+				</svg>
+				{isAiSearching ? 'AI is searching the web...' : 'Finding communities...'}
+			</div>
+			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+				{#each [1, 2, 3, 4, 5, 6] as _}
+					<div class="flex h-full flex-col rounded-xl border border-border bg-card p-5">
+						<div class="mb-3 flex items-start justify-between gap-2">
+							<div class="h-6 w-32 animate-pulse rounded bg-secondary"></div>
+							<div class="h-6 w-20 animate-pulse rounded-full bg-secondary"></div>
+						</div>
+						<div class="mb-2 h-4 w-full animate-pulse rounded bg-secondary/60"></div>
+						<div class="mb-4 h-4 w-2/3 animate-pulse rounded bg-secondary/60"></div>
+						<div class="mt-auto flex items-center gap-4">
+							<div class="h-4 w-12 animate-pulse rounded bg-secondary/60"></div>
+							<div class="h-4 w-16 animate-pulse rounded bg-secondary/60"></div>
+						</div>
+					</div>
+				{/each}
 			</div>
 		{:else if (selectedSlug && subreddits.length === 0) || (searched && aiSearchQuery && !isAiSearching && subreddits.length === 0 && !showDropdown)}
 			<div class="rounded-xl border border-dashed border-border bg-card/50 p-12 text-center">

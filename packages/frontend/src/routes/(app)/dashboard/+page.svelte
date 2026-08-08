@@ -185,7 +185,13 @@
 					<p class="mb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
 						Total Scans
 					</p>
-					<p class="text-xl font-bold text-orange-400">{loadingJobs ? '—' : jobs.length}</p>
+					<p class="text-xl font-bold text-orange-400">
+						{#if loadingJobs}
+							<span class="inline-block h-6 w-12 animate-pulse rounded bg-secondary/80"></span>
+						{:else}
+							{jobs.length}
+						{/if}
+					</p>
 				</div>
 
 				<!-- Subscription -->
@@ -223,7 +229,7 @@
 			</div>
 
 			<!-- Recent scans -->
-			{#if !loadingJobs && jobs.length > 0}
+			{#if loadingJobs || jobs.length > 0}
 				<div class="rounded-xl border border-border bg-card">
 					<div class="flex items-center justify-between border-b border-border px-5 py-3">
 						<p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">
@@ -236,6 +242,18 @@
 						>
 					</div>
 					<div class="divide-y divide-border">
+						{#if loadingJobs}
+							{#each [1, 2, 3] as _}
+								<div class="px-5 py-3.5">
+									<div class="mb-1 flex items-start justify-between gap-2">
+										<div class="h-5 w-48 animate-pulse rounded bg-secondary"></div>
+										<div class="h-5 w-16 animate-pulse rounded-full bg-secondary"></div>
+									</div>
+									<div class="mb-1.5 h-4 w-24 animate-pulse rounded bg-secondary/60"></div>
+									<div class="h-3 w-32 animate-pulse rounded bg-secondary/40"></div>
+								</div>
+							{/each}
+						{:else}
 						{#each jobs.slice(0, 5) as job (job.id)}
 							<button
 								id="job-{job.id}-btn"
@@ -267,6 +285,7 @@
 								<p class="mt-0.5 text-xs text-muted-foreground/60">{formatDate(job.created_at)}</p>
 							</button>
 						{/each}
+						{/if}
 					</div>
 				</div>
 			{/if}

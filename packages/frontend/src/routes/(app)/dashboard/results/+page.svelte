@@ -166,10 +166,14 @@
 				</div>
 				<div class="flex-1 divide-y divide-border overflow-y-auto">
 					{#if loadingJobs}
-						{#each [1, 2, 3] as _}
-							<div class="animate-pulse px-5 py-4">
-								<div class="mb-2 h-3 w-2/3 rounded-lg bg-secondary"></div>
-								<div class="h-2.5 w-1/3 rounded-lg bg-secondary/60"></div>
+						{#each [1, 2, 3, 4, 5] as _}
+							<div class="px-5 py-3.5">
+								<div class="mb-1 flex items-start justify-between gap-2">
+									<div class="h-5 w-32 animate-pulse rounded bg-secondary"></div>
+									<div class="h-5 w-16 animate-pulse rounded-full bg-secondary"></div>
+								</div>
+								<div class="mb-1 h-4 w-24 animate-pulse rounded bg-secondary/60"></div>
+								<div class="h-3 w-28 animate-pulse rounded bg-secondary/40"></div>
 							</div>
 						{/each}
 					{:else if jobs.length === 0}
@@ -452,12 +456,21 @@
 						{#if loadingResults}
 							<div class="space-y-3">
 								{#each [1, 2, 3] as _}
-									<div class="animate-pulse rounded-xl border border-border bg-card p-5">
-										<div class="mb-3 flex items-center justify-between">
-											<div class="h-4 w-1/2 rounded-lg bg-secondary"></div>
-											<div class="h-6 w-16 rounded-full bg-secondary/60"></div>
+									<div class="rounded-xl border border-border bg-card p-5">
+										<div class="mb-2 flex items-start justify-between gap-4">
+											<div class="flex-1">
+												<div class="mb-1.5 flex gap-2">
+													<div class="h-5 w-20 animate-pulse rounded-full bg-secondary"></div>
+													<div class="h-4 w-16 animate-pulse rounded bg-secondary/60"></div>
+												</div>
+												<div class="h-5 w-3/4 animate-pulse rounded bg-secondary"></div>
+											</div>
+											<div class="flex flex-col items-end gap-1">
+												<div class="h-7 w-8 animate-pulse rounded bg-secondary"></div>
+												<div class="h-3 w-12 animate-pulse rounded bg-secondary/60"></div>
+											</div>
 										</div>
-										<div class="h-3 w-full rounded-lg bg-secondary/60"></div>
+										<div class="mt-3 h-1.5 w-full animate-pulse rounded-full bg-secondary"></div>
 									</div>
 								{/each}
 							</div>

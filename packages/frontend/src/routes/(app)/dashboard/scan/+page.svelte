@@ -10,6 +10,7 @@
 	let subredditsInput = $state('');
 	let isSubmitting = $state(false);
 	let usage = $state<UsageResponse | null>(null);
+	let pageLoading = $state(true);
 
 	let analysisType = $state<'template' | 'custom'>('template');
 	let templates = $state<TemplateResponse[]>([]);
@@ -57,6 +58,8 @@
 			if (templates.length > 0) selectedTemplateId = templates[0].id;
 		} catch {
 			// ignore
+		} finally {
+			pageLoading = false;
 		}
 
 		// Handle adding subreddit from query parameter
@@ -185,6 +188,58 @@
 			</div>
 		{/if}
 
+		{#if pageLoading}
+			<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+				<div class="space-y-4 lg:col-span-2">
+					<!-- Analysis Objective Skeleton -->
+					<div class="rounded-xl border border-border bg-card">
+						<div class="flex items-center justify-between border-b border-border px-5 py-3">
+							<div class="h-4 w-32 animate-pulse rounded bg-secondary"></div>
+							<div class="h-6 w-24 animate-pulse rounded bg-secondary"></div>
+						</div>
+						<div class="p-5">
+							<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+								<div class="h-16 animate-pulse rounded-lg border border-border bg-secondary/30"></div>
+								<div class="h-16 animate-pulse rounded-lg border border-border bg-secondary/30"></div>
+							</div>
+						</div>
+					</div>
+					<!-- Subreddits Skeleton -->
+					<div class="rounded-xl border border-border bg-card">
+						<div class="flex items-center justify-between border-b border-border px-5 py-3">
+							<div class="h-4 w-24 animate-pulse rounded bg-secondary"></div>
+						</div>
+						<div class="p-5">
+							<div class="h-40 w-full animate-pulse rounded-lg border border-border bg-secondary/30"></div>
+						</div>
+					</div>
+					<!-- Posts per subreddit Skeleton -->
+					<div class="rounded-xl border border-border bg-card">
+						<div class="flex items-center justify-between border-b border-border px-5 py-3">
+							<div class="h-4 w-32 animate-pulse rounded bg-secondary"></div>
+						</div>
+						<div class="p-5">
+							<div class="h-2 w-full animate-pulse rounded-full bg-secondary"></div>
+						</div>
+					</div>
+				</div>
+				<!-- Summary Skeleton -->
+				<div class="lg:col-span-1">
+					<div class="rounded-xl border border-border bg-card">
+						<div class="border-b border-border px-5 py-3">
+							<div class="h-4 w-20 animate-pulse rounded bg-secondary"></div>
+						</div>
+						<div class="space-y-4 p-5">
+							<div class="flex justify-between"><div class="h-4 w-24 animate-pulse rounded bg-secondary"></div><div class="h-4 w-8 animate-pulse rounded bg-secondary"></div></div>
+							<div class="flex justify-between"><div class="h-4 w-20 animate-pulse rounded bg-secondary"></div><div class="h-4 w-12 animate-pulse rounded bg-secondary"></div></div>
+							<div class="flex justify-between"><div class="h-4 w-28 animate-pulse rounded bg-secondary"></div><div class="h-4 w-8 animate-pulse rounded bg-secondary"></div></div>
+							<div class="my-4 h-px bg-border"></div>
+							<div class="h-10 w-full animate-pulse rounded-lg bg-secondary"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		{:else}
 		<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
 			<!-- Left: form -->
 			<div class="space-y-4 lg:col-span-2">
@@ -446,5 +501,6 @@
 				</div>
 			</div>
 		</div>
+		{/if}
 	</div>
 </div>

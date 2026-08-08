@@ -80,12 +80,29 @@
 	<PageContent>
 		<div class="mx-auto max-w-2xl space-y-5">
 			{#if loading}
-				<!-- Skeleton -->
-				<div class="animate-pulse space-y-4 rounded-xl border border-border bg-card p-6">
-					<div class="h-5 w-40 rounded bg-muted"></div>
-					<div class="h-10 w-28 rounded bg-muted"></div>
-					<div class="h-4 w-64 rounded bg-muted"></div>
-					<div class="h-4 w-48 rounded bg-muted"></div>
+				<!-- Custom Skeleton -->
+				<div class="rounded-xl border border-border bg-card p-5">
+					<div class="mb-4 flex items-center justify-between">
+						<div class="flex items-center gap-3">
+							<div class="h-10 w-10 animate-pulse rounded-lg bg-secondary"></div>
+							<div>
+								<div class="mb-1 h-3 w-20 animate-pulse rounded bg-secondary/60"></div>
+								<div class="h-6 w-24 animate-pulse rounded bg-secondary"></div>
+							</div>
+						</div>
+						<div class="h-6 w-20 animate-pulse rounded-full bg-secondary"></div>
+					</div>
+					<div class="space-y-3">
+						{#each [1, 2, 3] as _}
+							<div class="flex items-center justify-between">
+								<div class="flex items-center gap-3">
+									<div class="h-4 w-4 animate-pulse rounded bg-secondary/60"></div>
+									<div class="h-4 w-24 animate-pulse rounded bg-secondary/60"></div>
+								</div>
+								<div class="h-4 w-32 animate-pulse rounded bg-secondary"></div>
+							</div>
+						{/each}
+					</div>
 				</div>
 			{:else if !subscription}
 				<!-- No subscription -->
