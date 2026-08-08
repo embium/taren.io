@@ -40,12 +40,17 @@ class RedditJob(Base):
     status: Mapped[str] = mapped_column(
         String(20), default="pending", nullable=False, index=True
     )
+    analysis_type: Mapped[str] = mapped_column(
+        String(20), default="template", nullable=False
+    )
+    template_id: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    custom_objective: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     post_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     comment_count: Mapped[int] = mapped_column(
         Integer, default=0, nullable=False
     )
-    pain_point_count: Mapped[int] = mapped_column(
+    finding_count: Mapped[int] = mapped_column(
         Integer, default=0, nullable=False
     )
     created_at: Mapped[datetime] = mapped_column(
@@ -64,8 +69,8 @@ class RedditJob(Base):
     posts: Mapped[List["RedditPost"]] = relationship(
         "RedditPost", back_populates="job", cascade="all, delete-orphan"
     )
-    pain_points: Mapped[List["RedditPainPoint"]] = relationship(
-        "RedditPainPoint", back_populates="job", cascade="all, delete-orphan"
+    findings: Mapped[List["RedditFinding"]] = relationship(
+        "RedditFinding", back_populates="job", cascade="all, delete-orphan"
     )
 
     def __repr__(self) -> str:
@@ -165,10 +170,10 @@ class RedditComment(Base):
         return f"<RedditComment(id={self.id}, comment_id={self.comment_id})>"
 
 
-class RedditPainPoint(Base):
-    """A pain point identified by LLM analysis of a subreddit's comments."""
+class RedditFinding(Base):
+    """An analysis finding identified by LLM analysis of a subreddit's comments."""
 
-    __tablename__ = "reddit_pain_points"
+    __tablename__ = "reddit_findings"
 
     id: Mapped[int] = mapped_column(
         Integer, primary_key=True, autoincrement=True
@@ -184,8 +189,8 @@ class RedditPainPoint(Base):
     )
     title: Mapped[str] = mapped_column(String(512), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
-    severity: Mapped[int] = mapped_column(Integer, nullable=False)  # 0–100
-    target_audience: Mapped[str] = mapped_column(Text, nullable=False)
+    relevance_score: Mapped[int] = mapped_column(Integer, nullable=False)  # 0–100
+    context: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
@@ -194,29 +199,29 @@ class RedditPainPoint(Base):
 
     # Relationships
     job: Mapped["RedditJob"] = relationship(
-        "RedditJob", back_populates="pain_points"
+        "RedditJob", back_populates="findings"
     )
     evidence: Mapped[List["RedditEvidence"]] = relationship(
         "RedditEvidence",
-        back_populates="pain_point",
+        back_populates="finding",
         cascade="all, delete-orphan",
     )
 
     def __repr__(self) -> str:
-        return f"<RedditPainPoint(id={self.id}, title={self.title[:40]}, severity={self.severity})>"
+        return f"<RedditFinding(id={self.id}, title={self.title[:40]}, relevance={self.relevance_score})>"
 
 
 class RedditEvidence(Base):
-    """Supporting comment evidence for a pain point."""
+    """Supporting comment evidence for an analysis finding."""
 
     __tablename__ = "reddit_evidence"
 
     id: Mapped[int] = mapped_column(
         Integer, primary_key=True, autoincrement=True
     )
-    pain_point_id: Mapped[int] = mapped_column(
+    finding_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("reddit_pain_points.id", ondelete="CASCADE"),
+        ForeignKey("reddit_findings.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
@@ -226,12 +231,12 @@ class RedditEvidence(Base):
     link: Mapped[str] = mapped_column(Text, nullable=False)
 
     # Relationships
-    pain_point: Mapped["RedditPainPoint"] = relationship(
-        "RedditPainPoint", back_populates="evidence"
+    finding: Mapped["RedditFinding"] = relationship(
+        "RedditFinding", back_populates="evidence"
     )
 
     def __repr__(self) -> str:
-        return f"<RedditEvidence(id={self.id}, pain_point_id={self.pain_point_id})>"
+        return f"<RedditEvidence(id={self.id}, finding_id={self.finding_id})>"
 
 
 class RedditProfession(Base):

@@ -2,8 +2,9 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { page } from '$app/state';
-	import { goto } from "$app/navigation";
-	import { Check, RefreshCw, Cpu, Circle } from '@lucide/svelte';
+	import { goto } from '$app/navigation';
+	import { Check, RefreshCw, Cpu, Circle, Sparkles } from '@lucide/svelte';
+
 	import { redditApi } from '$lib/api/reddit.api';
 	import type { JobResponse, JobResultsResponse } from '$lib/types/reddit';
 	import PageContainer from '$lib/components/dashboard/PageContainer.svelte';
@@ -11,13 +12,14 @@
 	import PageContent from '$lib/components/dashboard/PageContent.svelte';
 	import StatCard from '$lib/components/dashboard/StatCard.svelte';
 	import StatusBadge from '$lib/components/dashboard/StatusBadge.svelte';
+	import { Button } from '$lib/components/ui/button';
 
 	let jobs = $state<JobResponse[]>([]);
 	let loadingJobs = $state(true);
 	let selectedJob = $state<JobResponse | null>(null);
 	let results = $state<JobResultsResponse | null>(null);
 	let loadingResults = $state(false);
-	let expandedPainPoints = $state<Set<number>>(new Set());
+	let expandedFindings = $state<Set<number>>(new Set());
 	let pollInterval: ReturnType<typeof setInterval> | null = null;
 
 	const hasActiveJobs = $derived(
@@ -86,33 +88,33 @@
 	async function selectJob(job: JobResponse) {
 		selectedJob = job;
 		results = null;
-		goto("/dashboard/results?job=" + job.id);
+		goto('/dashboard/results?job=' + job.id);
 		if (job.status === 'done') {
 			await loadResults(job.id);
 		}
 	}
 
-	function togglePainPoint(id: number) {
-		const next = new Set(expandedPainPoints);
+	function toggleFinding(id: number) {
+		const next = new Set(expandedFindings);
 		if (next.has(id)) next.delete(id);
 		else next.add(id);
-		expandedPainPoints = next;
+		expandedFindings = next;
 	}
 
-	function severityColor(s: number) {
+	function relevanceScoreColor(s: number) {
 		if (s >= 80) return 'text-red-400';
 		if (s >= 60) return 'text-orange-400';
 		if (s >= 40) return 'text-yellow-400';
 		return 'text-emerald-400';
 	}
-	function severityBarColor(s: number) {
+	function relevanceScoreBarColor(s: number) {
 		if (s >= 80) return 'bg-red-500';
 		if (s >= 60) return 'bg-orange-500';
 		if (s >= 40) return 'bg-yellow-500';
 		return 'bg-emerald-500';
 	}
-	function severityLabel(s: number) {
-		if (s >= 80) return 'Critical';
+	function relevanceScoreLabel(s: number) {
+		if (s >= 80) return 'Very High';
 		if (s >= 60) return 'High';
 		if (s >= 40) return 'Medium';
 		return 'Low';
@@ -182,7 +184,7 @@
 							<button
 								id="job-{job.id}-btn"
 								onclick={() => selectJob(job)}
-								class="cursor-pointer group w-full px-5 py-3.5 text-left transition hover:bg-accent/50 {selectedJob?.id ===
+								class="group w-full cursor-pointer px-5 py-3.5 text-left transition hover:bg-accent/50 {selectedJob?.id ===
 								job.id
 									? 'bg-orange-500/10'
 									: ''}"
@@ -198,9 +200,7 @@
 								<div class="flex items-center gap-2 text-xs text-muted-foreground">
 									{#if job.status === 'done'}
 										<span class="text-orange-500"
-											>{job.pain_point_count} pain point{job.pain_point_count !== 1
-												? 's'
-												: ''}</span
+											>{job.finding_count} finding{job.finding_count !== 1 ? 's' : ''}</span
 										>
 									{:else if job.status === 'failed'}
 										<span class="text-red-400">Failed</span>
@@ -264,49 +264,78 @@
 						</p>
 					</div>
 				{:else if selectedJob.status === 'pending' || selectedJob.status === 'scraping' || selectedJob.status === 'analyzing'}
-					{@const stepIndex = ['pending', 'scraping', 'analyzing', 'done'].indexOf(selectedJob.status)}
+					{@const stepIndex = ['pending', 'scraping', 'analyzing', 'done'].indexOf(
+						selectedJob.status
+					)}
 					{@const progressWidth = Math.max(0, (stepIndex / 3) * 100)}
 					<div class="rounded-xl border border-border bg-card p-5">
 						<div class="mb-8 flex items-center gap-4">
-							<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-500/10">
+							<div
+								class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-500/10"
+							>
 								<svg class="h-6 w-6 animate-spin text-blue-500" fill="none" viewBox="0 0 24 24">
-									<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-									<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+									<circle
+										class="opacity-25"
+										cx="12"
+										cy="12"
+										r="10"
+										stroke="currentColor"
+										stroke-width="4"
+									></circle>
+									<path
+										class="opacity-75"
+										fill="currentColor"
+										d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+									></path>
 								</svg>
 							</div>
 							<div class="min-w-0">
 								<h3 class="truncate text-lg font-semibold" title={selectedJob.id}>
 									Job #{selectedJob.id.substring(0, 8)} in progress
 								</h3>
-								<p class="text-sm font-medium text-blue-500 capitalize">{selectedJob.status}…</p>
+								<div class="flex items-center gap-2">
+									<p class="text-sm font-medium text-blue-500 capitalize">{selectedJob.status}…</p>
+									<span
+										class="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium tracking-wide text-muted-foreground uppercase"
+									>
+										{selectedJob.analysis_type}
+									</span>
+								</div>
 							</div>
 						</div>
 
 						<!-- Horizontal Stepper -->
 						<div class="relative mb-10 hidden px-2 sm:block">
 							<!-- Connecting line -->
-							<div class="absolute left-[12.5%] right-[12.5%] top-6 z-0 h-[2px] bg-secondary">
-								<div class="h-full bg-blue-500 transition-all duration-1000 ease-in-out" style="width: {progressWidth}%"></div>
+							<div class="absolute top-6 right-[12.5%] left-[12.5%] z-0 h-[2px] bg-secondary">
+								<div
+									class="h-full bg-blue-500 transition-all duration-1000 ease-in-out"
+									style="width: {progressWidth}%"
+								></div>
 							</div>
-							
+
 							<div class="relative z-10 flex justify-between">
-								{#each [{s: 'pending', label: 'Queued', Icon: Circle}, {s: 'scraping', label: 'Scraping', Icon: RefreshCw}, {s: 'analyzing', label: 'Analysis', Icon: Cpu}, {s: 'done', label: 'Complete', Icon: Check}] as {s, label, Icon}, i}
+								{#each [{ s: 'pending', label: 'Queued', Icon: Circle }, { s: 'scraping', label: 'Scraping', Icon: RefreshCw }, { s: 'analyzing', label: 'Analysis', Icon: Cpu }, { s: 'done', label: 'Complete', Icon: Check }] as { s, label, Icon }, i}
 									<div class="flex w-1/4 flex-col items-center">
 										<!-- Background wrapper blocks line bleed-through -->
 										<div class="rounded-full bg-card p-1">
-											<div class="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-500
-												{i < stepIndex ? 'bg-emerald-500/20 text-emerald-500' : 
-												 i === stepIndex ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20 ring-4 ring-blue-500/20' : 
-												 'bg-secondary text-muted-foreground'}
-											">
+											<div
+												class="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-500
+												{i < stepIndex
+													? 'bg-emerald-500/20 text-emerald-500'
+													: i === stepIndex
+														? 'bg-blue-500 text-white shadow-md ring-4 shadow-blue-500/20 ring-blue-500/20'
+														: 'bg-secondary text-muted-foreground'}
+											"
+											>
 												<Icon size={16} />
 											</div>
 										</div>
-										<p class="mt-2 text-xs font-semibold tracking-wide uppercase
-											{i < stepIndex ? 'text-emerald-500' : 
-											 i === stepIndex ? 'text-blue-500' : 
-											 'text-muted-foreground'}
-										">
+										<p
+											class="mt-2 text-xs font-semibold tracking-wide uppercase
+											{i < stepIndex ? 'text-emerald-500' : i === stepIndex ? 'text-blue-500' : 'text-muted-foreground'}
+										"
+										>
 											{label}
 										</p>
 									</div>
@@ -316,15 +345,25 @@
 
 						<!-- Mobile Vertical Stepper -->
 						<div class="mb-8 space-y-4 sm:hidden">
-							{#each [{s: 'pending', label: 'Queued', Icon: Circle}, {s: 'scraping', label: 'Scraping Reddit', Icon: RefreshCw}, {s: 'analyzing', label: 'AI Analysis', Icon: Cpu}, {s: 'done', label: 'Complete', Icon: Check}] as {s, label, Icon}, i}
+							{#each [{ s: 'pending', label: 'Queued', Icon: Circle }, { s: 'scraping', label: 'Scraping Reddit', Icon: RefreshCw }, { s: 'analyzing', label: 'AI Analysis', Icon: Cpu }, { s: 'done', label: 'Complete', Icon: Check }] as { s, label, Icon }, i}
 								<div class="flex items-center gap-3">
-									<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-bold
-										{i < stepIndex ? 'bg-emerald-500/20 text-emerald-500' : 
-										 i === stepIndex ? 'bg-blue-500 text-white shadow-sm ring-2 ring-blue-500/20' : 
-										 'bg-secondary text-muted-foreground'}">
+									<div
+										class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-bold
+										{i < stepIndex
+											? 'bg-emerald-500/20 text-emerald-500'
+											: i === stepIndex
+												? 'bg-blue-500 text-white shadow-sm ring-2 ring-blue-500/20'
+												: 'bg-secondary text-muted-foreground'}"
+									>
 										<Icon size={14} />
 									</div>
-									<p class="text-sm font-medium {i < stepIndex ? 'text-emerald-500' : i === stepIndex ? 'text-blue-500' : 'text-muted-foreground'}">
+									<p
+										class="text-sm font-medium {i < stepIndex
+											? 'text-emerald-500'
+											: i === stepIndex
+												? 'text-blue-500'
+												: 'text-muted-foreground'}"
+									>
 										{label}
 									</p>
 								</div>
@@ -347,7 +386,7 @@
 							</div>
 						</div>
 						-->
-						
+
 						<!-- Footer Text -->
 						<p class="mt-6 flex items-center justify-center gap-2 text-xs text-muted-foreground">
 							<RefreshCw size={12} class="animate-spin opacity-70" />
@@ -384,12 +423,32 @@
 					<div class="space-y-5">
 						<!-- Stats -->
 						<div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
-							<StatCard title="Pain Points" value={selectedJob.pain_point_count} valueClass="text-orange-400" class="col-span-2 sm:col-span-1" />
+							<StatCard
+								title="Findings"
+								value={selectedJob.finding_count}
+								valueClass="text-orange-400"
+								class="col-span-2 sm:col-span-1"
+							/>
 							<StatCard title="Posts" value={selectedJob.post_count} valueClass="text-blue-400" />
-							<StatCard title="Evidence" value={selectedJob.comment_count} valueClass="text-purple-400" />
+							<StatCard
+								title="Evidence"
+								value={selectedJob.comment_count}
+								valueClass="text-purple-400"
+							/>
 						</div>
 
-						<!-- Pain points -->
+						<div class="flex items-center justify-between border-b border-border pb-3">
+							<p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+								Analysis Mode
+							</p>
+							<span
+								class="rounded bg-secondary px-2 py-1 text-xs font-medium text-foreground capitalize"
+							>
+								{selectedJob.analysis_type}
+							</span>
+						</div>
+
+						<!-- Findings -->
 						{#if loadingResults}
 							<div class="space-y-3">
 								{#each [1, 2, 3] as _}
@@ -402,53 +461,53 @@
 									</div>
 								{/each}
 							</div>
-						{:else if results && results.pain_points.length > 0}
+						{:else if results && results.findings.length > 0}
 							<div class="rounded-xl border border-border bg-card">
 								<div class="border-b border-border px-5 py-3">
 									<p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-										Pain Points
+										Findings
 									</p>
 								</div>
 								<div class="divide-y divide-border">
-									{#each results.pain_points as pp (pp.id)}
+									{#each results.findings as f (f.id)}
 										<div class="overflow-hidden">
 											<button
-												id="painpoint-{pp.id}-toggle"
-												onclick={() => togglePainPoint(pp.id)}
-												class="cursor-pointer w-full px-5 py-4 text-left transition hover:bg-accent/50"
+												id="finding-{f.id}-toggle"
+												onclick={() => toggleFinding(f.id)}
+												class="w-full cursor-pointer px-5 py-4 text-left transition hover:bg-accent/50"
 											>
 												<div class="flex items-start justify-between gap-4">
 													<div class="min-w-0 flex-1">
 														<div class="mb-1.5 flex flex-wrap items-center gap-2">
 															<span
 																class="inline-flex items-center rounded-full border border-orange-500/30 bg-orange-500/10 px-2.5 py-0.5 text-xs font-medium text-orange-500"
-																>r/{pp.subreddit}</span
+																>r/{f.subreddit}</span
 															>
 															<span class="text-xs text-muted-foreground"
-																>{pp.evidence.length} evidence{pp.evidence.length !== 1
+																>{f.evidence.length} evidence{f.evidence.length !== 1
 																	? 's'
 																	: ''}</span
 															>
 														</div>
-														<h3 class="text-sm font-semibold">{pp.title}</h3>
+														<h3 class="text-sm font-semibold">{f.title}</h3>
 													</div>
 													<div class="flex shrink-0 flex-col items-end gap-1">
-														<span class="text-xl font-bold {severityColor(pp.severity)}"
-															>{pp.severity}</span
+														<span class="text-xl font-bold {relevanceScoreColor(f.relevance_score)}"
+															>{f.relevance_score}</span
 														>
-														<span class="text-xs {severityColor(pp.severity)}"
-															>{severityLabel(pp.severity)}</span
+														<span class="text-xs {relevanceScoreColor(f.relevance_score)}"
+															>{relevanceScoreLabel(f.relevance_score)}</span
 														>
 													</div>
 												</div>
 												<div class="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
 													<div
-														class="h-full rounded-full {severityBarColor(pp.severity)}"
-														style="width: {pp.severity}%"
+														class="h-full rounded-full {relevanceScoreBarColor(f.relevance_score)}"
+														style="width: {f.relevance_score}%"
 													></div>
 												</div>
 											</button>
-											{#if expandedPainPoints.has(pp.id)}
+											{#if expandedFindings.has(f.id)}
 												<div class="border-t border-border bg-card/50 px-5 pt-4 pb-5">
 													<div class="mb-6">
 														<p
@@ -457,29 +516,29 @@
 															Description
 														</p>
 														<p class="text-sm leading-relaxed text-foreground/90">
-															{pp.description}
+															{f.description}
 														</p>
 													</div>
 													<div class="mb-6">
 														<p
 															class="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase"
 														>
-															Target Audience
+															Context
 														</p>
 														<p class="text-sm leading-relaxed text-foreground/90">
-															{pp.target_audience}
+															{f.context}
 														</p>
 													</div>
 													<div class="space-y-4">
-														{#if pp.evidence.length > 0}
+														{#if f.evidence.length > 0}
 															<div>
 																<p
 																	class="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase"
 																>
-																	Evidence ({pp.evidence.length})
+																	Evidence ({f.evidence.length})
 																</p>
 																<div class="space-y-2">
-																	{#each pp.evidence as ev (ev.id)}
+																	{#each f.evidence as ev (ev.id)}
 																		<div class="rounded-xl border border-border bg-card p-3">
 																			<p class="text-sm leading-relaxed text-foreground/80">
 																				"{ev.quote}"
@@ -511,6 +570,31 @@
 															</div>
 														{/if}
 													</div>
+													<!--
+													<div class="mt-6 flex justify-end border-t border-border/50 pt-5">
+														<Button
+															class="group relative gap-2 overflow-hidden border-0 bg-gradient-to-r from-orange-500 to-rose-500 text-white shadow-lg shadow-orange-500/25 transition-all duration-300 hover:scale-[1.02] hover:shadow-orange-500/40"
+															size="sm"
+														>
+															<div class="absolute inset-0 bg-white/20 opacity-0 transition-opacity group-hover:opacity-100"></div>
+															<Sparkles class="h-4 w-4" />
+															Deep Analysis
+															<svg
+																class="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5"
+																fill="none"
+																stroke="currentColor"
+																viewBox="0 0 24 24"
+															>
+																<path
+																	stroke-linecap="round"
+																	stroke-linejoin="round"
+																	stroke-width="2"
+																	d="M9 5l7 7-7 7"
+																/>
+															</svg>
+														</Button>
+													</div>
+													-->
 												</div>
 											{/if}
 										</div>
@@ -522,7 +606,7 @@
 								class="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-12"
 							>
 								<p class="text-sm text-muted-foreground">
-									No pain points were identified for this job.
+									No findings were identified for this job.
 								</p>
 							</div>
 						{/if}

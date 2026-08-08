@@ -3,6 +3,9 @@
 export interface CreateJobRequest {
 	subreddits: string[];
 	scrape_limit?: number;
+	analysis_type?: 'template' | 'custom';
+	template_id?: string;
+	custom_objective?: string;
 }
 
 export interface JobResponse {
@@ -11,10 +14,13 @@ export interface JobResponse {
 	subreddits: string; // comma-separated
 	scrape_limit: number;
 	status: 'pending' | 'scraping' | 'analyzing' | 'done' | 'failed';
+	analysis_type: string;
+	template_id?: string;
+	custom_objective?: string;
 	error_message?: string;
 	post_count: number;
 	comment_count: number;
-	pain_point_count: number;
+	finding_count: number;
 	created_at: string;
 	updated_at: string;
 }
@@ -26,14 +32,14 @@ export interface EvidenceResponse {
 	link: string;
 }
 
-export interface PainPointResponse {
+export interface FindingResponse {
 	id: number;
 	job_id: string;
 	subreddit: string;
 	title: string;
 	description: string;
-	severity: number; // 0–100
-	target_audience: string;
+	relevance_score: number; // 0–100
+	context: string;
 	created_at: string;
 	evidence: EvidenceResponse[];
 }
@@ -41,7 +47,13 @@ export interface PainPointResponse {
 export interface JobResultsResponse {
 	job_id: string;
 	status: string;
-	pain_points: PainPointResponse[];
+	findings: FindingResponse[];
+}
+
+export interface TemplateResponse {
+	id: string;
+	name: string;
+	description: string;
 }
 
 export interface ProfessionResponse {

@@ -1,7 +1,7 @@
 """Pydantic schemas for the Reddit analysis feature."""
 
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Literal
 
 from pydantic import BaseModel, Field
 
@@ -24,6 +24,18 @@ class CreateJobRequest(BaseModel):
         le=200,
         description="Maximum posts to scrape per subreddit",
     )
+    analysis_type: Literal["template", "custom"] = Field(
+        default="template",
+        description="Whether to use a pre-built template or custom objective",
+    )
+    template_id: Optional[str] = Field(
+        default=None,
+        description="ID of the pre-built template to use",
+    )
+    custom_objective: Optional[str] = Field(
+        default=None,
+        description="Custom analysis objective text",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -42,16 +54,16 @@ class EvidenceResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class PainPointResponse(BaseModel):
-    """A single identified pain point with evidence."""
+class FindingResponse(BaseModel):
+    """A single identified finding with evidence."""
 
     id: int
     job_id: str
     subreddit: str
     title: str
     description: str
-    severity: int  # 0–100
-    target_audience: str
+    relevance_score: int  # 0–100
+    context: str
     created_at: datetime
     evidence: List[EvidenceResponse] = []
 
@@ -66,10 +78,13 @@ class JobResponse(BaseModel):
     subreddits: str  # comma-separated
     scrape_limit: int
     status: str
+    analysis_type: str
+    template_id: Optional[str] = None
+    custom_objective: Optional[str] = None
     error_message: Optional[str] = None
     post_count: int
     comment_count: int
-    pain_point_count: int
+    finding_count: int
     created_at: datetime
     updated_at: datetime
 
@@ -81,7 +96,15 @@ class JobResultsResponse(BaseModel):
 
     job_id: str
     status: str
-    pain_points: List[PainPointResponse]
+    findings: List[FindingResponse]
+
+
+class TemplateResponse(BaseModel):
+    """Pre-built analysis template."""
+
+    id: str
+    name: str
+    description: str
 
 
 class ProfessionResponse(BaseModel):

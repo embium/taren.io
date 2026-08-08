@@ -34,7 +34,7 @@ from models.reddit import (
     RedditJob,
     RedditPost,
     RedditComment,
-    RedditPainPoint,
+    RedditFinding,
     RedditEvidence,
 )
 from services.reddit_scraper import (
@@ -43,6 +43,7 @@ from services.reddit_scraper import (
     ScraperConfig,
     ScraperMetrics,
 )
+from core.templates import get_template_by_id
 
 logger = logging.getLogger(__name__)
 
@@ -50,27 +51,39 @@ logger = logging.getLogger(__name__)
 # LLM Analysis helpers
 # ---------------------------------------------------------------------------
 
-ANALYSIS_PROMPT_TEMPLATE = """\
-You are a market research analyst. Analyze the Reddit posts and their comments below from r/{subreddit} 
-and identify distinct pain points expressed by users.
 
-For each pain point:
+def build_analysis_prompt(
+    subreddit: str,
+    data_json: str,
+    analysis_type: str,
+    template_id: str | None,
+    custom_objective: str | None,
+) -> str:
+    if analysis_type == "custom" and custom_objective:
+        objective = custom_objective
+    else:
+        template = get_template_by_id(template_id or "pain_points")
+        if template:
+            objective = template.instructions
+        else:
+            objective = "Identify distinct pain points and frustrations expressed by users."
+
+    base_prompt = f"""You are a market research analyst. Analyze the Reddit posts and their comments below from r/{subreddit} and perform the following analysis:
+
+{objective}
+
+For each finding:
 1. Give it a short, descriptive **title** (max 10 words).
-2. Write a **description** of the pain point (1–2 sentences).
-3. Assign a **severity** score from 0 to 100 using these guidelines:
-   - 80–100: Widespread, high emotional intensity, clear unmet need
-   - 60–79: Moderate frequency, real frustration, but workarounds exist
-   - 40–59: Niche or low-frequency, mild inconvenience
-   - Below 40: Edge case or minor preference
-4. Write a **target_audience** paragraph (3–5 sentences) describing who suffers from 
-this pain point — their role, context, goals, and why existing solutions fail them.
+2. Write a **description** of the finding (1–2 sentences).
+3. Assign a **relevance_score** from 0 to 100 representing how significant or prevalent it is.
+4. Write a **context** paragraph (3–5 sentences) providing background, who this affects, and why it matters.
 5. List all relevant **evidence**. For each evidence item, specify:
    - **post_id**: the ID of the post if the evidence comes from a post, otherwise null/omitted.
    - **comment_id**: the ID of the comment if the evidence comes from a comment, otherwise null/omitted.
    - **quote**: a direct quote from the original content, max 1-2 sentences, verbatim with no paraphrasing.
    - **link**: the full Reddit URL provided in the data.
 
-**CRITICAL: Only include pain points that have at least 2 supporting evidence items. Every pain point must have a minimum of 2 pieces of evidence.**
+**CRITICAL: Only include findings that have at least 2 supporting evidence items. Every finding must have a minimum of 2 pieces of evidence.**
 Do not invent or paraphrase evidence — use exact words from the posts/comments.
 
 Return ONLY valid JSON (no markdown fences) in this exact structure:
@@ -78,8 +91,8 @@ Return ONLY valid JSON (no markdown fences) in this exact structure:
   {{
     "title": "...",
     "description": "...",
-    "severity": 85,
-    "target_audience": "...",
+    "relevance_score": 85,
+    "context": "...",
     "evidence": [
       {{
         "post_id": "...",
@@ -94,6 +107,8 @@ Return ONLY valid JSON (no markdown fences) in this exact structure:
 --- REDDIT DATA ---
 {data_json}
 """
+    return base_prompt
+
 
 MERGE_PROMPT_TEMPLATE = """Analyze the pain points below and merge related or duplicate entries into consolidated pain points.
 
@@ -236,6 +251,9 @@ async def run_reddit_job(
     job_id: str,
     subreddit_list: list[str],
     scrape_limit: int,
+    analysis_type: str = "template",
+    template_id: str | None = None,
+    custom_objective: str | None = None,
 ) -> None:
     """
     Full scrape + analysis pipeline for a Reddit job.
@@ -456,8 +474,8 @@ async def run_reddit_job(
             comment_count=total_comments,
         )
 
-        total_pain_points = 0
-        pain_points_raw = []
+        total_findings = 0
+        findings_raw = []
 
         async def analyze_subreddit(
             subreddit: str, posts_list: list[dict], comments_list: list[dict]
@@ -501,9 +519,12 @@ async def run_reddit_job(
 
             data_json_list = list(posts_by_id.values())
 
-            prompt = ANALYSIS_PROMPT_TEMPLATE.format(
+            prompt = build_analysis_prompt(
                 subreddit=subreddit,
                 data_json=json.dumps(data_json_list, ensure_ascii=False),
+                analysis_type=analysis_type,
+                template_id=template_id,
+                custom_objective=custom_objective,
             )
 
             async with semaphore:
@@ -512,12 +533,16 @@ async def run_reddit_job(
                         raw = await _call_openrouter(prompt)
                         parsed = json.loads(_strip_json_fence(raw))
 
-                        # Support both {"pain_points": [...]} and direct [...]
+                        # Support both {"findings": [...]} and direct [...]
                         pts = (
-                            parsed.get("pain_points", [])
+                            parsed.get("findings", [])
                             if isinstance(parsed, dict)
                             else parsed
                         )
+
+                        # Fallback to older keys just in case
+                        if isinstance(parsed, dict) and not pts:
+                            pts = parsed.get("pain_points", [])
 
                         # Attach subreddit so the saving loop can associate it properly
                         for pt in pts:
@@ -552,18 +577,22 @@ async def run_reddit_job(
             results = await asyncio.gather(*analysis_tasks)
             for res in results:
                 if res:
-                    pain_points_raw.extend(res)
+                    findings_raw.extend(res)
 
-        # Save pain points + evidence
+        # Save findings + evidence
         async with AsyncSessionLocal() as session:
-            for item in pain_points_raw:
-                pp = RedditPainPoint(
+            for item in findings_raw:
+                pp = RedditFinding(
                     job_id=job_id,
                     subreddit=item.get("subreddit", ""),
                     title=item.get("title", "Untitled"),
                     description=item.get("description", ""),
-                    severity=int(item.get("severity", 0)),
-                    target_audience=item.get("target_audience", ""),
+                    relevance_score=int(
+                        item.get("relevance_score", item.get("severity", 0))
+                    ),
+                    context=item.get(
+                        "context", item.get("target_audience", "")
+                    ),
                 )
                 session.add(pp)
                 await session.flush()
@@ -587,7 +616,7 @@ async def run_reddit_job(
                     seen_ev_keys.add(dedup_key)
 
                     evidence = RedditEvidence(
-                        pain_point_id=pp.id,
+                        finding_id=pp.id,
                         post_id=post_id,
                         comment_id=comment_id,
                         quote=quote,
@@ -595,7 +624,7 @@ async def run_reddit_job(
                     )
                     session.add(evidence)
 
-                total_pain_points += 1
+                total_findings += 1
 
             await session.commit()
 
@@ -606,14 +635,14 @@ async def run_reddit_job(
             "done",
             post_count=total_posts,
             comment_count=total_comments,
-            pain_point_count=total_pain_points,
+            finding_count=total_findings,
         )
         logger.info(
-            "Job %s: done — %d posts, %d comments, %d pain points",
+            "Job %s: done — %d posts, %d comments, %d findings",
             job_id,
             total_posts,
             total_comments,
-            total_pain_points,
+            total_findings,
         )
 
     except Exception as exc:

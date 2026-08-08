@@ -7,7 +7,8 @@ import type {
 	ProfessionSubredditsResponse,
 	SubredditSearchRequest,
 	SubredditSearchJobResponse,
-	SubredditSearchJobStatusResponse
+	SubredditSearchJobStatusResponse,
+	TemplateResponse
 } from '$lib/types/reddit';
 
 export interface UsageResponse {
@@ -26,11 +27,27 @@ export const redditApi = {
 	/**
 	 * Start a new scrape + analysis job
 	 */
-	async createJob(subreddits: string[], scrapeLimit = 25): Promise<JobResponse> {
+	async createJob(
+		subreddits: string[], 
+		scrapeLimit = 25,
+		analysisType: 'template' | 'custom' = 'template',
+		templateId?: string,
+		customObjective?: string
+	): Promise<JobResponse> {
 		return api.post<JobResponse>('/reddit/jobs', {
 			subreddits,
-			scrape_limit: scrapeLimit
+			scrape_limit: scrapeLimit,
+			analysis_type: analysisType,
+			template_id: templateId,
+			custom_objective: customObjective
 		} satisfies CreateJobRequest);
+	},
+
+	/**
+	 * Get available analysis templates
+	 */
+	async getTemplates(): Promise<TemplateResponse[]> {
+		return api.get<TemplateResponse[]>('/reddit/templates');
 	},
 
 	/**

@@ -16,7 +16,7 @@ from core.dependencies import get_current_user
 from models.user import User
 from models.reddit import (
     RedditJob,
-    RedditPainPoint,
+    RedditFinding,
     RedditEvidence,
     RedditProfession,
     RedditSubreddit,
@@ -25,8 +25,9 @@ from schemas.reddit import (
     CreateJobRequest,
     JobResponse,
     JobResultsResponse,
-    PainPointResponse,
+    FindingResponse,
     EvidenceResponse,
+    TemplateResponse,
     ProfessionResponse,
     SubredditDetailResponse,
     ProfessionSubredditsResponse,
@@ -38,6 +39,7 @@ from core.queue import get_redis_pool
 from services.agent_service import run_agent_search
 from fastapi.concurrency import run_in_threadpool
 from core.config import settings
+from core.templates import TEMPLATES
 
 router = APIRouter(prefix="/reddit", tags=["Reddit Analysis"])
 logger = logging.getLogger(__name__)
@@ -48,7 +50,7 @@ PLAN_LIMITS: dict[str, dict] = {
     "Professional": {
         "daily_scans": None,
         "max_subreddits": 10,
-        "max_posts": 50,
+        "max_posts": 100,
     },
 }
 
@@ -95,6 +97,28 @@ async def get_usage(
             else None  # None = unlimited
         ),
     }
+
+
+# ---------------------------------------------------------------------------
+# GET /reddit/templates  — get available analysis templates
+# ---------------------------------------------------------------------------
+
+
+@router.get(
+    "/templates",
+    response_model=List[TemplateResponse],
+    summary="Get available analysis templates",
+)
+async def get_templates() -> List[TemplateResponse]:
+    """Return all pre-built analysis templates."""
+    return [
+        TemplateResponse(
+            id=t.id,
+            name=t.name,
+            description=t.description,
+        )
+        for t in TEMPLATES
+    ]
 
 
 # ---------------------------------------------------------------------------
@@ -173,9 +197,12 @@ async def create_job(
         subreddits=",".join(subreddits),
         scrape_limit=limit_per_job,
         status="pending",
+        analysis_type=job_data.analysis_type,
+        template_id=job_data.template_id,
+        custom_objective=job_data.custom_objective,
         post_count=0,
         comment_count=0,
-        pain_point_count=0,
+        finding_count=0,
     )
     db.add(job)
     await db.flush()
@@ -189,6 +216,9 @@ async def create_job(
         job_id=job_id,
         subreddit_list=subreddits,
         scrape_limit=job_data.scrape_limit,
+        analysis_type=job_data.analysis_type,
+        template_id=job_data.template_id,
+        custom_objective=job_data.custom_objective,
     )
 
     logger.info(
@@ -258,21 +288,21 @@ async def get_job(
 
 
 # ---------------------------------------------------------------------------
-# GET /reddit/jobs/{job_id}/results  — pain points + evidence
+# GET /reddit/jobs/{job_id}/results  — finding + evidence
 # ---------------------------------------------------------------------------
 
 
 @router.get(
     "/jobs/{job_id}/results",
     response_model=JobResultsResponse,
-    summary="Get pain points and evidence for a completed job",
+    summary="Get findings and evidence for a completed job",
 )
 async def get_job_results(
     job_id: str,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> JobResultsResponse:
-    """Return all pain points with evidence for a job."""
+    """Return all findings with evidence for a job."""
     # Fetch job
     result = await db.execute(
         select(RedditJob).where(
@@ -285,27 +315,25 @@ async def get_job_results(
             status_code=status.HTTP_404_NOT_FOUND, detail="Job not found."
         )
 
-    # Fetch pain points with evidence eagerly loaded
-    pp_result = await db.execute(
-        select(RedditPainPoint)
-        .where(RedditPainPoint.job_id == job_id)
-        .options(selectinload(RedditPainPoint.evidence))
-        .order_by(RedditPainPoint.severity.desc())
+    # Fetch findings with evidence eagerly loaded
+    finding_result = await db.execute(
+        select(RedditFinding)
+        .where(RedditFinding.job_id == job_id)
+        .options(selectinload(RedditFinding.evidence))
+        .order_by(RedditFinding.relevance_score.desc())
     )
-    pain_points = pp_result.scalars().all()
+    findings = finding_result.scalars().all()
 
-    pain_point_responses = [
-        PainPointResponse(
-            id=pp.id,
-            job_id=str(pp.job_id),
-            subreddit=str(pp.subreddit),
-            title=str(pp.title),
-            description=str(pp.description),
-            severity=pp.severity,
-            target_audience=(
-                str(pp.target_audience) if pp.target_audience else ""
-            ),
-            created_at=cast(datetime, pp.created_at),
+    finding_responses = [
+        FindingResponse(
+            id=f.id,
+            job_id=str(f.job_id),
+            subreddit=str(f.subreddit),
+            title=str(f.title),
+            description=str(f.description),
+            relevance_score=f.relevance_score,
+            context=(str(f.context) if f.context else ""),
+            created_at=cast(datetime, f.created_at),
             evidence=[
                 EvidenceResponse(
                     id=ev.id,
@@ -313,16 +341,16 @@ async def get_job_results(
                     quote=ev.quote,
                     link=ev.link,
                 )
-                for ev in pp.evidence
+                for ev in f.evidence
             ],
         )
-        for pp in pain_points
+        for f in findings
     ]
 
     return JobResultsResponse(
         job_id=job_id,
         status=str(job.status),
-        pain_points=pain_point_responses,
+        findings=finding_responses,
     )
 
 

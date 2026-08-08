@@ -22,7 +22,6 @@
 		}
 	});
 
-
 	function formatDate(iso: string) {
 		return new Date(iso).toLocaleString(undefined, {
 			month: 'short',
@@ -40,7 +39,7 @@
 
 	const doneJobs = $derived(jobs.filter((j) => j.status === 'done').length);
 	const failedJobs = $derived(jobs.filter((j) => j.status === 'failed').length);
-	const totalPainPoints = $derived(jobs.reduce((acc, j) => acc + (j.pain_point_count ?? 0), 0));
+	const totalFindings = $derived(jobs.reduce((acc, j) => acc + (j.finding_count ?? 0), 0));
 </script>
 
 <svelte:head>
@@ -88,8 +87,12 @@
 			<div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				<StatCard title="Total Scans" value={jobs.length} />
 				<StatCard title="Completed" value={doneJobs} valueClass="text-emerald-400" />
-				<StatCard title="Pain Points Found" value={totalPainPoints} valueClass="text-orange-400" />
-				<StatCard title="Failed" value={failedJobs} valueClass={failedJobs > 0 ? 'text-red-400' : 'text-muted-foreground'} />
+				<StatCard title="Findings Found" value={totalFindings} valueClass="text-orange-400" />
+				<StatCard
+					title="Failed"
+					value={failedJobs}
+					valueClass={failedJobs > 0 ? 'text-red-400' : 'text-muted-foreground'}
+				/>
 			</div>
 
 			<!-- History table -->
@@ -120,7 +123,7 @@
 								>
 								<th
 									class="px-5 py-3 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase"
-									>Pain Points</th
+									>Findings</th
 								>
 								<th
 									class="px-5 py-3 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase"
@@ -156,7 +159,7 @@
 									<td class="px-5 py-3.5 text-muted-foreground">{job.post_count}</td>
 									<td class="px-5 py-3.5">
 										{#if job.status === 'done'}
-											<span class="font-medium text-orange-400">{job.pain_point_count}</span>
+											<span class="font-medium text-orange-400">{job.finding_count}</span>
 										{:else}
 											<span class="text-muted-foreground">—</span>
 										{/if}
