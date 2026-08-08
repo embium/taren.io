@@ -120,7 +120,7 @@ class RedditScraper:
                 break
 
             posts.extend(new_posts)
-            after = posts[-1]["post_id"]
+            after = f"t3_{posts[-1]['post_id']}"
             logger.debug(
                 "r/%s: %d posts collected so far", subreddit, len(posts)
             )
