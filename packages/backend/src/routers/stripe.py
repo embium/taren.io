@@ -77,7 +77,9 @@ async def create_checkout_session(
 
 
 @router.get("/subscription")
-async def get_subscription(user: User = Depends(get_current_user)):
+async def get_subscription(
+    user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+):
     """Get the current user's subscription details from Stripe."""
     if not user.stripe_subscription_id:
         return None
@@ -87,6 +89,13 @@ async def get_subscription(user: User = Depends(get_current_user)):
             str(user.stripe_subscription_id),
             expand=["items.data.price.product"],
         )
+
+        if subscription.status == "canceled":
+            # Self-heal if webhook was missed
+            user.stripe_subscription_id = None
+            user.subscription_tier = None
+            await db.commit()
+            return None
 
         item = subscription.items.data[0]
         price = item.price
