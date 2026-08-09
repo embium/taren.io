@@ -134,7 +134,7 @@
 			</div>
 			<button
 				onclick={handleLogout}
-				class="text-muted-foreground hover:text-destructive transition-colors shrink-0"
+				class="cursor-pointer text-muted-foreground hover:text-destructive transition-colors shrink-0"
 				title="Sign out"
 			>
 				<LogOut class="h-4 w-4" />

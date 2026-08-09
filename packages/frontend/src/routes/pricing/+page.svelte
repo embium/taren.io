@@ -23,19 +23,19 @@
 		{ text: '10 scans per day' },
 		{ text: 'Up to 3 subreddits per scan' },
 		{ text: 'Up to 15 posts scraped per subreddit' },
-		{ text: 'AI-powered pain point detection' },
-		{ text: 'Up to 15 evidence quotes per pain point' },
-		{ text: 'Export results as CSV' }
+		// { text: 'AI-powered detection' },
+		// { text: 'Up to 15 evidence quotes per pain point' },
+		// { text: 'Export results as CSV' }
 	];
 
 	const proFeatures = [
 		{ text: 'Unlimited scans per day', highlight: true },
 		{ text: 'Up to 10 subreddits per scan' },
-		{ text: 'Up to 50 posts per subreddit' },
+		{ text: 'Up to 100 posts per subreddit' },
 		{ text: 'Unlimited evidence per pain point' },
-		{ text: 'AI Startup Idea Reports' },
-		{ text: 'CSV & PDF export' },
-		{ text: 'Priority support' }
+		// { text: 'AI Startup Idea Reports' },
+		// { text: 'CSV & PDF export' },
+		// { text: 'Priority support' }
 	];
 
 	async function subscribe(productId: string) {

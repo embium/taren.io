@@ -2,6 +2,9 @@
 	import Navigation from '$lib/components/Navigation.svelte';
 	import { goto } from '$app/navigation';
 	import { Search, Brain, BarChart2, Zap, ArrowRight, CheckCircle2 } from '@lucide/svelte';
+
+	let analysisType = $state<'template' | 'custom'>('template');
+	let selectedTemplateId = $state('pain_points');
 </script>
 
 <svelte:head>
@@ -297,6 +300,218 @@
 		</div>
 	</section>
 
+	<!-- ───── AI ANALYSIS MODES ───── -->
+	<section class="relative overflow-hidden border-t border-border px-6 py-24 lg:px-12">
+		<div
+			class="pointer-events-none absolute top-1/2 left-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-500/10 blur-[100px]"
+		></div>
+
+		<div class="relative z-10 mx-auto max-w-6xl">
+			<div class="grid items-center gap-16 lg:grid-cols-2">
+				<div class="order-1 lg:order-2">
+					<div
+						class="mb-4 inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-xs font-semibold tracking-wide text-indigo-500 uppercase"
+					>
+						<Brain class="h-3.5 w-3.5" />
+						Precision Control
+					</div>
+					<h2 class="mb-6 text-3xl leading-tight font-bold lg:text-4xl">
+						Tell the AI exactly what <br /><span
+							class="bg-gradient-to-r from-indigo-500 to-pink-500 bg-clip-text text-transparent"
+							>you are looking for.</span
+						>
+					</h2>
+					<p class="mb-8 text-lg leading-relaxed text-muted-foreground">
+						Whether you want a broad overview of pain points or have a highly specific hypothesis to
+						validate, Taren's scanning engine adapts to your needs.
+					</p>
+
+					<ul class="mb-8 space-y-4">
+						<li class="flex items-start gap-3 text-muted-foreground">
+							<div
+								class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-500"
+							>
+								<svg
+									class="h-3 w-3"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke="currentColor"
+									stroke-width="3"
+									><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"
+									></path></svg
+								>
+							</div>
+							<span
+								><strong class="text-foreground">Pre-built Templates:</strong> Instantly scan for pain
+								points, feature requests, competitor complaints, or buying advice.</span
+							>
+						</li>
+						<li class="flex items-start gap-3 text-muted-foreground">
+							<div
+								class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-500"
+							>
+								<svg
+									class="h-3 w-3"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke="currentColor"
+									stroke-width="3"
+									><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"
+									></path></svg
+								>
+							</div>
+							<span
+								><strong class="text-foreground">Custom Instructions:</strong> Write your own prompt to
+								uncover highly niche data specific to your product.</span
+							>
+						</li>
+						<li class="flex items-start gap-3 text-muted-foreground">
+							<div
+								class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-500"
+							>
+								<svg
+									class="h-3 w-3"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke="currentColor"
+									stroke-width="3"
+									><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"
+									></path></svg
+								>
+							</div>
+							<span
+								><strong class="text-foreground">Contextual Relevance:</strong> The AI ranks findings based
+								on how well they match your exact objective.</span
+							>
+						</li>
+					</ul>
+				</div>
+
+				<div class="order-2 lg:order-1">
+					<div class="relative rounded-2xl border border-border bg-card p-4 shadow-2xl">
+						<!-- Subtle background glow behind the interactive card -->
+						<div
+							class="absolute -bottom-6 -left-6 h-32 w-32 rounded-full bg-indigo-500/20 blur-2xl"
+						></div>
+
+						<div
+							class="rounded-xl border border-border/50 bg-background/50 pb-2 backdrop-blur-sm"
+						>
+							<div class="flex items-center justify-between border-b border-border px-5 py-4">
+								<p class="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+									Analysis Objective
+								</p>
+								<div class="flex items-center gap-1 rounded-lg bg-secondary p-1">
+									<button
+										class="rounded-md px-3 py-1 text-xs font-medium transition-colors {analysisType ===
+										'template'
+											? 'bg-background text-foreground shadow-sm'
+											: 'text-muted-foreground hover:text-foreground'}"
+										onclick={() => (analysisType = 'template')}
+									>
+										Template
+									</button>
+									<button
+										class="rounded-md px-3 py-1 text-xs font-medium transition-colors {analysisType ===
+										'custom'
+											? 'bg-background text-foreground shadow-sm'
+											: 'text-muted-foreground hover:text-foreground'}"
+										onclick={() => (analysisType = 'custom')}
+									>
+										Custom
+									</button>
+								</div>
+							</div>
+
+							<div class="min-h-[220px] p-5">
+								{#if analysisType === 'template'}
+									<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+										<button
+											class="flex flex-col rounded-lg border p-3 text-left transition-colors {selectedTemplateId ===
+											'pain_points'
+												? 'border-indigo-500 bg-indigo-500/5'
+												: 'border-border bg-background hover:border-indigo-500/30'}"
+											onclick={() => (selectedTemplateId = 'pain_points')}
+										>
+											<span
+												class="text-sm font-semibold {selectedTemplateId === 'pain_points'
+													? 'text-indigo-500'
+													: ''}">Pain Points</span
+											>
+											<span class="mt-1 text-xs text-muted-foreground"
+												>Identify recurring frustrations and problems users face.</span
+											>
+										</button>
+										<button
+											class="flex flex-col rounded-lg border p-3 text-left transition-colors {selectedTemplateId ===
+											'feature_requests'
+												? 'border-indigo-500 bg-indigo-500/5'
+												: 'border-border bg-background hover:border-indigo-500/30'}"
+											onclick={() => (selectedTemplateId = 'feature_requests')}
+										>
+											<span
+												class="text-sm font-semibold {selectedTemplateId === 'feature_requests'
+													? 'text-indigo-500'
+													: ''}">Feature Requests</span
+											>
+											<span class="mt-1 text-xs text-muted-foreground"
+												>Discover what solutions or tools users are actively asking for.</span
+											>
+										</button>
+										<button
+											class="flex flex-col rounded-lg border p-3 text-left transition-colors {selectedTemplateId ===
+											'competitor'
+												? 'border-indigo-500 bg-indigo-500/5'
+												: 'border-border bg-background hover:border-indigo-500/30'}"
+											onclick={() => (selectedTemplateId = 'competitor')}
+										>
+											<span
+												class="text-sm font-semibold {selectedTemplateId === 'competitor'
+													? 'text-indigo-500'
+													: ''}">Competitor Complaints</span
+											>
+											<span class="mt-1 text-xs text-muted-foreground"
+												>Find out what people dislike about existing alternatives.</span
+											>
+										</button>
+										<button
+											class="flex flex-col rounded-lg border p-3 text-left transition-colors {selectedTemplateId ===
+											'buying'
+												? 'border-indigo-500 bg-indigo-500/5'
+												: 'border-border bg-background hover:border-indigo-500/30'}"
+											onclick={() => (selectedTemplateId = 'buying')}
+										>
+											<span
+												class="text-sm font-semibold {selectedTemplateId === 'buying'
+													? 'text-indigo-500'
+													: ''}">Buying Advice</span
+											>
+											<span class="mt-1 text-xs text-muted-foreground"
+												>Analyze criteria users consider when purchasing products.</span
+											>
+										</button>
+									</div>
+								{:else}
+									<div class="flex h-full flex-col">
+										<textarea
+											placeholder="E.g., Find mentions of what software developers dislike about Jira's ticket management..."
+											rows="5"
+											class="flex-1 w-full resize-none rounded-lg border border-indigo-500/50 bg-indigo-500/5 px-4 py-3 text-sm text-foreground placeholder-indigo-500/50 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+										></textarea>
+										<div class="mt-4 flex items-start gap-2 text-xs text-muted-foreground">
+											<Brain class="h-4 w-4 shrink-0 text-indigo-500" />
+											<span>The AI will specifically hunt for discussions matching this exact prompt in the selected subreddits.</span>
+										</div>
+									</div>
+								{/if}
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
 	<!-- ───── REAL FINDINGS ───── -->
 	<section class="border-t border-border bg-secondary/30 px-6 py-24 lg:px-12">
 		<div class="mx-auto max-w-4xl">
@@ -317,17 +532,17 @@
 								<div class="mb-2 flex flex-wrap items-center gap-2">
 									<span
 										class="inline-flex items-center rounded-full border border-orange-500/30 bg-orange-500/10 px-2.5 py-0.5 text-xs font-medium text-orange-500"
-										>r/ai_agents</span
+										>r/ChatGPT</span
 									>
 									<span class="text-xs text-muted-foreground">6 evidences</span>
 								</div>
 								<h3 class="text-base font-semibold text-foreground lg:text-lg">
-									Browser agents waste tokens on DOM/screenshot navigation
+									Personality Changes Feel Unpredictable
 								</h3>
 							</div>
 							<div class="flex shrink-0 flex-col items-end gap-1">
-								<span class="text-2xl font-bold text-orange-500">80</span>
-								<span class="text-xs font-medium text-orange-500">Very High</span>
+								<span class="text-2xl font-bold text-red-500">91</span>
+								<span class="text-xs font-medium text-red-500">Very High</span>
 							</div>
 						</div>
 						<div class="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
@@ -340,9 +555,7 @@
 								Description
 							</p>
 							<p class="text-sm leading-relaxed text-foreground/90">
-								Users repeatedly flag that browser-based agents waste tokens on
-								screenshot-per-action loops and DOM navigation instead of using structured APIs or
-								cached workflows.
+								Users report inconsistent shifts in ChatGPT's tone, humor, and style, and while they appreciate personalization, they distrust its unpredictable fluctuations.
 							</p>
 						</div>
 						<div class="mb-6">
@@ -350,8 +563,7 @@
 								Context
 							</p>
 							<p class="text-sm leading-relaxed text-foreground/90">
-								AI developers and researchers looking to optimize agent efficiency and reduce token
-								costs during automated web tasks.
+								Frequent ChatGPT users develop style expectations across conversations, and while they value warmth and humor, unpredictable personality shifts undermine predictability and create anxiety about losing preferred experiences.
 							</p>
 						</div>
 						<div class="space-y-3">
@@ -360,16 +572,12 @@
 							</p>
 							<div class="rounded-xl border border-border bg-card p-4">
 								<p class="text-sm leading-relaxed text-foreground/80 italic">
-									"This is like trying to navigate a city by staring at a satellite photo and
-									guessing where the doors are. The problem isn't the 'navigation'—it's that we're
-									treating the DOM like a visual puzzle instead of a structured API."
+									"yeah the sarcasm and tone stuff has been way better, makes the whole chat feel more natural when youre doing longer back and forths."
 								</p>
 							</div>
 							<div class="rounded-xl border border-border bg-card p-4">
 								<p class="text-sm leading-relaxed text-foreground/80 italic">
-									"yes, but the biggest cost isn't navigation clicks, it's the screenshot-per-action
-									loop... most browser agents default to vision because it's simpler to build, but
-									the real move is hybrid."
+									"we keep randomly getting switched back and forth from corporate tones to personalized tones every other month which sucks"
 								</p>
 							</div>
 						</div>
@@ -384,16 +592,16 @@
 								<div class="mb-2 flex flex-wrap items-center gap-2">
 									<span
 										class="inline-flex items-center rounded-full border border-orange-500/30 bg-orange-500/10 px-2.5 py-0.5 text-xs font-medium text-orange-500"
-										>r/LocalLLaMA</span
+										>r/YouTubers</span
 									>
 									<span class="text-xs text-muted-foreground">2 evidences</span>
 								</div>
 								<h3 class="text-base font-semibold text-foreground lg:text-lg">
-									Repetitive Reposting and Duplicate Content Clutter
+									Mix Game and Voice Audio With Track Separation
 								</h3>
 							</div>
 							<div class="flex shrink-0 flex-col items-end gap-1">
-								<span class="text-2xl font-bold text-orange-400">62</span>
+								<span class="text-2xl font-bold text-orange-400">79</span>
 								<span class="text-xs font-medium text-orange-400">High</span>
 							</div>
 						</div>
@@ -407,8 +615,7 @@
 								Description
 							</p>
 							<p class="text-sm leading-relaxed text-foreground/90">
-								Users are frustrated by the same news and announcements being reposted constantly,
-								cluttering the subreddit and drowning out original, substantive discussion.
+								Gaming creators bypass automated noise reduction by recording voice and game audio separately, then manually adjusting volume levels.
 							</p>
 						</div>
 						<div class="mb-6">
@@ -416,8 +623,7 @@
 								Context
 							</p>
 							<p class="text-sm leading-relaxed text-foreground/90">
-								Active community members, hobbyists, and developers who value deep discussions and
-								curated original content over repetitive announcements.
+								Creators using separate audio tracks with manual volume adjustment avoid the unnatural sound quality of automated noise reduction while maintaining clarity and ambience across affordable platforms like OBS.
 							</p>
 						</div>
 						<div class="space-y-3">
@@ -426,12 +632,12 @@
 							</p>
 							<div class="rounded-xl border border-border bg-card p-4">
 								<p class="text-sm leading-relaxed text-foreground/80 italic">
-									"Can we stop re-posting the same thing 70 times"
+									"Look into getting nested audio so your voice and game audio are on separate tracks. You can manually adjust if needed, lowering game volume when you speak, keeping rest of the volume wherever you want it."
 								</p>
 							</div>
 							<div class="rounded-xl border border-border bg-card p-4">
 								<p class="text-sm leading-relaxed text-foreground/80 italic">
-									"this like the 350017777333444 time this got posted in a day.. jesus christ"
+									"For future reference keep game audio around -10db less that your voice when you record. When i record in OBS i will usually have my voice set to around-5db and the game audio set around -15db."
 								</p>
 							</div>
 						</div>
