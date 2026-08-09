@@ -72,7 +72,7 @@ class RedditScraper:
         self, subreddit: str, limit: int | None = None
     ) -> list[dict]:
         """Scrape the /new listing of subreddit and return up to limit posts."""
-        limit = limit if limit is not None else self.config.scrape_limit
+        limit = limit if limit is not None else 5
         posts: list[dict] = []
         after: str | None = None
 

@@ -83,9 +83,6 @@ For each finding:
    - **quote**: a direct quote from the original content, max 1-2 sentences, verbatim with no paraphrasing.
    - **link**: the full Reddit URL provided in the data.
 
-**CRITICAL: Only include findings that have at least 2 supporting evidence items. Every finding must have a minimum of 2 pieces of evidence.**
-Do not invent or paraphrase evidence — use exact words from the posts/comments.
-
 Return ONLY valid JSON (no markdown fences) in this exact structure:
 [
   {{
@@ -212,7 +209,6 @@ def _make_scraper(limit: int) -> "RedditScraper":
     """Create a fresh scraper instance from current settings."""
     config = ScraperConfig(
         proxy_url=settings.proxy_url,
-        scrape_limit=limit,
         max_retries=5,
         base_backoff_s=1.0,
         request_timeout_s=30,
@@ -539,10 +535,6 @@ async def run_reddit_job(
                             if isinstance(parsed, dict)
                             else parsed
                         )
-
-                        # Fallback to older keys just in case
-                        if isinstance(parsed, dict) and not pts:
-                            pts = parsed.get("pain_points", [])
 
                         # Attach subreddit so the saving loop can associate it properly
                         for pt in pts:

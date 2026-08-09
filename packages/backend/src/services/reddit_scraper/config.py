@@ -58,10 +58,6 @@ class ScraperConfig:
         ]
     )
 
-    # ------------------------------------------------------- Scrape behaviour
-    scrape_limit: int = 25
-    """Maximum posts to fetch per subreddit."""
-
     subreddits_file: str = "subreddits_aidev.txt"
     """Path to the plain-text file containing one subreddit name per line."""
 
@@ -89,7 +85,6 @@ class ScraperConfig:
             base_backoff_s=float(os.environ.get("BASE_BACKOFF_S", "1.0")),
             request_timeout_s=int(os.environ.get("REQUEST_TIMEOUT_S", "30")),
             rate_limit_s=float(os.environ.get("RATE_LIMIT_S", "1.0")),
-            scrape_limit=int(os.environ.get("SCRAPE_LIMIT", "25")),
             subreddits_file=os.environ.get(
                 "SUBREDDITS_FILE", "subreddits_aidev.txt"
             ),
