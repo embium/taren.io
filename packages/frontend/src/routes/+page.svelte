@@ -606,7 +606,7 @@
 							</div>
 						</div>
 						<div class="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
-							<div class="h-full rounded-full bg-orange-500" style="width: 62%"></div>
+							<div class="h-full rounded-full bg-orange-500" style="width: 79%"></div>
 						</div>
 					</div>
 					<div class="border-t border-border bg-card/50 px-5 py-5 lg:px-7 lg:py-6">
