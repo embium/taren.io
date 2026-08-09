@@ -134,6 +134,12 @@
 			.map((s) => s.trim())
 			.filter(Boolean);
 	}
+
+	function formatTemplate(text: string) {
+  return text
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, char => char.toUpperCase());
+}
 </script>
 
 <svelte:head>
@@ -449,6 +455,9 @@
 								class="rounded bg-secondary px-2 py-1 text-xs font-medium text-foreground capitalize"
 							>
 								{selectedJob.analysis_type}
+								{#if selectedJob.template_id}
+									- {formatTemplate(selectedJob.template_id)}
+								{/if}
 							</span>
 						</div>
 
