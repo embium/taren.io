@@ -1,5 +1,4 @@
 import { authApi } from '$lib/api/auth.api';
-import { clearTokens, setTokens } from '$lib/api/client';
 import { storage, STORAGE_KEYS } from '$lib/stores/storage';
 import type {
 	User,
@@ -34,12 +33,10 @@ export async function initializeAuth(): Promise<void> {
 	if (initialized) return;
 
 	const storedUser = storage.getItem(STORAGE_KEYS.USER);
-	const storedRefreshToken = storage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
 
-	if (storedUser && storedRefreshToken) {
+	if (storedUser) {
 		try {
 			user = JSON.parse(storedUser);
-			setTokens('', storedRefreshToken); // Access token will be refreshed on first request
 
 			// Validate the session by attempting to fetch current user
 			// This will trigger a token refresh if needed, or clear auth if refresh token is invalid
@@ -60,9 +57,6 @@ export async function initializeAuth(): Promise<void> {
 			const userData = await authApi.getCurrentUser();
 			user = userData;
 			storage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
-			// Store a sentinel so future loads know a cookie session exists.
-			storage.setItem(STORAGE_KEYS.REFRESH_TOKEN, '__cookie__');
-			setTokens('', '__cookie__');
 		} catch {
 			// No active session — leave user as null.
 		}
@@ -70,10 +64,10 @@ export async function initializeAuth(): Promise<void> {
 
 	if (typeof window !== 'undefined') {
 		window.addEventListener('storage', (event) => {
-			if (event.key === STORAGE_KEYS.USER || event.key === STORAGE_KEYS.REFRESH_TOKEN) {
+			if (event.key === STORAGE_KEYS.USER) {
 				if (!event.newValue) {
 					clearAuth();
-				} else if (event.key === STORAGE_KEYS.USER) {
+				} else {
 					try {
 						user = JSON.parse(event.newValue);
 					} catch (e) {
@@ -96,19 +90,16 @@ export async function initializeAuth(): Promise<void> {
 function clearAuth(): void {
 	user = null;
 	error = null;
-	clearTokens();
 	storage.removeItem(STORAGE_KEYS.USER);
-	storage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+	storage.removeItem(STORAGE_KEYS.REFRESH_TOKEN); // keep cleaning this just in case users have old data
 }
 
 /**
  * Store auth data
  */
-function storeAuth(userData: User, accessToken: string, refreshToken: string): void {
+function storeAuth(userData: User): void {
 	user = userData;
-	setTokens(accessToken, refreshToken);
 	storage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
-	storage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
 }
 
 /**
@@ -120,7 +111,7 @@ export async function login(credentials: LoginRequest): Promise<void> {
 
 	try {
 		const response = await authApi.login(credentials);
-		storeAuth(response.user, response.access_token, response.refresh_token);
+		storeAuth(response.user);
 	} catch (err) {
 		error = err instanceof AuthError ? err.message : 'Login failed. Please try again.';
 		throw err;

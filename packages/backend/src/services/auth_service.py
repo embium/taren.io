@@ -160,11 +160,11 @@ class AuthService:
             await db.commit()
 
     async def refresh_token(
-        self, db: AsyncSession, data: RefreshTokenRequest
+        self, db: AsyncSession, refresh_token: str
     ) -> RefreshTokenResponse:
         """Refresh access token using refresh token."""
         try:
-            payload = token_service.decode_refresh_token(data.refresh_token)
+            payload = token_service.decode_refresh_token(refresh_token)
         except JWTError:
             raise InvalidTokenError()
 

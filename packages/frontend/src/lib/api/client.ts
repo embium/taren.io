@@ -1,55 +1,18 @@
 import { config } from '$lib/config/env';
 import { AuthError, NetworkError, type ErrorResponse } from '$lib/types/auth';
 import { errorResponseSchema } from '$lib/types/auth';
-import { storage, STORAGE_KEYS } from '$lib/stores/storage';
 
 /**
  * API Client with automatic token injection, refresh, and retry logic
+ * Now entirely relies on HttpOnly cookies for tokens!
  */
 
-let accessToken: string | null = null;
-let refreshToken: string | null = null;
 let tokenRefreshPromise: Promise<string> | null = null;
 
 /**
- * Set tokens in memory
- */
-export function setTokens(access: string, refresh: string): void {
-	accessToken = access;
-	refreshToken = refresh;
-}
-
-/**
- * Get current access token
- */
-export function getAccessToken(): string | null {
-	return accessToken;
-}
-
-/**
- * Get current refresh token
- */
-export function getRefreshToken(): string | null {
-	return refreshToken;
-}
-
-/**
- * Clear tokens from memory
- */
-export function clearTokens(): void {
-	accessToken = null;
-	refreshToken = null;
-	tokenRefreshPromise = null;
-}
-
-/**
- * Refresh the access token using the refresh token
+ * Refresh the access token via cookie
  */
 async function refreshAccessToken(): Promise<string> {
-	if (!refreshToken) {
-		throw new AuthError('No refresh token available', 'NO_REFRESH_TOKEN', 401);
-	}
-
 	// If a refresh is already in progress, wait for it
 	if (tokenRefreshPromise) {
 		return tokenRefreshPromise;
@@ -62,7 +25,7 @@ async function refreshAccessToken(): Promise<string> {
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({ refresh_token: refreshToken })
+				credentials: 'include' // Send the refresh_token cookie
 			});
 
 			if (!response.ok) {
@@ -70,7 +33,6 @@ async function refreshAccessToken(): Promise<string> {
 			}
 
 			const data = await response.json();
-			accessToken = data.access_token;
 			return data.access_token;
 		} finally {
 			tokenRefreshPromise = null;
@@ -102,11 +64,6 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
 		...(fetchOptions.headers as Record<string, string>)
 	};
 
-	// Add authorization header if not skipping auth
-	if (!skipAuth && accessToken) {
-		headers['Authorization'] = `Bearer ${accessToken}`;
-	}
-
 	try {
 		const response = await fetch(url, {
 			...fetchOptions,
@@ -116,18 +73,14 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
 		});
 
 		// Handle 401 Unauthorized - try to refresh token
-		if (response.status === 401 && !skipAuth && refreshToken && retries > 0) {
+		if (response.status === 401 && !skipAuth && retries > 0) {
 			try {
-				// Refresh the token
+				// Refresh the token via cookie
 				await refreshAccessToken();
 
-				// Retry the request with new token
+				// Retry the request
 				return apiRequest<T>(endpoint, { ...options, retries: retries - 1 });
 			} catch (refreshError) {
-				// If refresh fails, clear all auth state including localStorage
-				clearTokens();
-				storage.removeItem(STORAGE_KEYS.USER);
-				storage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
 				throw new AuthError('Session expired. Please log in again.', 'SESSION_EXPIRED', 401);
 			}
 		}
