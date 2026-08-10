@@ -532,7 +532,7 @@
 								<div class="mb-2 flex flex-wrap items-center gap-2">
 									<span
 										class="inline-flex items-center rounded-full border border-orange-500/30 bg-orange-500/10 px-2.5 py-0.5 text-xs font-medium text-orange-500"
-										>r/ChatGPT</span
+										>r/worldnews</span
 									>
 									<span class="text-xs text-muted-foreground">6 evidences</span>
 								</div>
@@ -592,7 +592,7 @@
 								<div class="mb-2 flex flex-wrap items-center gap-2">
 									<span
 										class="inline-flex items-center rounded-full border border-orange-500/30 bg-orange-500/10 px-2.5 py-0.5 text-xs font-medium text-orange-500"
-										>r/YouTubers</span
+										>r/ecommerce</span
 									>
 									<span class="text-xs text-muted-foreground">2 evidences</span>
 								</div>
@@ -601,12 +601,12 @@
 								</h3>
 							</div>
 							<div class="flex shrink-0 flex-col items-end gap-1">
-								<span class="text-2xl font-bold text-orange-400">79</span>
+								<span class="text-2xl font-bold text-orange-400">74</span>
 								<span class="text-xs font-medium text-orange-400">High</span>
 							</div>
 						</div>
 						<div class="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
-							<div class="h-full rounded-full bg-orange-500" style="width: 79%"></div>
+							<div class="h-full rounded-full bg-orange-500" style="width: 74%"></div>
 						</div>
 					</div>
 					<div class="border-t border-border bg-card/50 px-5 py-5 lg:px-7 lg:py-6">
