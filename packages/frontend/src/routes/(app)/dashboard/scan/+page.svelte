@@ -327,6 +327,34 @@
 						</Tabs.Root>
 					</div>
 
+					<!-- Sorting Type -->
+					<div class="overflow-hidden rounded-xl border border-border bg-card">
+						<div class="flex items-center justify-between border-b border-border px-5 py-3">
+							<p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+								Sorting Type
+							</p>
+							<DropdownMenu.Root>
+								<DropdownMenu.Trigger
+									class="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-secondary/50 focus:outline-none"
+								>
+									{getSortingLabel(sortingType)}
+									<ChevronDown class="h-3.5 w-3.5 opacity-50" />
+								</DropdownMenu.Trigger>
+								<DropdownMenu.Content class="w-48">
+									<DropdownMenu.RadioGroup bind:value={sortingType}>
+										<DropdownMenu.RadioItem value="hot">Hot (Default)</DropdownMenu.RadioItem>
+										<DropdownMenu.RadioItem value="new">New</DropdownMenu.RadioItem>
+										<DropdownMenu.RadioItem value="rising">Rising</DropdownMenu.RadioItem>
+										<DropdownMenu.RadioItem value="top">Top</DropdownMenu.RadioItem>
+										<DropdownMenu.RadioItem value="controversial"
+											>Controversial</DropdownMenu.RadioItem
+										>
+									</DropdownMenu.RadioGroup>
+								</DropdownMenu.Content>
+							</DropdownMenu.Root>
+						</div>
+					</div>
+
 					<!-- Subreddits -->
 					<div class="overflow-hidden rounded-xl border border-border bg-card">
 						<div class="flex items-center justify-between border-b border-border px-5 py-3">
@@ -374,34 +402,6 @@
 									{/each}
 								</div>
 							{/if}
-						</div>
-					</div>
-
-					<!-- Sorting Type -->
-					<div class="overflow-hidden rounded-xl border border-border bg-card">
-						<div class="flex items-center justify-between border-b border-border px-5 py-3">
-							<p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-								Sorting Type
-							</p>
-							<DropdownMenu.Root>
-								<DropdownMenu.Trigger
-									class="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-secondary/50 focus:outline-none"
-								>
-									{getSortingLabel(sortingType)}
-									<ChevronDown class="h-3.5 w-3.5 opacity-50" />
-								</DropdownMenu.Trigger>
-								<DropdownMenu.Content class="w-48">
-									<DropdownMenu.RadioGroup bind:value={sortingType}>
-										<DropdownMenu.RadioItem value="hot">Hot (Default)</DropdownMenu.RadioItem>
-										<DropdownMenu.RadioItem value="new">New</DropdownMenu.RadioItem>
-										<DropdownMenu.RadioItem value="rising">Rising</DropdownMenu.RadioItem>
-										<DropdownMenu.RadioItem value="top">Top</DropdownMenu.RadioItem>
-										<DropdownMenu.RadioItem value="controversial"
-											>Controversial</DropdownMenu.RadioItem
-										>
-									</DropdownMenu.RadioGroup>
-								</DropdownMenu.Content>
-							</DropdownMenu.Root>
 						</div>
 					</div>
 
