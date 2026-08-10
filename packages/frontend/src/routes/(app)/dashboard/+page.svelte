@@ -5,6 +5,10 @@
 	import { redditApi } from '$lib/api/reddit.api';
 	import type { JobResponse, JobResultsResponse } from '$lib/types/reddit';
 	import StatusBadge from '$lib/components/dashboard/StatusBadge.svelte';
+	import { Skeleton } from '$lib/components/ui/skeleton';
+	import { Badge } from '$lib/components/ui/badge';
+	import { Button } from '$lib/components/ui/button';
+	import * as Card from '$lib/components/ui/card';
 
 	const authState = getAuthState();
 
@@ -29,19 +33,7 @@
 		if (job.status === 'done') goto('/dashboard/results?job=' + job.id);
 	}
 
-	function statusBadgeClass(status: string) {
-		switch (status) {
-			case 'done':
-				return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
-			case 'failed':
-				return 'bg-red-500/20 text-red-400 border-red-500/30';
-			case 'scraping':
-			case 'analyzing':
-				return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-			default:
-				return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
-		}
-	}
+	// Removed unused statusBadgeClass
 
 	function formatDate(iso: string) {
 		return new Date(iso).toLocaleString(undefined, {
@@ -86,7 +78,7 @@
 			<!-- Stats grid -->
 			<div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				<!-- Account Status -->
-				<div class="rounded-xl border border-border bg-card p-5">
+				<Card.Root class="p-5">
 					<div class="mb-3 flex items-center justify-between">
 						<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
 							<svg
@@ -103,10 +95,7 @@
 								/>
 							</svg>
 						</div>
-						<span
-							class="rounded-full border border-emerald-600 bg-emerald-600/20 px-2.5 py-0.5 text-xs font-medium text-emerald-500"
-							>Active</span
-						>
+						<Badge variant="outline" class="border-emerald-600 bg-emerald-600/20 text-emerald-500 hover:bg-emerald-600/20">Active</Badge>
 					</div>
 					<p class="mb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
 						Account Status
@@ -114,10 +103,10 @@
 					<p class="text-xl font-bold">
 						{authState.user.is_email_verified ? 'Verified' : 'Unverified'}
 					</p>
-				</div>
+				</Card.Root>
 
 				<!-- Email -->
-				<div class="rounded-xl border border-border bg-card p-5">
+				<Card.Root class="p-5">
 					<div class="mb-3">
 						<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary">
 							<svg
@@ -139,10 +128,10 @@
 						Email
 					</p>
 					<p class="truncate text-sm font-semibold">{authState.user.email}</p>
-				</div>
+				</Card.Root>
 
 				<!-- Member Since -->
-				<div class="rounded-xl border border-border bg-card p-5">
+				<Card.Root class="p-5">
 					<div class="mb-3">
 						<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary">
 							<svg
@@ -169,10 +158,10 @@
 							year: 'numeric'
 						})}
 					</p>
-				</div>
+				</Card.Root>
 
 				<!-- Total Scans -->
-				<div class="rounded-xl border border-border bg-card p-5">
+				<Card.Root class="p-5">
 					<div class="mb-3">
 						<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-500/10">
 							<svg class="h-5 w-5 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
@@ -187,15 +176,15 @@
 					</p>
 					<p class="text-xl font-bold text-orange-400">
 						{#if loadingJobs}
-							<span class="inline-block h-6 w-12 animate-pulse rounded bg-secondary/80"></span>
+							<Skeleton class="inline-block h-6 w-12" />
 						{:else}
 							{jobs.length}
 						{/if}
 					</p>
-				</div>
+				</Card.Root>
 
 				<!-- Subscription -->
-				<div class="rounded-xl border border-border bg-card p-5">
+				<Card.Root class="p-5">
 					<div class="mb-3 flex items-center justify-between">
 						<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/10">
 							<svg
@@ -213,11 +202,7 @@
 							</svg>
 						</div>
 						{#if authState.user.subscription_tier !== 'Professional'}
-							<a
-								href="/pricing"
-								class="rounded-full border border-indigo-600/30 bg-indigo-600/10 px-2.5 py-0.5 text-xs font-medium text-indigo-400 transition-colors hover:bg-indigo-600/20"
-								>Upgrade</a
-							>
+							<Button href="/pricing" variant="outline" size="sm" class="border-indigo-600/30 bg-indigo-600/10 text-indigo-400 hover:bg-indigo-600/20">Upgrade</Button>
 						{/if}
 					</div>
 					<p class="mb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
@@ -225,7 +210,7 @@
 					</p>
 					<!-- @ts-ignore - Demonstrating where subscription field would go -->
 					<p class="text-xl font-bold">{authState.user.subscription_tier || 'Free'}</p>
-				</div>
+				</Card.Root>
 			</div>
 
 			<!-- Recent scans -->
@@ -244,13 +229,13 @@
 					<div class="divide-y divide-border">
 						{#if loadingJobs}
 							{#each [1, 2, 3] as _}
-								<div class="px-5 py-3.5">
-									<div class="mb-1 flex items-start justify-between gap-2">
-										<div class="h-5 w-48 animate-pulse rounded bg-secondary"></div>
-										<div class="h-5 w-16 animate-pulse rounded-full bg-secondary"></div>
+								<div class="px-5 py-3.5 space-y-2">
+									<div class="flex items-start justify-between gap-2">
+										<Skeleton class="h-5 w-48" />
+										<Skeleton class="h-5 w-16 rounded-full" />
 									</div>
-									<div class="mb-1.5 h-4 w-24 animate-pulse rounded bg-secondary/60"></div>
-									<div class="h-3 w-32 animate-pulse rounded bg-secondary/40"></div>
+									<Skeleton class="h-4 w-24" />
+									<Skeleton class="h-3 w-32" />
 								</div>
 							{/each}
 						{:else}

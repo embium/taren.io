@@ -23,6 +23,7 @@
 		{ text: '10 scans per day' },
 		{ text: 'Up to 3 subreddits per scan' },
 		{ text: 'Up to 15 posts scraped per subreddit' },
+		{ text: 'Up to 10 evidences per finding'}
 		// { text: 'AI-powered detection' },
 		// { text: 'Up to 15 evidence quotes per pain point' },
 		// { text: 'Export results as CSV' }
@@ -32,7 +33,7 @@
 		{ text: 'Unlimited scans per day', highlight: true },
 		{ text: 'Up to 10 subreddits per scan' },
 		{ text: 'Up to 100 posts per subreddit' },
-		{ text: 'Unlimited evidence per pain point' },
+		{ text: 'Unlimited evidence per finding' },
 		// { text: 'AI Startup Idea Reports' },
 		// { text: 'CSV & PDF export' },
 		// { text: 'Priority support' }

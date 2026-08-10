@@ -5,6 +5,10 @@
 	import { redditApi, type UsageResponse } from '$lib/api/reddit.api';
 	import type { ProfessionResponse, SubredditDetailResponse } from '$lib/types/reddit';
 	import { Search, Users, Activity } from '@lucide/svelte';
+	import { Input } from '$lib/components/ui/input';
+	import { Button } from '$lib/components/ui/button';
+	import * as Card from '$lib/components/ui/card';
+	import { Skeleton } from '$lib/components/ui/skeleton';
 
 	let professions = $state<ProfessionResponse[]>([]);
 	let selectedSlug = $state<string>('');
@@ -158,7 +162,7 @@
 					Curated Professions
 				</label>
 				<div class="relative">
-					<input
+					<Input
 						id="profession"
 						type="text"
 						bind:value={searchQuery}
@@ -175,7 +179,7 @@
 							? 'Loading professions...'
 							: 'Search for a profession...'}
 						autocomplete="off"
-						class="w-full rounded-xl border border-border bg-card px-4 py-3 pr-10 text-sm font-medium shadow-sm transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none disabled:opacity-50"
+						class="w-full pr-10"
 					/>
 					<div
 						class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-muted-foreground"
@@ -219,7 +223,7 @@
 				</label>
 				<div class="relative flex gap-2">
 					<div class="relative flex-1">
-						<input
+						<Input
 							id="ai-search"
 							type="text"
 							bind:value={aiSearchQuery}
@@ -229,16 +233,16 @@
 							disabled={isAiSearching}
 							placeholder="Enter any topic or keyword..."
 							autocomplete="off"
-							class="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm font-medium shadow-sm transition-colors focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 focus:outline-none disabled:opacity-50"
+							class="w-full"
 						/>
 					</div>
-					<button
+					<Button
 						onclick={runAiSearch}
 						disabled={isAiSearching || !aiSearchQuery.trim()}
-						class="flex shrink-0 items-center justify-center rounded-xl bg-pink-500 px-5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-pink-600 focus:ring-2 focus:ring-pink-500/20 focus:outline-none disabled:opacity-50"
+						class="bg-pink-500 hover:bg-pink-600 text-white"
 					>
 						{#if isAiSearching}
-							<svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+							<svg class="h-4 w-4 animate-spin mr-2" fill="none" viewBox="0 0 24 24">
 								<circle
 									class="opacity-25"
 									cx="12"
@@ -256,13 +260,13 @@
 						{:else}
 							Search
 						{/if}
-					</button>
+					</Button>
 				</div>
 			</div>
 		</div>
 
 		{#if selectedSubreddits.length > 0}
-			<div class="mb-8 rounded-xl border border-border bg-card p-5 shadow-sm">
+			<Card.Root class="mb-8 shadow-sm p-5">
 				<div class="mb-3 flex items-center justify-between">
 					<div class="flex flex-col">
 						<h3 class="text-sm font-semibold text-foreground">Selected for Scan</h3>
@@ -270,12 +274,12 @@
 							{selectedSubreddits.length} of {maxSubs} max subreddits
 						</span>
 					</div>
-					<button
+					<Button
 						onclick={scanSelected}
-						class="rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-orange-500/20 transition-all hover:bg-orange-600"
+						class="bg-orange-500 hover:bg-orange-600 text-white shadow-sm shadow-orange-500/20"
 					>
 						Scan Selected
-					</button>
+					</Button>
 				</div>
 				<div class="flex flex-wrap gap-2">
 					{#each selectedSubreddits as sub}
@@ -300,7 +304,7 @@
 						</div>
 					{/each}
 				</div>
-			</div>
+			</Card.Root>
 		{/if}
 
 		{#if loadingSubreddits || isAiSearching}
@@ -313,18 +317,18 @@
 			</div>
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 				{#each [1, 2, 3, 4, 5, 6] as _}
-					<div class="flex h-full flex-col rounded-xl border border-border bg-card p-5">
+					<Card.Root class="flex h-full flex-col p-5">
 						<div class="mb-3 flex items-start justify-between gap-2">
-							<div class="h-6 w-32 animate-pulse rounded bg-secondary"></div>
-							<div class="h-6 w-20 animate-pulse rounded-full bg-secondary"></div>
+							<Skeleton class="h-6 w-32" />
+							<Skeleton class="h-6 w-20 rounded-full" />
 						</div>
-						<div class="mb-2 h-4 w-full animate-pulse rounded bg-secondary/60"></div>
-						<div class="mb-4 h-4 w-2/3 animate-pulse rounded bg-secondary/60"></div>
+						<Skeleton class="mb-2 h-4 w-full" />
+						<Skeleton class="mb-4 h-4 w-2/3" />
 						<div class="mt-auto flex items-center gap-4">
-							<div class="h-4 w-12 animate-pulse rounded bg-secondary/60"></div>
-							<div class="h-4 w-16 animate-pulse rounded bg-secondary/60"></div>
+							<Skeleton class="h-4 w-12" />
+							<Skeleton class="h-4 w-16" />
 						</div>
-					</div>
+					</Card.Root>
 				{/each}
 			</div>
 		{:else if (selectedSlug && subreddits.length === 0) || (searched && aiSearchQuery && !isAiSearching && subreddits.length === 0 && !showDropdown)}
@@ -338,19 +342,21 @@
 		{:else if subreddits.length > 0}
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 				{#each subreddits as sub}
-					<div
-						class="group flex h-full flex-col rounded-xl border border-border bg-card p-5 transition-all hover:border-orange-500/50 hover:shadow-md"
+					<Card.Root
+						class="group flex h-full flex-col p-5 transition-all hover:border-orange-500/50 hover:shadow-md"
 					>
 						<div class="mb-3 flex items-start justify-between gap-2">
 							<h3 class="text-base font-bold text-foreground">r/{sub.name}</h3>
-							<button
+							<Button
+								variant={selectedSubreddits.includes(sub.name) ? "default" : "secondary"}
+								size="sm"
 								onclick={() => toggleSubredditSelection(sub.name)}
 								class={selectedSubreddits.includes(sub.name)
-									? 'cursor-pointer rounded-full bg-orange-500 px-3 py-1 text-xs font-semibold text-white shadow-sm transition-all focus:outline-none'
-									: 'cursor-pointer rounded-full bg-orange-500/10 px-3 py-1 text-xs font-semibold text-orange-500 opacity-100 transition-all group-hover:opacity-100 hover:bg-orange-500 hover:text-white focus:opacity-100 focus:outline-none lg:opacity-0'}
+									? 'bg-orange-500 hover:bg-orange-600 text-white shadow-sm'
+									: 'text-orange-500 hover:bg-orange-500 hover:text-white lg:opacity-0 group-hover:opacity-100'}
 							>
 								{selectedSubreddits.includes(sub.name) ? 'Selected' : 'Add to list'}
-							</button>
+							</Button>
 						</div>
 
 						{#if !sub.description && !sub.subscribers && !sub.activity_level}
@@ -379,7 +385,7 @@
 								</div>
 							{/if}
 						</div>
-					</div>
+					</Card.Root>
 				{/each}
 			</div>
 		{/if}

@@ -15,6 +15,10 @@
 	import PageContainer from '$lib/components/dashboard/PageContainer.svelte';
 	import PageHeader from '$lib/components/dashboard/PageHeader.svelte';
 	import PageContent from '$lib/components/dashboard/PageContent.svelte';
+	import { Skeleton } from '$lib/components/ui/skeleton';
+	import * as Card from '$lib/components/ui/card';
+	import * as Alert from '$lib/components/ui/alert';
+	import { Button } from '$lib/components/ui/button';
 
 	let subscription = $state<SubscriptionDetails | null>(null);
 	let loading = $state(true);
@@ -81,32 +85,32 @@
 		<div class="mx-auto max-w-2xl space-y-5">
 			{#if loading}
 				<!-- Custom Skeleton -->
-				<div class="rounded-xl border border-border bg-card p-5">
+				<Card.Root class="p-5">
 					<div class="mb-4 flex items-center justify-between">
 						<div class="flex items-center gap-3">
-							<div class="h-10 w-10 animate-pulse rounded-lg bg-secondary"></div>
+							<Skeleton class="h-10 w-10 rounded-lg" />
 							<div>
-								<div class="mb-1 h-3 w-20 animate-pulse rounded bg-secondary/60"></div>
-								<div class="h-6 w-24 animate-pulse rounded bg-secondary"></div>
+								<Skeleton class="mb-1 h-3 w-20" />
+								<Skeleton class="h-6 w-24" />
 							</div>
 						</div>
-						<div class="h-6 w-20 animate-pulse rounded-full bg-secondary"></div>
+						<Skeleton class="h-6 w-20 rounded-full" />
 					</div>
 					<div class="space-y-3">
 						{#each [1, 2, 3] as _}
 							<div class="flex items-center justify-between">
 								<div class="flex items-center gap-3">
-									<div class="h-4 w-4 animate-pulse rounded bg-secondary/60"></div>
-									<div class="h-4 w-24 animate-pulse rounded bg-secondary/60"></div>
+									<Skeleton class="h-4 w-4" />
+									<Skeleton class="h-4 w-24" />
 								</div>
-								<div class="h-4 w-32 animate-pulse rounded bg-secondary"></div>
+								<Skeleton class="h-4 w-32" />
 							</div>
 						{/each}
 					</div>
-				</div>
+				</Card.Root>
 			{:else if !subscription}
 				<!-- No subscription -->
-				<div class="space-y-4 rounded-xl border border-border bg-card p-10 text-center">
+				<Card.Root class="space-y-4 p-10 text-center">
 					<div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-muted">
 						<CreditCard class="h-7 w-7 text-muted-foreground" />
 					</div>
@@ -114,67 +118,55 @@
 					<p class="text-sm text-muted-foreground">
 						You are currently on the free plan. Upgrade to unlock full features.
 					</p>
-					<a
+					<Button
 						href="/pricing"
-						class="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+						class="gap-2"
 					>
 						<Zap class="h-4 w-4" />
 						View Plans
-					</a>
-				</div>
+					</Button>
+				</Card.Root>
 			{:else}
 				<!-- Status banner -->
 				{#if isTrialingAndCancelled}
 					<!-- Cancelled during trial: make it crystal clear they won't be charged -->
-					<div
-						class="flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-4"
-					>
-						<AlertTriangle class="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
-						<div>
-							<p class="text-sm font-semibold text-red-300">Trial Ending — No Charge</p>
-							<p class="mt-0.5 text-sm text-red-400/80">
+					<Alert.Root variant="destructive" class="bg-red-500/10 border-red-500/30 text-red-400">
+						<AlertTriangle class="h-4 w-4" />
+						<Alert.Title class="text-red-300">Trial Ending — No Charge</Alert.Title>
+						<Alert.Description class="text-red-400/80">
 								You cancelled during your trial. Your access ends on
 								<span class="font-medium text-red-300"
 									>{formatDate(subscription.trial_end)}</span
 								>. <span class="font-medium text-red-300">You will not be charged.</span>
-							</p>
-						</div>
-					</div>
+						</Alert.Description>
+					</Alert.Root>
 				{:else if isTrialing}
-					<div
-						class="flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-5 py-4"
-					>
-						<Clock class="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
-						<div>
-							<p class="text-sm font-semibold text-amber-300">Free Trial Active</p>
-							<p class="mt-0.5 text-sm text-amber-400/80">
+					<Alert.Root class="border-amber-500/30 bg-amber-500/10 text-amber-400">
+						<Clock class="h-4 w-4 text-amber-400" />
+						<Alert.Title class="text-amber-300">Free Trial Active</Alert.Title>
+						<Alert.Description class="text-amber-400/80">
 								Your trial ends on <span class="font-medium text-amber-300"
 									>{formatDate(subscription.trial_end)}</span
 								>. You will be charged
 								<span class="font-medium text-amber-300"
 									>{formatAmount(subscription.amount)}/{subscription.interval}</span
 								> after the trial ends.
-							</p>
-						</div>
-					</div>
+						</Alert.Description>
+					</Alert.Root>
 				{:else if isCancelledAtEnd}
-					<div
-						class="flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-4"
-					>
-						<AlertTriangle class="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
-						<div>
-							<p class="text-sm font-semibold text-red-300">Cancellation Scheduled</p>
-							<p class="mt-0.5 text-sm text-red-400/80">
+					<Alert.Root variant="destructive" class="bg-red-500/10 border-red-500/30 text-red-400">
+						<AlertTriangle class="h-4 w-4" />
+						<Alert.Title class="text-red-300">Cancellation Scheduled</Alert.Title>
+						<Alert.Description class="text-red-400/80">
 								Your subscription will end on <span class="font-medium text-red-300"
 									>{formatDate(subscription.current_period_end)}</span
 								>. You retain full access until then.
-							</p>
-						</div>
-					</div>
+						</Alert.Description>
+					</Alert.Root>
 				{/if}
 
 				<!-- Main card -->
-				<div class="rounded-xl border border-border bg-card p-5">
+				<Card.Root class="p-5">
 					<!-- Card header -->
 					<div class="mb-4 flex items-center justify-between">
 						<div class="flex items-center gap-3">
@@ -315,11 +307,12 @@
 										{/if}
 									</p>
 									<div class="flex items-center gap-3">
-										<button
+										<Button
 											id="confirm-cancel-btn"
+											variant="destructive"
 											onclick={handleCancel}
 											disabled={cancelling}
-											class="inline-flex items-center gap-2 rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20 disabled:cursor-not-allowed disabled:opacity-50"
+											class="gap-2"
 										>
 											{#if cancelling}
 												<svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
@@ -334,11 +327,11 @@
 													<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"
 													></path>
 												</svg>
-												Cancelling�
+												Cancelling
 											{:else}
 												Yes, cancel it
 											{/if}
-										</button>
+										</Button>
 										<button
 											onclick={() => (showCancelConfirm = false)}
 											class="text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -350,7 +343,7 @@
 							{/if}
 						</div>
 					{/if}
-				</div>
+				</Card.Root>
 
 				<!-- Upgrade nudge (trial only, not when already cancelled) -->
 				{#if isTrialing && !isCancelledAtEnd}

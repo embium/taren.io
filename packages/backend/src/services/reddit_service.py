@@ -219,12 +219,16 @@ def _make_scraper(limit: int) -> "RedditScraper":
     return RedditScraper(client, metrics, config)
 
 
-def _scrape_listing_sync(subreddit: str, limit: int) -> list[dict]:
+def _scrape_listing_sync(
+    subreddit: str, limit: int, sorting_type: str = "hot"
+) -> list[dict]:
     """
     Synchronous: fetch only the subreddit post listing (no comments).
     Returns a list of post stub dicts.
     """
-    return _make_scraper(limit).scrape_subreddit(subreddit, limit=limit)
+    return _make_scraper(limit).scrape_subreddit(
+        subreddit, limit=limit, sorting_type=sorting_type
+    )
 
 
 def _scrape_post_comments_sync(post: dict) -> tuple[dict | None, list[dict]]:
@@ -250,6 +254,7 @@ async def run_reddit_job(
     analysis_type: str = "template",
     template_id: str | None = None,
     custom_objective: str | None = None,
+    sorting_type: str = "hot",
 ) -> None:
     """
     Full scrape + analysis pipeline for a Reddit job.
@@ -283,7 +288,11 @@ async def run_reddit_job(
             logger.info("Job %s: fetching listing for r/%s", job_id, subreddit)
             try:
                 raw_posts = await loop.run_in_executor(
-                    None, _scrape_listing_sync, subreddit, scrape_limit
+                    None,
+                    _scrape_listing_sync,
+                    subreddit,
+                    scrape_limit,
+                    sorting_type,
                 )
                 logger.info(
                     "Job %s: r/%s — %d posts to scrape",
@@ -514,6 +523,8 @@ async def run_reddit_job(
                     )
 
             data_json_list = list(posts_by_id.values())
+            with open("test.json", "w") as f:
+                json.dump(data_json_list, f, indent=2)
 
             prompt = build_analysis_prompt(
                 subreddit=subreddit,

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Check, X, RefreshCw, Cpu, Circle } from '@lucide/svelte';
+	import { Badge } from '$lib/components/ui/badge';
 
 	let { status, class: className = '' }: { status: string; class?: string } = $props();
 
@@ -33,9 +34,10 @@
 	});
 </script>
 
-<span
-	class="inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs font-medium {badgeClass} {className}"
+<Badge
+	variant="outline"
+	class="gap-1.5 px-2 py-0.5 font-medium {badgeClass} {className}"
 >
 	<Icon size={14} class={status === 'scraping' || status === 'analyzing' ? 'animate-spin' : ''} />
 	<span class="capitalize">{status}</span>
-</span>
+</Badge>

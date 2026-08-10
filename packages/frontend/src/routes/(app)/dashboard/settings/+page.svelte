@@ -11,6 +11,9 @@
 	import PageContainer from '$lib/components/dashboard/PageContainer.svelte';
 	import PageHeader from '$lib/components/dashboard/PageHeader.svelte';
 	import PageContent from '$lib/components/dashboard/PageContent.svelte';
+	import { Skeleton } from '$lib/components/ui/skeleton';
+	import * as Card from '$lib/components/ui/card';
+	import * as Dialog from '$lib/components/ui/dialog';
 
 	const authState = getAuthState();
 
@@ -143,19 +146,19 @@
 	<PageContent>
 		{#if !authState.user}
 			<div class="mb-8">
-				<div class="mb-2 h-8 w-48 animate-pulse rounded bg-secondary"></div>
-				<div class="h-4 w-64 animate-pulse rounded bg-secondary/60"></div>
+				<Skeleton class="mb-2 h-8 w-48" />
+				<Skeleton class="h-4 w-64" />
 			</div>
 			<div class="max-w-2xl space-y-4">
 				{#each [1, 2, 3, 4] as _}
-					<div class="rounded-xl border border-border bg-card">
+					<Card.Root>
 						<div class="border-b border-border px-5 py-3">
-							<div class="h-4 w-24 animate-pulse rounded bg-secondary"></div>
+							<Skeleton class="h-4 w-24" />
 						</div>
 						<div class="px-5 py-5">
-							<div class="h-10 w-full animate-pulse rounded-lg bg-secondary/50"></div>
+							<Skeleton class="h-10 w-full" />
 						</div>
-					</div>
+					</Card.Root>
 				{/each}
 			</div>
 		{:else}
@@ -168,7 +171,7 @@
 
 		<div class="max-w-2xl space-y-4">
 			<!-- Avatar -->
-				<div class="rounded-xl border border-border bg-card">
+				<Card.Root>
 					<div class="items-center justify-between border-b border-border px-5 py-3">
 					<p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">Avatar</p>
 					</div>
@@ -207,12 +210,12 @@
 					class="hidden"
 					aria-label="Upload avatar file"
 				/>
-			</div>
+			</Card.Root>
 
 			<!-- Display Name -->
 
 			
-			<div class="rounded-xl border border-border bg-card">
+			<Card.Root>
 				<div class="flex items-center justify-between border-b border-border px-5 py-3">
 					<p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">Display Name</p>
 					<Button
@@ -233,7 +236,7 @@
 						Your public name shown across Taren. Max 32 characters.
 					</p>
 				</div>
-			</div>
+			</Card.Root>
 
 			<!-- Username
 			<div class="rounded-xl border border-border bg-card p-5">
@@ -261,7 +264,7 @@
 			-->
 
 			<!-- Email -->
-			<div class="rounded-xl border border-border bg-card">
+			<Card.Root>
 				<div class="flex items-center justify-between border-b border-border px-5 py-3">
 					<p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">Email Address</p>
 				</div>
@@ -281,7 +284,7 @@
 						The email you use to sign in to Taren.
 					</p>
 				</div>
-			</div>
+			</Card.Root>
 
 			<!-- User ID
 			<div class="rounded-xl border border-border bg-card p-5">
@@ -309,7 +312,7 @@
 			-->
 
 			<!-- Danger Zone -->
-			<div class="rounded-xl border border-red-500/30 bg-card">
+			<Card.Root class="border-red-500/30">
 				<div class="flex items-center justify-between border-b border-red-500/30 px-5 py-3">
 					<p class="text-xs font-medium tracking-wide text-red-400 uppercase">Danger Zone</p>
 					<Button
@@ -326,14 +329,14 @@
 						Permanently deactivate your account. This action cannot be undone.
 					</p>
 				</div>
-			</div>
+			</Card.Root>
 		</div>
 		<div class="mt-8 mb-8">
 			<h2 class="text-2xl font-bold">Appearance Settings</h2>
 			<p class="mt-1 text-muted-foreground">Manage your appearance preferences.</p>
 		</div>
 		<div class="max-w-2xl space-y-4">
-			<div class="rounded-xl border border-border bg-card">
+			<Card.Root>
 				<div class="flex items-center justify-between border-b border-border px-5 py-3">
 					<p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">Theme</p>
 				</div>
@@ -357,37 +360,23 @@
 						Update your theme.
 					</p>
 				</div>
-			</div>
+			</Card.Root>
 		</div>
 		{/if}
 	</PageContent>
 </PageContainer>
 
 <!-- Delete Confirmation Dialog -->
-{#if showDeleteDialog}
-	<div
-		class="fixed inset-0 z-50 flex items-center justify-center"
-		role="dialog"
-		aria-modal="true"
-		tabindex="-1"
-		onkeydown={(e) => e.key === 'Escape' && (showDeleteDialog = false)}
-	>
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<!-- svelte-ignore a11y_click_events_have_key_events -->
-		<div
-			class="absolute inset-0 cursor-pointer bg-black/75"
-			onclick={() => (showDeleteDialog = false)}
-			aria-label="Close dialog"
-		></div>
-		<div
-			class="relative z-10 mx-4 w-full max-w-md rounded-xl border border-border bg-card p-6"
-			role="document"
-		>
-			<h3 class="mb-2 text-lg font-semibold">Delete Account</h3>
-			<p class="mb-4 text-sm text-muted-foreground">
+<Dialog.Root bind:open={showDeleteDialog}>
+	<Dialog.Content class="sm:max-w-[425px]">
+		<Dialog.Header>
+			<Dialog.Title>Delete Account</Dialog.Title>
+			<Dialog.Description>
 				This will permanently deactivate your account. You will not be able to log in again.
-			</p>
-			<div class="mb-6 space-y-2">
+			</Dialog.Description>
+		</Dialog.Header>
+		<div class="grid gap-4 py-4">
+			<div class="grid gap-2">
 				<Label for="delete-password">Enter your password to confirm</Label>
 				<Input
 					bind:value={deletePassword}
@@ -396,19 +385,21 @@
 					type="password"
 				/>
 			</div>
-			<div class="flex justify-end gap-3">
-				<Button
-					variant="outline"
-					disabled={isDeleting}
-					onclick={() => {
-						showDeleteDialog = false;
-						deletePassword = '';
-					}}>Cancel</Button
-				>
-				<Button variant="destructive" disabled={isDeleting} onclick={handleDeleteAccount}>
-					{isDeleting ? 'Deleting…' : 'Delete Account'}
-				</Button>
-			</div>
 		</div>
-	</div>
-{/if}
+		<Dialog.Footer>
+			<Button
+				variant="outline"
+				disabled={isDeleting}
+				onclick={() => {
+					showDeleteDialog = false;
+					deletePassword = '';
+				}}
+			>
+				Cancel
+			</Button>
+			<Button variant="destructive" disabled={isDeleting} onclick={handleDeleteAccount}>
+				{isDeleting ? 'Deleting…' : 'Delete Account'}
+			</Button>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>

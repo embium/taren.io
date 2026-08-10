@@ -13,11 +13,11 @@ import type {
 
 export interface UsageResponse {
 	tier: string | null;
-	daily_scans: number | null;      // null = unlimited
+	daily_scans: number | null; // null = unlimited
 	max_subreddits: number | null;
 	max_posts: number | null;
 	scans_today: number;
-	scans_remaining: number | null;  // null = unlimited
+	scans_remaining: number | null; // null = unlimited
 }
 
 /**
@@ -28,18 +28,20 @@ export const redditApi = {
 	 * Start a new scrape + analysis job
 	 */
 	async createJob(
-		subreddits: string[], 
+		subreddits: string[],
 		scrapeLimit = 25,
 		analysisType: 'template' | 'custom' = 'template',
 		templateId?: string,
-		customObjective?: string
+		customObjective?: string,
+		sortingType?: string
 	): Promise<JobResponse> {
 		return api.post<JobResponse>('/reddit/jobs', {
 			subreddits,
 			scrape_limit: scrapeLimit,
 			analysis_type: analysisType,
 			template_id: templateId,
-			custom_objective: customObjective
+			custom_objective: customObjective,
+			sorting_type: sortingType
 		} satisfies CreateJobRequest);
 	},
 

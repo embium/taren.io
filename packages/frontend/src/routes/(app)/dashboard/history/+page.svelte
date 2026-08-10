@@ -8,6 +8,10 @@
 	import PageContent from '$lib/components/dashboard/PageContent.svelte';
 	import StatCard from '$lib/components/dashboard/StatCard.svelte';
 	import StatusBadge from '$lib/components/dashboard/StatusBadge.svelte';
+	import { Skeleton } from '$lib/components/ui/skeleton';
+	import { Badge } from '$lib/components/ui/badge';
+	import * as Card from '$lib/components/ui/card';
+	import * as Table from '$lib/components/ui/table';
 
 	let jobs = $state<JobResponse[]>([]);
 	let loadingJobs = $state(true);
@@ -53,36 +57,36 @@
 		{#if loadingJobs}
 			<div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				{#each [1, 2, 3, 4] as _}
-					<div class="h-24 animate-pulse rounded-xl border border-border bg-card p-5">
-						<div class="mb-1 h-4 w-24 rounded bg-secondary/60"></div>
-						<div class="h-8 w-16 rounded bg-secondary"></div>
-					</div>
+					<Card.Root class="h-24 p-5">
+						<Skeleton class="mb-1 h-4 w-24" />
+						<Skeleton class="h-8 w-16" />
+					</Card.Root>
 				{/each}
 			</div>
-			<div class="rounded-xl border border-border bg-card">
+			<Card.Root>
 				<div class="border-b border-border px-5 py-3">
-					<div class="h-4 w-24 animate-pulse rounded bg-secondary"></div>
+					<Skeleton class="h-4 w-24" />
 				</div>
 				<div class="divide-y divide-border">
 					{#each [1, 2, 3, 4, 5] as _}
 						<div class="flex items-center justify-between px-5 py-3.5 hidden sm:flex">
-							<div class="h-4 w-16 animate-pulse rounded bg-secondary"></div>
-							<div class="flex gap-1"><div class="h-5 w-16 animate-pulse rounded-full bg-secondary"></div></div>
-							<div class="h-5 w-16 animate-pulse rounded-full bg-secondary"></div>
-							<div class="h-4 w-8 animate-pulse rounded bg-secondary"></div>
-							<div class="h-4 w-8 animate-pulse rounded bg-secondary"></div>
-							<div class="h-4 w-24 animate-pulse rounded bg-secondary"></div>
+							<Skeleton class="h-4 w-16" />
+							<div class="flex gap-1"><Skeleton class="h-5 w-16 rounded-full" /></div>
+							<Skeleton class="h-5 w-16 rounded-full" />
+							<Skeleton class="h-4 w-8" />
+							<Skeleton class="h-4 w-8" />
+							<Skeleton class="h-4 w-24" />
 						</div>
 						<div class="flex flex-col gap-2 px-5 py-3.5 sm:hidden">
-							<div class="h-4 w-16 animate-pulse rounded bg-secondary"></div>
-							<div class="h-5 w-16 animate-pulse rounded-full bg-secondary"></div>
+							<Skeleton class="h-4 w-16" />
+							<Skeleton class="h-5 w-16 rounded-full" />
 						</div>
 					{/each}
 				</div>
-			</div>
+			</Card.Root>
 		{:else if jobs.length === 0}
-			<div
-				class="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-24"
+			<Card.Root
+				class="flex flex-col items-center justify-center py-24"
 			>
 				<div class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-secondary">
 					<svg
@@ -105,7 +109,7 @@
 						>Start your first analysis →</a
 					>
 				</p>
-			</div>
+			</Card.Root>
 		{:else}
 			<!-- Summary stats -->
 			<div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -120,55 +124,34 @@
 			</div>
 
 			<!-- History table -->
-			<div class="rounded-xl border border-border bg-card">
+			<Card.Root>
 				<div class="flex items-center justify-between border-b border-border px-5 py-3">
 					<p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">All Scans</p>
 					<span class="text-xs text-muted-foreground">{jobs.length} total</span>
 				</div>
 				<div class="overflow-x-auto">
-					<table class="w-full text-sm">
-						<thead>
-							<tr class="border-b border-border">
-								<th
-									class="px-5 py-3 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase"
-									>Job</th
-								>
-								<th
-									class="px-5 py-3 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase"
-									>Subreddits</th
-								>
-								<th
-									class="px-5 py-3 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase"
-									>Status</th
-								>
-								<th
-									class="px-5 py-3 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase"
-									>Posts</th
-								>
-								<th
-									class="px-5 py-3 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase"
-									>Findings</th
-								>
-								<th
-									class="px-5 py-3 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase"
-									>Date</th
-								>
-							</tr>
-						</thead>
-						<tbody class="divide-y divide-border">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Job</Table.Head>
+								<Table.Head>Subreddits</Table.Head>
+								<Table.Head>Status</Table.Head>
+								<Table.Head>Posts</Table.Head>
+								<Table.Head>Findings</Table.Head>
+								<Table.Head>Date</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
 							{#each jobs as job (job.id)}
-								<tr
-									class="cursor-pointer transition-colors hover:bg-accent/30"
+								<Table.Row
+									class="cursor-pointer"
 									onclick={() => goto(`/dashboard/results?job=${job.id}`)}
 								>
-									<td class="px-5 py-3.5 font-mono text-xs text-muted-foreground">#{job.id}</td>
-									<td class="px-5 py-3.5">
+									<Table.Cell class="font-mono text-xs text-muted-foreground">#{job.id}</Table.Cell>
+									<Table.Cell>
 										<div class="flex flex-wrap gap-1">
 											{#each subredditList(job.subreddits).slice(0, 3) as sub}
-												<span
-													class="inline-flex items-center rounded-full border border-orange-500/30 bg-orange-500/10 px-2 py-0.5 text-xs font-medium text-orange-500"
-													>r/{sub}</span
-												>
+												<Badge variant="outline" class="border-orange-500/30 bg-orange-500/10 text-orange-500">r/{sub}</Badge>
 											{/each}
 											{#if subredditList(job.subreddits).length > 3}
 												<span class="text-xs text-muted-foreground"
@@ -176,27 +159,27 @@
 												>
 											{/if}
 										</div>
-									</td>
-									<td class="px-5 py-3.5">
+									</Table.Cell>
+									<Table.Cell>
 										<StatusBadge status={job.status} />
-									</td>
-									<td class="px-5 py-3.5 text-muted-foreground">{job.post_count}</td>
-									<td class="px-5 py-3.5">
+									</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{job.post_count}</Table.Cell>
+									<Table.Cell>
 										{#if job.status === 'done'}
 											<span class="font-medium text-orange-400">{job.finding_count}</span>
 										{:else}
 											<span class="text-muted-foreground">—</span>
 										{/if}
-									</td>
-									<td class="px-5 py-3.5 text-xs text-muted-foreground"
-										>{formatDate(job.created_at)}</td
+									</Table.Cell>
+									<Table.Cell class="text-xs text-muted-foreground"
+										>{formatDate(job.created_at)}</Table.Cell
 									>
-								</tr>
+								</Table.Row>
 							{/each}
-						</tbody>
-					</table>
+						</Table.Body>
+					</Table.Root>
 				</div>
-			</div>
+			</Card.Root>
 		{/if}
 	</PageContent>
 </PageContainer>

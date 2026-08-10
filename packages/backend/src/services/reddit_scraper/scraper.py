@@ -69,7 +69,10 @@ class RedditScraper:
     # ----------------------------------------------------------------- public
 
     def scrape_subreddit(
-        self, subreddit: str, limit: int | None = None
+        self,
+        subreddit: str,
+        limit: int | None = None,
+        sorting_type: str = "hot",
     ) -> list[dict]:
         """Scrape the /new listing of subreddit and return up to limit posts."""
         limit = limit if limit is not None else 5
@@ -79,7 +82,19 @@ class RedditScraper:
         logger.info("Scraping r/%s (limit=%d) …", subreddit, limit)
 
         while len(posts) < limit:
-            url = f"{_REDDIT_BASE}/r/{subreddit}/new"
+            if sorting_type == "hot":
+                url = f"{_REDDIT_BASE}/r/{subreddit}/"
+            elif sorting_type == "new":
+                url = f"{_REDDIT_BASE}/r/{subreddit}/new"
+            elif sorting_type == "rising":
+                url = f"{_REDDIT_BASE}/r/{subreddit}/rising"
+            elif sorting_type == "top":
+                url = f"{_REDDIT_BASE}/r/{subreddit}/top"
+            elif sorting_type == "controversial":
+                url = f"{_REDDIT_BASE}/r/{subreddit}/controversial"
+            else:
+                url = f"{_REDDIT_BASE}/r/{subreddit}"
+
             if after:
                 remaining = min(25, limit - len(posts))
                 url += f"?count={remaining}&after={after}"

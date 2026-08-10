@@ -13,6 +13,8 @@
 	import StatCard from '$lib/components/dashboard/StatCard.svelte';
 	import StatusBadge from '$lib/components/dashboard/StatusBadge.svelte';
 	import { Button } from '$lib/components/ui/button';
+	import { Skeleton } from '$lib/components/ui/skeleton';
+	import * as Card from '$lib/components/ui/card';
 
 	let jobs = $state<JobResponse[]>([]);
 	let loadingJobs = $state(true);
@@ -161,8 +163,8 @@
 	<PageContent class="overflow-hidden">
 		<div class="flex h-full gap-5">
 			<!-- Left: Job list -->
-			<div
-				class="w-full shrink-0 flex-col overflow-hidden rounded-xl border border-border bg-card md:w-72 {selectedJob
+			<Card.Root
+				class="w-full shrink-0 flex-col overflow-hidden md:w-72 {selectedJob
 					? 'hidden md:flex'
 					: 'flex'}"
 			>
@@ -173,13 +175,13 @@
 				<div class="flex-1 divide-y divide-border overflow-y-auto">
 					{#if loadingJobs}
 						{#each [1, 2, 3, 4, 5] as _}
-							<div class="px-5 py-3.5">
-								<div class="mb-1 flex items-start justify-between gap-2">
-									<div class="h-5 w-32 animate-pulse rounded bg-secondary"></div>
-									<div class="h-5 w-16 animate-pulse rounded-full bg-secondary"></div>
+							<div class="px-5 py-3.5 space-y-2">
+								<div class="flex items-start justify-between gap-2">
+									<Skeleton class="h-5 w-32" />
+									<Skeleton class="h-5 w-16 rounded-full" />
 								</div>
-								<div class="mb-1 h-4 w-24 animate-pulse rounded bg-secondary/60"></div>
-								<div class="h-3 w-28 animate-pulse rounded bg-secondary/40"></div>
+								<Skeleton class="h-4 w-24" />
+								<Skeleton class="h-3 w-28" />
 							</div>
 						{/each}
 					{:else if jobs.length === 0}
@@ -194,10 +196,10 @@
 							<button
 								id="job-{job.id}-btn"
 								onclick={() => selectJob(job)}
-								class="group w-full cursor-pointer px-5 py-3.5 text-left transition hover:bg-accent/50 {selectedJob?.id ===
+								class="group w-full cursor-pointer px-5 py-3.5 text-left transition-colors hover:bg-accent/50 {selectedJob?.id ===
 								job.id
-									? 'bg-orange-500/10'
-									: ''}"
+									? 'border-l-2 border-l-orange-500 bg-accent/60 pl-[18px]'
+									: 'border-l-2 border-l-transparent'}"
 							>
 								<div class="mb-1 flex items-start justify-between gap-2">
 									<p class="truncate text-sm font-medium">
@@ -223,7 +225,7 @@
 						{/each}
 					{/if}
 				</div>
-			</div>
+			</Card.Root>
 
 			<!-- Right: Results panel -->
 			<div class="flex-1 overflow-y-auto {selectedJob ? 'block' : 'hidden md:block'}">
@@ -248,8 +250,8 @@
 				{/if}
 
 				{#if !selectedJob}
-					<div
-						class="flex h-full min-h-[300px] flex-col items-center justify-center rounded-xl border border-border bg-card"
+					<Card.Root
+						class="flex h-full min-h-[300px] flex-col items-center justify-center"
 					>
 						<div class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-secondary">
 							<svg
@@ -272,13 +274,13 @@
 								>start a new scan</a
 							>
 						</p>
-					</div>
+					</Card.Root>
 				{:else if selectedJob.status === 'pending' || selectedJob.status === 'scraping' || selectedJob.status === 'analyzing'}
 					{@const stepIndex = ['pending', 'scraping', 'analyzing', 'done'].indexOf(
 						selectedJob.status
 					)}
 					{@const progressWidth = Math.max(0, (stepIndex / 3) * 100)}
-					<div class="rounded-xl border border-border bg-card p-5">
+					<Card.Root class="p-5">
 						<div class="mb-8 flex items-center gap-4">
 							<div
 								class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-500/10"
@@ -402,9 +404,9 @@
 							<RefreshCw size={12} class="animate-spin opacity-70" />
 							<span>Auto-refreshing every 5 seconds…</span>
 						</p>
-					</div>
+					</Card.Root>
 				{:else if selectedJob.status === 'failed'}
-					<div class="rounded-xl border border-red-500/20 bg-card p-8">
+					<Card.Root class="border-red-500/20 p-8">
 						<div class="flex items-center gap-4">
 							<div class="flex h-12 w-12 items-center justify-center rounded-full bg-red-500/10">
 								<svg
@@ -428,7 +430,7 @@
 								</p>
 							</div>
 						</div>
-					</div>
+					</Card.Root>
 				{:else if selectedJob.status === 'done'}
 					<div class="space-y-5">
 						<!-- Stats -->
@@ -465,26 +467,26 @@
 						{#if loadingResults}
 							<div class="space-y-3">
 								{#each [1, 2, 3] as _}
-									<div class="rounded-xl border border-border bg-card p-5">
+									<Card.Root class="p-5">
 										<div class="mb-2 flex items-start justify-between gap-4">
 											<div class="flex-1">
 												<div class="mb-1.5 flex gap-2">
-													<div class="h-5 w-20 animate-pulse rounded-full bg-secondary"></div>
-													<div class="h-4 w-16 animate-pulse rounded bg-secondary/60"></div>
+													<Skeleton class="h-5 w-20 rounded-full" />
+													<Skeleton class="h-4 w-16" />
 												</div>
-												<div class="h-5 w-3/4 animate-pulse rounded bg-secondary"></div>
+												<Skeleton class="h-5 w-3/4" />
 											</div>
 											<div class="flex flex-col items-end gap-1">
-												<div class="h-7 w-8 animate-pulse rounded bg-secondary"></div>
-												<div class="h-3 w-12 animate-pulse rounded bg-secondary/60"></div>
+												<Skeleton class="h-7 w-8" />
+												<Skeleton class="h-3 w-12" />
 											</div>
 										</div>
-										<div class="mt-3 h-1.5 w-full animate-pulse rounded-full bg-secondary"></div>
-									</div>
+										<Skeleton class="mt-3 h-1.5 w-full rounded-full" />
+									</Card.Root>
 								{/each}
 							</div>
 						{:else if results && results.findings.length > 0}
-							<div class="rounded-xl border border-border bg-card">
+							<Card.Root>
 								<div class="border-b border-border px-5 py-3">
 									<p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">
 										Findings
@@ -561,7 +563,7 @@
 																</p>
 																<div class="space-y-2">
 																	{#each f.evidence as ev (ev.id)}
-																		<div class="rounded-xl border border-border bg-card p-3">
+																		<Card.Root class="p-3">
 																			<p class="text-sm leading-relaxed text-foreground/80">
 																				"{ev.quote}"
 																			</p>
@@ -586,7 +588,7 @@
 																					/>
 																				</svg>
 																			</a>
-																		</div>
+																		</Card.Root>
 																	{/each}
 																</div>
 															</div>
@@ -622,15 +624,15 @@
 										</div>
 									{/each}
 								</div>
-							</div>
+							</Card.Root>
 						{:else}
-							<div
-								class="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-12"
+							<Card.Root
+								class="flex flex-col items-center justify-center py-12"
 							>
 								<p class="text-sm text-muted-foreground">
 									No findings were identified for this job.
 								</p>
-							</div>
+							</Card.Root>
 						{/if}
 					</div>
 				{/if}

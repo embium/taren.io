@@ -36,6 +36,10 @@ class CreateJobRequest(BaseModel):
         default=None,
         description="Custom analysis objective text",
     )
+    sorting_type: Optional[str] = Field(
+        default="hot",
+        description="Sorting type for posts (hot, new, top, controversial, rising)",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -81,6 +85,7 @@ class JobResponse(BaseModel):
     analysis_type: str
     template_id: Optional[str] = None
     custom_objective: Optional[str] = None
+    sorting_type: Optional[str] = "hot"
     error_message: Optional[str] = None
     post_count: int
     comment_count: int

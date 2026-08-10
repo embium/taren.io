@@ -112,7 +112,7 @@ def search(query: str) -> str:
         try:
             logger.info(f"--> [AGENT] Executing Web Search for: {query}")
             results = DDGS(proxy=settings.proxy_url).text(
-                query, backend="brave", max_results=5
+                query, backend="brave", max_results=10
             )
             logger.info(f"--> [AGENT] Search Results: {results}")
             return json.dumps(results)

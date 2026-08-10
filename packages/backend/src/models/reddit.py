@@ -11,6 +11,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    Boolean,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -43,7 +44,9 @@ class RedditJob(Base):
     analysis_type: Mapped[str] = mapped_column(
         String(20), default="template", nullable=False
     )
-    template_id: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    template_id: Mapped[Optional[str]] = mapped_column(
+        String(50), nullable=True
+    )
     custom_objective: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     post_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
@@ -63,6 +66,9 @@ class RedditJob(Base):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
         nullable=False,
+    )
+    sorting_type: Mapped[str] = mapped_column(
+        String(20), default="new", nullable=False
     )
 
     # Relationships
@@ -189,7 +195,9 @@ class RedditFinding(Base):
     )
     title: Mapped[str] = mapped_column(String(512), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
-    relevance_score: Mapped[int] = mapped_column(Integer, nullable=False)  # 0–100
+    relevance_score: Mapped[int] = mapped_column(
+        Integer, nullable=False
+    )  # 0–100
     context: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -244,7 +252,9 @@ class RedditProfession(Base):
 
     __tablename__ = "reddit_professions"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(
+        Integer, primary_key=True, autoincrement=True
+    )
     name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
 
     # Relationships
@@ -260,11 +270,17 @@ class RedditSubreddit(Base):
 
     __tablename__ = "reddit_subreddits"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(
+        Integer, primary_key=True, autoincrement=True
+    )
     name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    subscribers: Mapped[Optional[int]] = mapped_column(Integer, default=0, nullable=True)
-    activity_level: Mapped[Optional[str]] = mapped_column(String(50), default="", nullable=True)
+    subscribers: Mapped[Optional[int]] = mapped_column(
+        Integer, default=0, nullable=True
+    )
+    activity_level: Mapped[Optional[str]] = mapped_column(
+        String(50), default="", nullable=True
+    )
 
     # Relationships
     professions: Mapped[List["RedditProfession"]] = relationship(
@@ -279,10 +295,16 @@ class RedditSubredditProfession(Base):
 
     __tablename__ = "reddit_subreddit_professions"
     __table_args__ = (
-        UniqueConstraint("subreddit_id", "profession_id", name="uq_reddit_subreddit_profession"),
+        UniqueConstraint(
+            "subreddit_id",
+            "profession_id",
+            name="uq_reddit_subreddit_profession",
+        ),
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(
+        Integer, primary_key=True, autoincrement=True
+    )
     subreddit_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey("reddit_subreddits.id", ondelete="CASCADE"),
@@ -295,4 +317,3 @@ class RedditSubredditProfession(Base):
         nullable=False,
         index=True,
     )
-

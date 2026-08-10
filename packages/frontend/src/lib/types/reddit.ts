@@ -6,6 +6,7 @@ export interface CreateJobRequest {
 	analysis_type?: 'template' | 'custom';
 	template_id?: string;
 	custom_objective?: string;
+	sorting_type?: string;
 }
 
 export interface JobResponse {
@@ -17,6 +18,7 @@ export interface JobResponse {
 	analysis_type: string;
 	template_id?: string;
 	custom_objective?: string;
+	sorting_type?: string;
 	error_message?: string;
 	post_count: number;
 	comment_count: number;

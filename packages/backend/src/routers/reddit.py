@@ -55,7 +55,9 @@ PLAN_LIMITS: dict[str, dict] = {
 }
 
 
-def require_subscription(current_user: User = Depends(get_current_user)) -> User:
+def require_subscription(
+    current_user: User = Depends(get_current_user),
+) -> User:
     if current_user.subscription_tier not in PLAN_LIMITS:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -119,7 +121,7 @@ async def get_usage(
     summary="Get available analysis templates",
 )
 async def get_templates(
-    current_user: User = Depends(require_subscription)
+    current_user: User = Depends(require_subscription),
 ) -> List[TemplateResponse]:
     """Return all pre-built analysis templates."""
     return [
@@ -205,6 +207,7 @@ async def create_job(
         analysis_type=job_data.analysis_type,
         template_id=job_data.template_id,
         custom_objective=job_data.custom_objective,
+        sorting_type=job_data.sorting_type,
         post_count=0,
         comment_count=0,
         finding_count=0,
@@ -224,6 +227,7 @@ async def create_job(
         analysis_type=job_data.analysis_type,
         template_id=job_data.template_id,
         custom_objective=job_data.custom_objective,
+        sorting_type=job_data.sorting_type,
     )
 
     logger.info(
@@ -329,6 +333,11 @@ async def get_job_results(
     )
     findings = finding_result.scalars().all()
 
+    is_starter = (
+        not current_user.subscription_tier
+        or current_user.subscription_tier == "Starter"
+    )
+
     finding_responses = [
         FindingResponse(
             id=f.id,
@@ -346,7 +355,7 @@ async def get_job_results(
                     quote=ev.quote,
                     link=ev.link,
                 )
-                for ev in f.evidence
+                for ev in (f.evidence[:10] if is_starter else f.evidence)
             ],
         )
         for f in findings
