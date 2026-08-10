@@ -55,6 +55,15 @@ PLAN_LIMITS: dict[str, dict] = {
 }
 
 
+def require_subscription(current_user: User = Depends(get_current_user)) -> User:
+    if current_user.subscription_tier not in PLAN_LIMITS:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You must have an active subscription to access this feature.",
+        )
+    return current_user
+
+
 # ---------------------------------------------------------------------------
 # GET /reddit/usage  — plan limits + today's scan count
 # ---------------------------------------------------------------------------
@@ -109,7 +118,9 @@ async def get_usage(
     response_model=List[TemplateResponse],
     summary="Get available analysis templates",
 )
-async def get_templates() -> List[TemplateResponse]:
+async def get_templates(
+    current_user: User = Depends(require_subscription)
+) -> List[TemplateResponse]:
     """Return all pre-built analysis templates."""
     return [
         TemplateResponse(
@@ -136,7 +147,7 @@ async def get_templates() -> List[TemplateResponse]:
 async def create_job(
     request: Request,
     job_data: CreateJobRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_subscription),
     db: AsyncSession = Depends(get_db),
 ) -> JobResponse:
     """Create a job record and immediately launch the background scraper."""
@@ -145,12 +156,6 @@ async def create_job(
     # Plan limits
     # -----------------------------------------------------------------------
     tier = current_user.subscription_tier
-    if tier not in PLAN_LIMITS:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You must have an active Starter or Professional subscription to run scans.",
-        )
-
     plan = PLAN_LIMITS[tier]
 
     # Enforce daily scan limit (Starter only)
@@ -245,7 +250,7 @@ async def create_job(
     summary="List all Reddit analysis jobs",
 )
 async def list_jobs(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_subscription),
     db: AsyncSession = Depends(get_db),
 ) -> List[JobResponse]:
     """Return all jobs, newest first."""
@@ -270,7 +275,7 @@ async def list_jobs(
 )
 async def get_job(
     job_id: str,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_subscription),
     db: AsyncSession = Depends(get_db),
 ) -> JobResponse:
     """Get details for a specific job."""
@@ -299,7 +304,7 @@ async def get_job(
 )
 async def get_job_results(
     job_id: str,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_subscription),
     db: AsyncSession = Depends(get_db),
 ) -> JobResultsResponse:
     """Return all findings with evidence for a job."""
@@ -365,7 +370,7 @@ async def get_job_results(
     summary="List all discovered professions",
 )
 async def list_professions(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_subscription),
     db: AsyncSession = Depends(get_db),
 ) -> List[ProfessionResponse]:
     """Return all professions with generated slugs."""
@@ -395,7 +400,7 @@ async def list_professions(
 )
 async def get_profession_subreddits(
     slug: str,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_subscription),
     db: AsyncSession = Depends(get_db),
 ) -> ProfessionSubredditsResponse:
     """Return subreddits for a profession by its generated slug."""
@@ -441,7 +446,7 @@ async def get_profession_subreddits(
 )
 async def search_subreddits(
     request: SubredditSearchRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_subscription),
 ) -> SubredditSearchJobResponse:
     """Use AI Agent to find subreddits related to a keyword in the background."""
     if not request.keyword or not request.keyword.strip():
@@ -478,7 +483,7 @@ async def search_subreddits(
 )
 async def get_search_subreddits_status(
     job_id: str,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_subscription),
 ) -> SubredditSearchJobStatusResponse:
     from arq.jobs import Job, JobStatus
 

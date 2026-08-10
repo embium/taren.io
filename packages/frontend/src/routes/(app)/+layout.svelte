@@ -2,13 +2,38 @@
 	import { onMount } from 'svelte';
 	import { beforeNavigate, goto } from '$app/navigation';
 	import { toast } from 'svelte-sonner';
+	import { AlertTriangle } from '@lucide/svelte';
+
 	import { getAuthState, initializeAuth, fetchCurrentUser } from '$lib/stores/auth.svelte';
 	import DashboardSidebar from '$lib/components/DashboardSidebar.svelte';
+	import { redditApi } from '$lib/api/reddit.api';
+	import type { UsageResponse } from '$lib/api/reddit.api';
+	import { page } from '$app/stores';
 
 	let { children } = $props();
 
 	const authState = getAuthState();
 	let isValidating = $state(true);
+	let isUsageValidating = $state(true);
+	let usage = $state<UsageResponse | null>(null);
+
+	const isPremiumRoute = $derived(
+		$page.url.pathname.startsWith('/dashboard/discover') ||
+		$page.url.pathname.startsWith('/dashboard/history') ||
+		$page.url.pathname.startsWith('/dashboard/results') ||
+		$page.url.pathname.startsWith('/dashboard/scan')
+	);
+
+	onMount(async () => {
+		try {
+			usage = await redditApi.getUsage();
+		} catch {
+			// ignore — limits will show fallbacks
+		} finally {
+			isUsageValidating = false;
+		}
+	});
+
 
 	onMount(async () => {
 		await initializeAuth();
@@ -48,9 +73,16 @@
 			goto('/login');
 		}
 	});
+
+	$effect(() => {
+		if (isPremiumRoute && !isUsageValidating && usage && !usage.tier) {
+			toast.error('This feature requires an active subscription.');
+			goto('/dashboard/subscription');
+		}
+	});
 </script>
 
-{#if isValidating}
+{#if isValidating || (isPremiumRoute && isUsageValidating)}
 	<div class="flex h-screen items-center justify-center bg-background">
 		<div class="text-muted-foreground">Loading…</div>
 	</div>
@@ -62,6 +94,7 @@
 		<!-- Content area — offset top on mobile for the fixed header bar -->
 		<div class="flex flex-col flex-1 min-w-0 overflow-hidden pt-14 md:pt-0">
 			<main class="flex-1 overflow-hidden">
+			
 				{@render children()}
 			</main>
 		</div>
