@@ -20,13 +20,6 @@
 		}
 	});
 
-	// Reactively redirect if the user becomes unauthenticated (e.g. logs out in another tab)
-	$effect(() => {
-		if (!isValidating && !authState.isAuthenticated) {
-			goto('/login');
-		}
-	});
-
 	// Re-validate session on every client-side navigation within the dashboard.
 	// This catches the case where the layout stays mounted (no re-mount = no onMount)
 	// but the session has expired in the background.
@@ -46,6 +39,13 @@
 			await fetchCurrentUser();
 		} catch {
 			// fetchCurrentUser clears auth on 401, the $effect below will redirect
+		}
+	});
+
+	$effect(() => {
+		if (!isValidating && !authState.isAuthenticated) {
+			toast.error('Your session has expired. Please log in again.');
+			goto('/login');
 		}
 	});
 </script>

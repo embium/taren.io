@@ -137,19 +137,11 @@ async def logout(
 @router.post("/refresh")
 async def refresh_token(
     response: Response,
-    request: Request,
+    request: RefreshTokenRequest,
     db: AsyncSession = Depends(get_db),
 ) -> RefreshTokenResponse:
-    """Refresh the access token using a valid refresh token from cookies."""
-    refresh_token = request.cookies.get("refresh_token")
-    if not refresh_token:
-        from fastapi import HTTPException, status
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Refresh token missing",
-        )
-
-    result = await auth_service.refresh_token(db, refresh_token)
+    """Refresh the access token using a valid refresh token."""
+    result = await auth_service.refresh_token(db, request)
 
     # Set new access token cookie
     response.set_cookie(
