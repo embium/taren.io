@@ -537,16 +537,16 @@
 									<span class="text-xs text-muted-foreground">6 evidences</span>
 								</div>
 								<h3 class="text-base font-semibold text-foreground lg:text-lg">
-									Personality Changes Feel Unpredictable
+									Climate Crisis Without Effective Action
 								</h3>
 							</div>
 							<div class="flex shrink-0 flex-col items-end gap-1">
-								<span class="text-2xl font-bold text-red-500">91</span>
+								<span class="text-2xl font-bold text-red-500">94</span>
 								<span class="text-xs font-medium text-red-500">Very High</span>
 							</div>
 						</div>
 						<div class="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
-							<div class="h-full rounded-full bg-red-500" style="width: 80%"></div>
+							<div class="h-full rounded-full bg-red-500" style="width: 94%"></div>
 						</div>
 					</div>
 					<div class="border-t border-border bg-card/50 px-5 py-5 lg:px-7 lg:py-6">
@@ -555,7 +555,7 @@
 								Description
 							</p>
 							<p class="text-sm leading-relaxed text-foreground/90">
-								Users report inconsistent shifts in ChatGPT's tone, humor, and style, and while they appreciate personalization, they distrust its unpredictable fluctuations.
+								Users describe worsening heat, drought, ocean warming, and ecosystem damage while feeling that governments and institutions are failing to respond at the necessary scale.
 							</p>
 						</div>
 						<div class="mb-6">
@@ -563,7 +563,7 @@
 								Context
 							</p>
 							<p class="text-sm leading-relaxed text-foreground/90">
-								Frequent ChatGPT users develop style expectations across conversations, and while they value warmth and humor, unpredictable personality shifts undermine predictability and create anxiety about losing preferred experiences.
+								People experiencing visible climate impacts—drought, heat waves, ocean temperatures—feel anger and fatalism over what they perceive as inadequate policy responses focused on individual behavior rather than major emitters.
 							</p>
 						</div>
 						<div class="space-y-3">
@@ -572,12 +572,12 @@
 							</p>
 							<div class="rounded-xl border border-border bg-card p-4">
 								<p class="text-sm leading-relaxed text-foreground/80 italic">
-									"yeah the sarcasm and tone stuff has been way better, makes the whole chat feel more natural when youre doing longer back and forths."
+									"It hasn't rained since early June where I am and the fields genuinely look like the Savannah. It's awful. Our weather is known as cold, wet and rainy, so where tf is any of that?"
 								</p>
 							</div>
 							<div class="rounded-xl border border-border bg-card p-4">
 								<p class="text-sm leading-relaxed text-foreground/80 italic">
-									"we keep randomly getting switched back and forth from corporate tones to personalized tones every other month which sucks"
+									"Yet much of the world isn't treating this as the crisis that it is. Do they think this will clear up by next year? next decade?"
 								</p>
 							</div>
 						</div>
@@ -597,7 +597,7 @@
 									<span class="text-xs text-muted-foreground">2 evidences</span>
 								</div>
 								<h3 class="text-base font-semibold text-foreground lg:text-lg">
-									Mix Game and Voice Audio With Track Separation
+									EU Packaging Rules Feel Punitive to Small Sellers
 								</h3>
 							</div>
 							<div class="flex shrink-0 flex-col items-end gap-1">
@@ -615,7 +615,7 @@
 								Description
 							</p>
 							<p class="text-sm leading-relaxed text-foreground/90">
-								Gaming creators bypass automated noise reduction by recording voice and game audio separately, then manually adjusting volume levels.
+								Small European merchants fear PPWR compliance costs and unclear enforcement disproportionately burden them compared to larger retailers who can absorb expenses.
 							</p>
 						</div>
 						<div class="mb-6">
@@ -623,7 +623,7 @@
 								Context
 							</p>
 							<p class="text-sm leading-relaxed text-foreground/90">
-								Creators using separate audio tracks with manual volume adjustment avoid the unnatural sound quality of automated noise reduction while maintaining clarity and ambience across affordable platforms like OBS.
+								Regulatory ambiguity around PPWR obligations is pushing independent EU sellers toward market restrictions or withdrawal, threatening cross-border ecommerce viability and product availability.
 							</p>
 						</div>
 						<div class="space-y-3">
@@ -632,12 +632,12 @@
 							</p>
 							<div class="rounded-xl border border-border bg-card p-4">
 								<p class="text-sm leading-relaxed text-foreground/80 italic">
-									"Look into getting nested audio so your voice and game audio are on separate tracks. You can manually adjust if needed, lowering game volume when you speak, keeping rest of the volume wherever you want it."
+									"Registering in each individual country,paying some fixed fees when we might not even have a single sale feels completely ridiculous for a small independent label with a limited budget."
 								</p>
 							</div>
 							<div class="rounded-xl border border-border bg-card p-4">
 								<p class="text-sm leading-relaxed text-foreground/80 italic">
-									"For future reference keep game audio around -10db less that your voice when you record. When i record in OBS i will usually have my voice set to around-5db and the game audio set around -15db."
+									"Nobody knows, really. It seems they put this regulation out without thinking about small and local businesses."
 								</p>
 							</div>
 						</div>
