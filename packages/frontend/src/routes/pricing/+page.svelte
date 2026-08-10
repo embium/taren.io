@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
 	import Navigation from '$lib/components/Navigation.svelte';
 	import { api } from '$lib/api/client';
 	import { toast } from 'svelte-sonner';
@@ -302,10 +302,12 @@
 	<footer class="border-t border-border px-6 py-10 lg:px-12">
 		<div class="mx-auto flex max-w-7xl flex-col items-center gap-3 sm:flex-row sm:justify-between">
 			<p class="text-sm font-bold">Taren</p>
-			<div class="flex gap-6 text-sm text-muted-foreground">
+			<div class="flex gap-6 text-sm text-muted-foreground flex-wrap justify-center">
 				<a href="/pricing" class="transition-colors hover:text-foreground">Pricing</a>
 				<a href="/login" class="transition-colors hover:text-foreground">Sign in</a>
 				<a href="/register" class="transition-colors hover:text-foreground">Get started</a>
+				<a href="/privacy" class="transition-colors hover:text-foreground">Privacy Policy</a>
+				<a href="/terms" class="transition-colors hover:text-foreground">Terms of Service</a>
 			</div>
 			<p class="text-sm text-muted-foreground">
 				&copy; {new Date().getFullYear()} Taren. All rights reserved.
