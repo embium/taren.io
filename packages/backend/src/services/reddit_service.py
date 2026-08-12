@@ -427,6 +427,7 @@ async def run_reddit_job(
                             {
                                 "post_id": post_id_str,
                                 "comment_id": comment_id_str,
+                                "parent_comment_id": c.get("parent_comment_id"),
                                 "content": body,
                                 "subreddit": subreddit,
                                 "link": _build_reddit_link(
@@ -511,20 +512,30 @@ async def run_reddit_job(
                     "comments": [],
                 }
 
+            comments_by_id = {}
+            for c in comments_list:
+                c_id = c.get("comment_id")
+                comments_by_id[c_id] = {
+                    "parent_comment_id": c.get("parent_comment_id", ""),
+                    "comment_id": c_id,
+                    "content": c.get("content", ""),
+                    "link": c.get("link", ""),
+                    "comments": [],
+                }
+
             for c in comments_list:
                 p_id = c.get("post_id")
-                if p_id in posts_by_id:
-                    posts_by_id[p_id]["comments"].append(
-                        {
-                            "comment_id": c.get("comment_id"),
-                            "content": c.get("content", ""),
-                            "link": c.get("link", ""),
-                        }
-                    )
+                c_id = c.get("comment_id")
+                parent_id = c.get("parent_comment_id") or ""
+
+                comment_node = comments_by_id[c_id]
+
+                if parent_id in comments_by_id:
+                    comments_by_id[parent_id]["comments"].append(comment_node)
+                elif p_id in posts_by_id:
+                    posts_by_id[p_id]["comments"].append(comment_node)
 
             data_json_list = list(posts_by_id.values())
-            with open("test.json", "w") as f:
-                json.dump(data_json_list, f, indent=2)
 
             prompt = build_analysis_prompt(
                 subreddit=subreddit,

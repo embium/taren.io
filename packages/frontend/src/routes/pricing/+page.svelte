@@ -23,7 +23,7 @@
 		{ text: '10 scans per day' },
 		{ text: 'Up to 3 subreddits per scan' },
 		{ text: 'Up to 15 posts scraped per subreddit' },
-		{ text: 'Up to 10 evidences per finding'}
+		{ text: 'Up to 10 evidences per finding' }
 		// { text: 'AI-powered detection' },
 		// { text: 'Up to 15 evidence quotes per pain point' },
 		// { text: 'Export results as CSV' }
@@ -33,7 +33,7 @@
 		{ text: 'Unlimited scans per day', highlight: true },
 		{ text: 'Up to 10 subreddits per scan' },
 		{ text: 'Up to 100 posts per subreddit' },
-		{ text: 'Unlimited evidence per finding' },
+		{ text: 'Unlimited evidence per finding' }
 		// { text: 'AI Startup Idea Reports' },
 		// { text: 'CSV & PDF export' },
 		// { text: 'Priority support' }
@@ -303,7 +303,7 @@
 	<footer class="border-t border-border px-6 py-10 lg:px-12">
 		<div class="mx-auto flex max-w-7xl flex-col items-center gap-3 sm:flex-row sm:justify-between">
 			<p class="text-sm font-bold">Taren</p>
-			<div class="flex gap-6 text-sm text-muted-foreground flex-wrap justify-center">
+			<div class="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
 				<a href="/pricing" class="transition-colors hover:text-foreground">Pricing</a>
 				<a href="/login" class="transition-colors hover:text-foreground">Sign in</a>
 				<a href="/register" class="transition-colors hover:text-foreground">Get started</a>

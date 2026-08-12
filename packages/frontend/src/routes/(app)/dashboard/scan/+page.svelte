@@ -3,9 +3,10 @@
 	import { toast } from 'svelte-sonner';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { AlertTriangle, Zap, ChevronDown } from '@lucide/svelte';
+
 	import { redditApi, type UsageResponse } from '$lib/api/reddit.api';
 	import type { TemplateResponse } from '$lib/types/reddit';
-	import { AlertTriangle, Zap, ChevronDown } from '@lucide/svelte';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
@@ -124,7 +125,7 @@
 				sortingType
 			);
 			subredditsInput = '';
-			toast.success(`Job #${job.id} started — scraping ${parsedSubreddits.length} subreddit(s)`);
+			toast.success(`Job #${job.id} started`);
 			// Refresh usage count
 			usage = await redditApi.getUsage();
 			goto(`/dashboard/results?job=${job.id}`);

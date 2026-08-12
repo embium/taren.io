@@ -157,51 +157,57 @@ class RedditScraper:
         html = ""
         comments = []
         post_data = {}
-        for _ in range(3):
-            try:
-                html = self.client.get(url)
-            except BlockedError:
+
+        try:
+            html = self.client.get(url)
+        except BlockedError:
+            logger.warning(
+                "Blocked on comments page for post %s", post["post_id"]
+            )
+            self.metrics.record_post_failed(subreddit)
+            return None, []
+        except MaxRetriesExceeded as exc:
+            logger.error(
+                "Max retries fetching comments for post %s: %s",
+                post["post_id"],
+                exc,
+            )
+            self.metrics.record_post_failed(subreddit)
+            return None, []
+        except Exception as exc:
+            logger.error(
+                "Failed to fetch comments for post %s: %s",
+                post["post_id"],
+                exc,
+            )
+            self.metrics.record_post_failed(subreddit)
+            return None, []
+
+        if not html:
+            logger.warning(
+                "Empty HTML for comments page of post %s", post["post_id"]
+            )
+            self.metrics.record_post_failed(subreddit)
+            return None, []
+
+        try:
+            post_data = parse_post_from_comments_page(html)
+            if post_data is None:
                 logger.warning(
-                    "Blocked on comments page for post %s", post["post_id"]
-                )
-                self.metrics.record_post_failed(subreddit)
-                return None, []
-            except MaxRetriesExceeded as exc:
-                logger.error(
-                    "Max retries fetching comments for post %s: %s",
+                    "parse_post_from_comments_page returned None for post %s",
                     post["post_id"],
-                    exc,
                 )
                 self.metrics.record_post_failed(subreddit)
-                return None, []
 
-            if not html:
-                logger.warning(
-                    "Empty HTML for comments page of post %s", post["post_id"]
-                )
-                self.metrics.record_post_failed(subreddit)
-                return None, []
-
-            try:
-                post_data = parse_post_from_comments_page(html)
-                if post_data is None:
-                    logger.warning(
-                        "parse_post_from_comments_page returned None for post %s",
-                        post["post_id"],
-                    )
-                    self.metrics.record_post_failed(subreddit)
-                    continue
-
-                comments = parse_comments(html) or []
-            except Exception as exc:  # noqa: BLE001
-                logger.error(
-                    "Failed to parse comments page for post %s: %s",
-                    post["post_id"],
-                    exc,
-                )
-                self.metrics.record_post_failed(subreddit)
-                return None, []
-            break
+            comments = parse_comments(html) or []
+        except Exception as exc:  # noqa: BLE001
+            logger.error(
+                "Failed to parse comments page for post %s: %s",
+                post["post_id"],
+                exc,
+            )
+            self.metrics.record_post_failed(subreddit)
+            return None, []
 
         for _ in comments:
             self.metrics.record_comment_scraped(subreddit)
