@@ -4,6 +4,7 @@ import re
 import requests
 import asyncio
 import concurrent.futures
+import time
 
 from bs4 import BeautifulSoup
 from cloakbrowser import launch
@@ -69,7 +70,7 @@ class OpenRouterAgent:
         while response_message.get("tool_calls"):
             self.messages.append(response_message)
 
-            for tool_call in response_message["tool_calls"]:
+            def execute_tool_call(tool_call):
                 tool_name = tool_call["function"]["name"]
                 tool_id = tool_call["id"]
 
@@ -84,21 +85,28 @@ class OpenRouterAgent:
                         logger.error(f"Error executing {tool_name}: {e}")
                         result = f"Error executing {tool_name}: {e}"
 
-                    self.messages.append(
-                        {
-                            "role": "tool",
-                            "tool_call_id": tool_id,
-                            "content": str(result),
-                        }
-                    )
+                    return {
+                        "role": "tool",
+                        "tool_call_id": tool_id,
+                        "content": str(result),
+                    }
                 else:
-                    self.messages.append(
-                        {
-                            "role": "tool",
-                            "tool_call_id": tool_id,
-                            "content": f"Error: Tool '{tool_name}' is not registered.",
-                        }
+                    return {
+                        "role": "tool",
+                        "tool_call_id": tool_id,
+                        "content": f"Error: Tool '{tool_name}' is not registered.",
+                    }
+
+            with concurrent.futures.ThreadPoolExecutor(
+                max_workers=10
+            ) as executor:
+                tool_results = list(
+                    executor.map(
+                        execute_tool_call, response_message["tool_calls"]
                     )
+                )
+
+            self.messages.extend(tool_results)
 
             response_data = self._call_api()
             response_message = response_data["choices"][0]["message"]
@@ -112,7 +120,7 @@ def search(query: str) -> str:
         try:
             logger.info(f"--> [AGENT] Executing Web Search for: {query}")
             results = DDGS(proxy=settings.proxy_url).text(
-                query, backend="brave", max_results=10
+                query, backend="bing", max_results=10
             )
             logger.info(f"--> [AGENT] Search Results: {results}")
             return json.dumps(results)
@@ -124,7 +132,7 @@ def search(query: str) -> str:
     return "Error searching"
 
 
-def _access_webpage(url: str) -> str:
+def access_webpage(url: str) -> str:
     for i in range(3):
         try:
             logger.info(f"--> [CLIENT] Accessing Webpage: {url}")
@@ -146,42 +154,6 @@ def _access_webpage(url: str) -> str:
                 return str(e)
             continue
     return "Error accessing webpage"
-
-
-def access_webpage(urls: list[str] | str) -> list[dict] | str:
-    if isinstance(urls, str):
-        urls = [urls]
-
-    max_concurrent = getattr(settings, "max_concurrent_posts", 5)
-
-    content = []
-    with concurrent.futures.ThreadPoolExecutor(
-        max_workers=max_concurrent
-    ) as executor:
-        future_to_url = {
-            executor.submit(_access_webpage, url): url for url in urls
-        }
-
-        for future in concurrent.futures.as_completed(future_to_url):
-            url = future_to_url[future]
-            logger.info(f"--> [AGENT] Accessing Webpage: {url}")
-            try:
-                content_text = future.result()
-            except Exception as e:
-                logger.error(f"Failed to access webpage {url}: {e}")
-                content_text = (
-                    f"There was a problem requesting the page: {str(e)}"
-                )
-
-            content.append(
-                {
-                    "url": url,
-                    "content": content_text
-                    or "There was a problem requesting the page",
-                }
-            )
-
-    return content
 
 
 def run_agent_search(keyword: str, model: str | None = None) -> list[dict]:
@@ -216,17 +188,16 @@ def run_agent_search(keyword: str, model: str | None = None) -> list[dict]:
 
     agent.register_tool(
         func=access_webpage,
-        description="Accesses the webpages provided and returns their content.",
+        description="Accesses the webpage provided and returns its content.",
         parameters={
             "type": "object",
             "properties": {
-                "urls": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                    "description": "The URLs of the webpages you want to access.",
+                "url": {
+                    "type": "string",
+                    "description": "The URL of the webpage you want to access.",
                 }
             },
-            "required": ["urls"],
+            "required": ["url"],
         },
     )
 
