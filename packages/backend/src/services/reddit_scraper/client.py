@@ -111,15 +111,18 @@ class RedditClient:
         headers["User-Agent"] = next(self._ua_cycle)
         return headers
 
+    def _make_session(self) -> curl_cffi.requests.Session:
+        headers = self._next_headers()
+        return curl_cffi.requests.Session(
+            headers=headers, proxies=self.proxies, impersonate="firefox"
+        )
+
     def _rate_limit(self) -> None:
         """Sleep long enough to honour the configured rate-limit."""
         elapsed = time.monotonic() - self._last_request_time
         wait = self.config.rate_limit_s - elapsed
         if wait > 0:
-            headers = self._next_headers()
-            self.session = curl_cffi.requests.Session(
-                headers=headers, proxies=self.proxies, impersonate="firefox"
-            )
+            self.session = self._make_session()
             logger.debug("Rate-limiting: sleeping %.2fs", wait)
             time.sleep(wait)
 
@@ -128,10 +131,7 @@ class RedditClient:
         wait = self.config.base_backoff_s * (2**attempt) + random.uniform(
             0, 0.5
         )
-        headers = self._next_headers()
-        self.session = curl_cffi.requests.Session(
-            headers=headers, proxies=self.proxies, impersonate="firefox"
-        )
+        self.session = self._make_session()
         logger.debug("Backoff attempt %d: sleeping %.2fs", attempt, wait)
         time.sleep(wait)
 
@@ -245,7 +245,6 @@ class RedditClient:
             raise
 
         except Exception as exc:  # noqa: BLE001
-            self._last_request_time = time.monotonic()
             logger.warning(
                 "%s %s failed: %s",
                 method,

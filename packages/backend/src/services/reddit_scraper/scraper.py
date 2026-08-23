@@ -91,6 +91,7 @@ class RedditScraper:
                 url += f"&after={after_token}"
 
             new_posts = []
+            html = ""
 
             for _ in range(3):
                 try:
@@ -109,6 +110,8 @@ class RedditScraper:
                         exc,
                     )
                     break
+                except Exception:
+                    pass
 
                 if not html:
                     logger.warning(

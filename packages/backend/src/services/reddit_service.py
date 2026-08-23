@@ -21,6 +21,9 @@ import json
 import logging
 import re
 import datetime
+import time
+import random
+
 from typing import Optional
 
 import httpx
@@ -278,6 +281,8 @@ async def run_reddit_job(
         all_post_tasks = []
 
         for subreddit in subreddit_list:
+            delay = random.uniform(5, 10)
+            await asyncio.sleep(delay)
             logger.info("Job %s: fetching listing for r/%s", job_id, subreddit)
             try:
                 raw_posts = await loop.run_in_executor(
@@ -310,8 +315,15 @@ async def run_reddit_job(
             max_workers=max_concurrent
         )
 
-        async def scrape_and_save_post(subreddit: str, post_stub: dict):
+        async def scrape_and_save_post(
+            subreddit: str, post_stub: dict, delay: float | None = None
+        ):
             nonlocal total_posts, total_comments
+
+            if delay is None:
+                delay = random.uniform(5, 10)
+
+            await asyncio.sleep(delay)
 
             async with semaphore:
                 try:
