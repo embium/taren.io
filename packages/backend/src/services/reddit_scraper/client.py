@@ -112,6 +112,8 @@ class RedditClient:
         return headers
 
     def _make_session(self) -> curl_cffi.requests.Session:
+        self.session.close()
+
         headers = self._next_headers()
         return curl_cffi.requests.Session(
             headers=headers, proxies=self.proxies, impersonate="firefox"
@@ -203,7 +205,6 @@ class RedditClient:
         ``config.max_retries`` times, then raise :exc:`MaxRetriesExceeded`.
         """
 
-        last_exc: Exception = RuntimeError("No attempts made")
         if self.warming:
             r = self.session.get(
                 "https://reddit.com/",
@@ -215,6 +216,9 @@ class RedditClient:
                     "WARMING",
                     "https://reddit.com/",
                 )
+
+            delay = random.uniform(5, 10)
+            time.sleep(delay)
 
         try:
 
