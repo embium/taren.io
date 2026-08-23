@@ -93,88 +93,18 @@ def _get_score(thing: Tag) -> Optional[int]:
 # ---------------------------------------------------------------------------
 
 
-def parse_posts(html: str) -> list[dict] | None:
+def parse_posts(html: str) -> tuple[list[dict] | None, str | None]:
     """Parse a subreddit listing page and return a list of post dicts."""
-    soup = BeautifulSoup(html, "html.parser")
 
-    # Posts live inside #siteTable and have data-type="link"
-    site_table = _find_tag(soup, "div", id="siteTable")
-    if site_table is None:
-        return
+    # Reddit API has a maximum limit of 100 posts per request
+    # To get more than 100 posts, we need to use pagination with the 'after' token
 
-    posts: list[dict] = []
+    data = json.loads(html)
+    posts = data.get("data", {}).get("children", [])
 
-    # Only grab *direct* children that are post things – not nested children
-    # (there shouldn't be any in a listing page, but be safe).
-    thing_divs = site_table.find_all(
-        "div",
-        attrs={"data-type": "link"},
-        recursive=False,
-    )
+    after_token = data.get("data", {}).get("after")
 
-    for thing in thing_divs:
-        if not isinstance(thing, Tag):
-            continue
-        post_id = _attr(thing, "data-fullname").replace("t3_", "")
-        if not post_id:
-            continue
-
-        # --- Title ---
-        title_a = _find_tag(thing, "a", class_="title")
-        title = " ".join(title_a.get_text().split()) if title_a else None
-
-        # --- Author ---
-        author = _attr(thing, "data-author") or None
-
-        # --- Timestamp ---
-        time_elem = _find_tag(thing, "time")
-        created_at: Optional[datetime.datetime] = None
-        if time_elem:
-            dt_str = _attr(time_elem, "datetime")
-            if dt_str:
-                dt = datetime.datetime.fromisoformat(dt_str)
-                created_at = dt.astimezone(datetime.timezone.utc)
-
-        # --- Score ---
-        score = _get_score(thing)
-
-        # --- Num comments ---
-        num_comments: Optional[int] = None
-        try:
-            num_comments = int(_attr(thing, "data-comments-count"))
-        except (ValueError, TypeError):
-            comments_a = _find_tag(thing, "a", class_="comments")
-            if comments_a:
-                text = comments_a.get_text(strip=True)  # e.g. "50 comments"
-                try:
-                    num_comments = int(text.split()[0])
-                except (ValueError, IndexError):
-                    pass
-
-        # --- URL (canonical reddit.com permalink) ---
-        permalink = _attr(thing, "data-permalink")
-        subreddit = _attr(thing, "data-subreddit")
-        url = f"https://reddit.com{permalink}" if permalink else None
-
-        # --- Post body (text posts only – not available in listing pages) ---
-        # Listing pages lazy-load body content; only comments pages have it.
-        # content: Optional[str] = None
-
-        posts.append(
-            {
-                "post_id": post_id,
-                "title": title,
-                "author": author,
-                "created_at": created_at if created_at else None,
-                # "content": content,
-                "score": score,
-                "num_comments": num_comments,
-                "subreddit": subreddit,
-                "url": url,
-            }
-        )
-
-    return posts
+    return (posts, after_token)
 
 
 # ---------------------------------------------------------------------------

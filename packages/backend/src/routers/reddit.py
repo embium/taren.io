@@ -1,5 +1,6 @@
 """Reddit analysis router — job management and results retrieval."""
 
+from services.reddit_service import run_reddit_job
 import asyncio
 import logging
 from datetime import datetime, timezone
@@ -229,6 +230,16 @@ async def create_job(
         custom_objective=job_data.custom_objective,
         sorting_type=job_data.sorting_type,
     )
+
+    # await run_reddit_job(
+    #     job_id=job_id,
+    #     subreddit_list=subreddits,
+    #     scrape_limit=job_data.scrape_limit,
+    #     analysis_type=job_data.analysis_type,
+    #     template_id=job_data.template_id,
+    #     custom_objective=job_data.custom_objective,
+    #     sorting_type=job_data.sorting_type,
+    # )
 
     logger.info(
         "Job %s created for user %s — subreddits: %s",

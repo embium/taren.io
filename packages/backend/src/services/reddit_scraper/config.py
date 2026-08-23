@@ -37,26 +37,8 @@ class ScraperConfig:
     rate_limit_s: float = 1.0
     """Minimum seconds to sleep between outgoing requests (politeness delay)."""
 
-    # ---------------------------------------------------- User-agent rotation
-    user_agents: list[str] = field(
-        default_factory=lambda: [
-            (
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/130.0.0.0 Safari/537.36"
-            ),
-            (
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/129.0.0.0 Safari/537.36"
-            ),
-            (
-                "Mozilla/5.0 (X11; Linux x86_64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/128.0.0.0 Safari/537.36"
-            ),
-        ]
-    )
+    user_agents_file: str = "user_agents.txt"
+    """Path to the plain-text file containing one user-agent per line."""
 
     subreddits_file: str = "subreddits_aidev.txt"
     """Path to the plain-text file containing one subreddit name per line."""

@@ -38,17 +38,17 @@ from .parser import (  # noqa: E402
     parse_posts,
 )
 
+from core.config import settings
+
 from .client import BlockedError, MaxRetriesExceeded
 
-if TYPE_CHECKING:
-    from .client import RedditClient
-    from .config import ScraperConfig
-    from .metrics import ScraperMetrics
+
+from .client import RedditClient
 
 logger = logging.getLogger(__name__)
 
-_REDDIT_BASE = "https://old.reddit.com"
-_MORE_CHILDREN_URL = "https://old.reddit.com/api/morechildren"
+_REDDIT_BASE = "https://www.reddit.com/"
+_MORE_CHILDREN_URL = "https://www.reddit.com/api/morechildren"
 
 
 class RedditScraper:
@@ -56,102 +56,112 @@ class RedditScraper:
     Orchestrates subreddit and comment scraping.
     """
 
-    def __init__(
-        self,
-        client: "RedditClient",
-        metrics: "ScraperMetrics",
-        config: "ScraperConfig",
-    ) -> None:
-        self.client = client
-        self.metrics = metrics
-        self.config = config
-
     # ----------------------------------------------------------------- public
 
     def scrape_subreddit(
         self,
         subreddit: str,
-        limit: int | None = None,
+        limit: int,
         sorting_type: str = "hot",
     ) -> list[dict]:
         """Scrape the /new listing of subreddit and return up to limit posts."""
-        limit = limit if limit is not None else 5
+
+        after_token = None
+        remaining_limit = limit
         posts: list[dict] = []
-        after: str | None = None
 
         logger.info("Scraping r/%s (limit=%d) …", subreddit, limit)
 
-        while len(posts) < limit:
+        while remaining_limit > 0:
+            current_limit = min(remaining_limit, 100)
             if sorting_type == "hot":
-                url = f"{_REDDIT_BASE}/r/{subreddit}/"
+                url = f"{_REDDIT_BASE}/r/{subreddit}.json?limit={current_limit}"
             elif sorting_type == "new":
-                url = f"{_REDDIT_BASE}/r/{subreddit}/new"
+                url = f"{_REDDIT_BASE}/r/{subreddit}/new.json?limit={current_limit}"
             elif sorting_type == "rising":
-                url = f"{_REDDIT_BASE}/r/{subreddit}/rising"
+                url = f"{_REDDIT_BASE}/r/{subreddit}/rising.json?limit={current_limit}"
             elif sorting_type == "top":
-                url = f"{_REDDIT_BASE}/r/{subreddit}/top"
+                url = f"{_REDDIT_BASE}/r/{subreddit}/top.json?limit={current_limit}"
             elif sorting_type == "controversial":
-                url = f"{_REDDIT_BASE}/r/{subreddit}/controversial"
+                url = f"{_REDDIT_BASE}/r/{subreddit}/controversial.json?limit={current_limit}"
             else:
-                url = f"{_REDDIT_BASE}/r/{subreddit}"
+                url = f"{_REDDIT_BASE}/r/{subreddit}.json?limit={current_limit}"
 
-            if after:
-                remaining = min(25, limit - len(posts))
-                url += f"?count={remaining}&after={after}"
+            if after_token:
+                url += f"&after={after_token}"
 
-            try:
-                html = self.client.get(url)
-            except BlockedError:
-                logger.warning(
-                    "r/%s: blocked fetching subreddit listing — aborting subreddit",
-                    subreddit,
-                )
-                break
-            except MaxRetriesExceeded as exc:
-                logger.error(
-                    "r/%s: max retries exceeded fetching listing: %s",
-                    subreddit,
-                    exc,
-                )
-                break
+            new_posts = []
 
-            if not html:
-                logger.warning(
-                    "r/%s: empty listing response — aborting", subreddit
-                )
-                break
+            for _ in range(3):
+                try:
+                    client = RedditClient()
+                    html = client.get(url)
+                except BlockedError:
+                    logger.warning(
+                        "r/%s: blocked fetching subreddit listing — aborting subreddit",
+                        subreddit,
+                    )
+                    break
+                except MaxRetriesExceeded as exc:
+                    logger.error(
+                        "r/%s: max retries exceeded fetching listing: %s",
+                        subreddit,
+                        exc,
+                    )
+                    break
 
-            try:
-                new_posts = parse_posts(html)
-            except Exception as exc:  # noqa: BLE001
-                logger.error(
-                    "r/%s: failed to parse listing HTML: %s", subreddit, exc
-                )
-                break
+                if not html:
+                    logger.warning(
+                        "r/%s: empty listing response — aborting", subreddit
+                    )
+                    break
+
+                try:
+                    data = json.loads(html)
+                    dist = data.get("data", {}).get("dist", 0)
+                    new_posts = data.get("data", {}).get("children", [])
+                    posts.extend(new_posts)
+                    after_token = data.get("data", {}).get("after")
+
+                    if dist == 0:
+                        logger.info(
+                            "r/%s: no posts found on page (dist==0)", subreddit
+                        )
+                        break
+
+                    if new_posts:
+                        break
+
+                except Exception as exc:  # noqa: BLE001
+                    logger.error(
+                        "r/%s: failed to parse listing HTML: %s", subreddit, exc
+                    )
 
             if not new_posts:
-                logger.info("r/%s: no posts found on page", subreddit)
-                self.metrics.record_post_failed(subreddit)
+                logger.info(
+                    "r/%s: no posts found on page (no posts)", subreddit
+                )
                 break
 
-            posts.extend(new_posts)
-            after = f"t3_{posts[-1]['post_id']}"
             logger.debug(
                 "r/%s: %d posts collected so far", subreddit, len(posts)
             )
 
+            remaining_limit -= len(posts)
+
         fetched = posts[:limit]
         logger.info("r/%s: fetched %d posts", subreddit, len(fetched))
-        for _ in fetched:
-            self.metrics.record_post_scraped(subreddit)
         return fetched
 
     def scrape_post_with_comments(
-        self, post: dict
+        self,
+        subreddit: str,
+        id: str,
     ) -> tuple[dict | None, list[dict]]:
         """Fetch the comments page for post and return (post_data, comments)."""
-        subreddit = post["subreddit"].lower()
-        url = f"{_REDDIT_BASE}/r/{subreddit}/comments/{post['post_id']}"
+        subreddit = subreddit.lower()
+        url = f"{_REDDIT_BASE}/r/{subreddit}/comments/{id}.json"
+
         logger.info("Fetching comments: %s", url)
 
         html = ""
@@ -159,79 +169,81 @@ class RedditScraper:
         post_data = {}
 
         try:
-            html = self.client.get(url)
-        except BlockedError:
-            logger.warning(
-                "Blocked on comments page for post %s", post["post_id"]
-            )
-            self.metrics.record_post_failed(subreddit)
-            return None, []
+            client = RedditClient()
+            html = client.get(url)
         except MaxRetriesExceeded as exc:
             logger.error(
                 "Max retries fetching comments for post %s: %s",
-                post["post_id"],
+                id,
                 exc,
             )
-            self.metrics.record_post_failed(subreddit)
             return None, []
         except Exception as exc:
             logger.error(
                 "Failed to fetch comments for post %s: %s",
-                post["post_id"],
+                id,
                 exc,
             )
-            self.metrics.record_post_failed(subreddit)
             return None, []
 
         if not html:
-            logger.warning(
-                "Empty HTML for comments page of post %s", post["post_id"]
-            )
-            self.metrics.record_post_failed(subreddit)
+            logger.warning("Empty HTML for comments page of post %s", id)
             return None, []
 
         try:
-            post_data = parse_post_from_comments_page(html)
+            # with open("comments.json", "w") as f:
+            #     f.write(html)
+            # with open("comments.json", "r") as f:
+            #     response_data = json.load(f)
+
+            response_data = json.loads(html)
+            post_data = (
+                response_data[0].get("data", {}).get("children", [])[0]["data"]
+            )
+            comments = response_data[1].get("data", {}).get("children", [])
+
             if post_data is None:
                 logger.warning(
                     "parse_post_from_comments_page returned None for post %s",
-                    post["post_id"],
+                    id,
                 )
-                self.metrics.record_post_failed(subreddit)
 
-            comments = parse_comments(html) or []
         except Exception as exc:  # noqa: BLE001
             logger.error(
                 "Failed to parse comments page for post %s: %s",
-                post["post_id"],
+                id,
                 exc,
             )
-            self.metrics.record_post_failed(subreddit)
             return None, []
-
-        for _ in comments:
-            self.metrics.record_comment_scraped(subreddit)
 
         logger.debug(
             "Post %s: parsed %d top-level comments",
-            post["post_id"],
+            id,
             len(comments),
         )
 
-        # Paginate "load more" comments
-        all_comments = list(comments)
-        stub = parse_more_children_stub(html)
+        all_comments = []
 
-        if stub is not None:
-            modhash = extract_modhash(html)
-            if modhash:
-                all_comments = self._fetch_more_children(
-                    post, stub, modhash, all_comments, subreddit
-                )
+        def recursive_collect(node):
+            kind = node.get("kind")
+            data = node.get("data", {})
+            all_comments.append(data)
+
+            if kind == "t1":
+                replies = data.get("replies")
+                if isinstance(replies, dict):
+                    children = replies.get("data", {}).get("children", [])
+                    for child in children:
+                        recursive_collect(child)
+
+            return data
+
+        for comment in comments:
+            recursive_collect(comment)
 
         logger.info(
             "Post %s: %d total comments after pagination",
-            post["post_id"],
+            id,
             len(all_comments),
         )
         return post_data, all_comments
@@ -263,7 +275,8 @@ class RedditScraper:
             }
 
             try:
-                raw = self.client.post(_MORE_CHILDREN_URL, data=form_data)
+                client = RedditClient()
+                raw = client.post(_MORE_CHILDREN_URL, data=form_data)
             except BlockedError:
                 logger.warning(
                     "Blocked while loading more children for post %s",
@@ -306,8 +319,6 @@ class RedditScraper:
 
             new_comments: list[dict] = result.get("comments", [])
             all_comments.extend(new_comments)
-            for _ in new_comments:
-                self.metrics.record_comment_scraped(subreddit)
 
             logger.debug(
                 "Post %s: +%d comments from morechildren (%d total)",

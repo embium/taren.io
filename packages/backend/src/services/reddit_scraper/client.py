@@ -28,8 +28,11 @@ import curl_cffi
 import curl_cffi.requests
 from curl_cffi.requests.session import ProxySpec
 
+from core.config import settings
+
+from .config import ScraperConfig
+
 if TYPE_CHECKING:
-    from .config import ScraperConfig
     from .metrics import ScraperMetrics
 
 logger = logging.getLogger(__name__)
@@ -66,36 +69,39 @@ class RedditClient:
         :class:`~scraper.metrics.ScraperMetrics` instance to record outcomes.
     """
 
-    with open("user_agents.txt", "r") as f:
-        user_agents = f.read().splitlines()
-
     _BASE_HEADERS: dict[str, str] = {
-        "User-Agent": random.choice(user_agents),
-        "Accept": (
-            "text/html,application/xhtml+xml,application/xml;"
-            "q=0.9,image/webp,image/apng,*/*;q=0.8"
-        ),
-        "Accept-Encoding": "gzip, deflate, br",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.9",
-        "Cache-Control": "max-age=0",
-        "Sec-Fetch-Dest": "document",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-Site": "none",
-        "Sec-Fetch-User": "?1",
-        "Upgrade-Insecure-Requests": "1",
+        "Referer": "https://reddit.com/",
     }
 
     def __init__(
-        self, config: "ScraperConfig", metrics: "ScraperMetrics"
+        self,
+        warming: bool = True,
     ) -> None:
-        self.config = config
-        self.metrics = metrics
+        self.config = ScraperConfig(
+            proxy_url=settings.proxy_url,
+            max_retries=5,
+            base_backoff_s=1.0,
+            request_timeout_s=30,
+            rate_limit_s=1.0,
+        )
         self.proxies: ProxySpec = {
-            "https": config.proxy_url,
-            "http": config.proxy_url,
+            "https": self.config.proxy_url,
+            "http": self.config.proxy_url,
         }
-        self._ua_cycle = itertools.cycle(config.user_agents)
+
+        with open(self.config.user_agents_file, "r") as f:
+            user_agents = f.read().splitlines()
+
+        self._ua_cycle = itertools.cycle(user_agents)
         self._last_request_time: float = 0.0
+        self.warming = warming
+
+        headers = self._next_headers()
+        self.session = curl_cffi.requests.Session(
+            headers=headers, proxies=self.proxies, impersonate="firefox"
+        )
 
     # ------------------------------------------------------------------ helpers
 
@@ -110,6 +116,10 @@ class RedditClient:
         elapsed = time.monotonic() - self._last_request_time
         wait = self.config.rate_limit_s - elapsed
         if wait > 0:
+            headers = self._next_headers()
+            self.session = curl_cffi.requests.Session(
+                headers=headers, proxies=self.proxies, impersonate="firefox"
+            )
             logger.debug("Rate-limiting: sleeping %.2fs", wait)
             time.sleep(wait)
 
@@ -117,6 +127,10 @@ class RedditClient:
         """Sleep with exponential backoff + random jitter."""
         wait = self.config.base_backoff_s * (2**attempt) + random.uniform(
             0, 0.5
+        )
+        headers = self._next_headers()
+        self.session = curl_cffi.requests.Session(
+            headers=headers, proxies=self.proxies, impersonate="firefox"
         )
         logger.debug("Backoff attempt %d: sleeping %.2fs", attempt, wait)
         time.sleep(wait)
@@ -135,19 +149,17 @@ class RedditClient:
         text = r.content.decode("utf-8", errors="replace")
 
         if self.config.block_sentinel in text:
-            self.metrics.record_block()
             logger.warning(
                 "Block sentinel detected — status=%s, url=%s",
                 r.status_code,
                 r.url,
             )
-            raise BlockedError(f"Blocked on {r.url}")
 
         return text
 
     # ---------------------------------------------------------------- public API
 
-    def get(self, url: str) -> str:
+    def get(self, url: str) -> str | None:
         """
         Perform a GET request with retry / backoff.
 
@@ -163,7 +175,7 @@ class RedditClient:
         """
         return self._request("GET", url)
 
-    def post(self, url: str, data: dict) -> str:
+    def post(self, url: str, data: dict) -> str | None:
         """
         Perform a POST request with retry / backoff.
 
@@ -181,83 +193,62 @@ class RedditClient:
 
     # --------------------------------------------------------------- internals
 
-    def _request(self, method: str, url: str, data: dict | None = None) -> str:
+    def _request(
+        self, method: str, url: str, data: dict | None = None
+    ) -> str | None:
         """
         Core request loop: rate-limit → send → validate → return body.
 
         On failure: log the error, apply backoff, retry up to
         ``config.max_retries`` times, then raise :exc:`MaxRetriesExceeded`.
         """
+
         last_exc: Exception = RuntimeError("No attempts made")
-
-        for attempt in range(self.config.max_retries):
-            if attempt > 0:
-                self.metrics.record_retry()
-                self._backoff(attempt - 1)
-
-            self._rate_limit()
-            headers = self._next_headers()
-            t0 = time.monotonic()
-
-            try:
-                if method == "GET":
-                    r = curl_cffi.get(
-                        url,
-                        impersonate="chrome",
-                        headers=headers,
-                        proxies=self.proxies,
-                        timeout=self.config.request_timeout_s,
-                    )
-                else:
-                    r = curl_cffi.post(
-                        url,
-                        impersonate="chrome",
-                        headers=headers,
-                        data=data,
-                        proxies=self.proxies,
-                        timeout=self.config.request_timeout_s,
-                    )
-
-                latency = time.monotonic() - t0
-                self._last_request_time = time.monotonic()
-                self.metrics.record_request(latency, r.status_code)
-                logger.debug(
-                    "%s %s → %s (%.2fs)", method, url, r.status_code, latency
+        if self.warming:
+            r = self.session.get(
+                "https://reddit.com/",
+            )
+            if r.status_code >= 400:
+                logger.warning(
+                    "HTTP %s for %s %s",
+                    r.status_code,
+                    "WARMING",
+                    "https://reddit.com/",
                 )
 
-                if r.status_code >= 400:
-                    logger.warning(
-                        "HTTP %s for %s %s — retrying (%d/%d)",
-                        r.status_code,
-                        method,
-                        url,
-                        attempt + 1,
-                        self.config.max_retries,
-                    )
-                    last_exc = RuntimeError(f"HTTP {r.status_code}")
-                    continue
+        try:
 
-                return self._decode_response(r)
+            if method == "GET":
+                r = self.session.get(
+                    url,
+                    timeout=self.config.request_timeout_s,
+                )
+            else:
+                r = self.session.post(
+                    url,
+                    data=data,
+                    timeout=self.config.request_timeout_s,
+                )
 
-            except BlockedError:
-                # Re-raise immediately; outer caller decides what to do.
-                raise
-
-            except Exception as exc:  # noqa: BLE001
-                latency = time.monotonic() - t0
-                self._last_request_time = time.monotonic()
-                self.metrics.record_request(latency, None)
+            if r.status_code >= 400:
                 logger.warning(
-                    "%s %s failed (attempt %d/%d): %s",
+                    "HTTP %s for %s %s",
+                    r.status_code,
                     method,
                     url,
-                    attempt + 1,
-                    self.config.max_retries,
-                    exc,
                 )
-                last_exc = exc
-                continue
 
-        raise MaxRetriesExceeded(
-            f"All {self.config.max_retries} attempts failed for {method} {url}"
-        ) from last_exc
+            return self._decode_response(r)
+
+        except BlockedError:
+            # Re-raise immediately; outer caller decides what to do.
+            raise
+
+        except Exception as exc:  # noqa: BLE001
+            self._last_request_time = time.monotonic()
+            logger.warning(
+                "%s %s failed: %s",
+                method,
+                url,
+                exc,
+            )

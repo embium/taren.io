@@ -205,18 +205,9 @@ async def _update_job_status(
 # ---------------------------------------------------------------------------
 
 
-def _make_scraper(limit: int) -> "RedditScraper":
+def _make_scraper() -> "RedditScraper":
     """Create a fresh scraper instance from current settings."""
-    config = ScraperConfig(
-        proxy_url=settings.proxy_url,
-        max_retries=5,
-        base_backoff_s=1.0,
-        request_timeout_s=30,
-        rate_limit_s=1.0,
-    )
-    metrics = ScraperMetrics()
-    client = RedditClient(config, metrics)
-    return RedditScraper(client, metrics, config)
+    return RedditScraper()
 
 
 def _scrape_listing_sync(
@@ -226,7 +217,7 @@ def _scrape_listing_sync(
     Synchronous: fetch only the subreddit post listing (no comments).
     Returns a list of post stub dicts.
     """
-    return _make_scraper(limit).scrape_subreddit(
+    return _make_scraper().scrape_subreddit(
         subreddit, limit=limit, sorting_type=sorting_type
     )
 
@@ -237,8 +228,10 @@ def _scrape_post_comments_sync(post: dict) -> tuple[dict | None, list[dict]]:
     Returns (post_data, comments) — post_data is None on failure.
     """
     # Create a fresh scraper per-call so rate limiting starts clean
-    scraper = _make_scraper(limit=1)
-    return scraper.scrape_post_with_comments(post)
+    scraper = _make_scraper()
+    return scraper.scrape_post_with_comments(
+        post["data"]["subreddit"], post["data"]["id"]
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -247,7 +240,7 @@ def _scrape_post_comments_sync(post: dict) -> tuple[dict | None, list[dict]]:
 
 
 async def run_reddit_job(
-    ctx: dict,
+    ctx,
     job_id: str,
     subreddit_list: list[str],
     scrape_limit: int,
@@ -304,7 +297,10 @@ async def run_reddit_job(
                     all_post_tasks.append((subreddit, post_stub))
             except Exception as exc:
                 logger.error(
-                    "Job %s: listing error for r/%s: %s", job_id, subreddit, exc
+                    "Job %s: listing error for r/%s: %s",
+                    job_id,
+                    subreddit,
+                    exc,
                 )
 
         # Step 2: scrape each post's comments concurrently
@@ -334,8 +330,10 @@ async def run_reddit_job(
                 if not post_data:
                     return
 
-                post_id_str = post_data.get("post_id", "")
-                post_comments_count = 0
+                created_utc = post_data.get("created_utc", None)
+
+                post_id_str = post_data.get("id", "")
+                post_comments_count = post_data.get("num_comments", 0)
                 sub_posts_for_analysis = []
                 sub_comments_for_analysis = []
 
@@ -349,13 +347,14 @@ async def run_reddit_job(
                             subreddit=subreddit,
                             title=post_data.get("title", ""),
                             author=post_data.get("author") or "[deleted]",
-                            content=post_data.get("content") or "",
+                            content=post_data.get("selftext") or "",
                             score=int(post_data.get("score", 0) or 0),
                             num_comments=int(
                                 post_data.get("num_comments", 0) or 0
                             ),
                             url=post_data.get("url") or "",
-                            created_at=post_data.get("created_at", None),
+                            created_at=created_utc
+                            and datetime.datetime.fromtimestamp(created_utc),
                         )
                         .on_conflict_do_nothing(
                             constraint="uq_reddit_posts_job_post"
@@ -378,12 +377,13 @@ async def run_reddit_job(
                         total_posts += 1
 
                     post_db_id = returned_id
+                    print(post_db_id)
 
                     sub_posts_for_analysis.append(
                         {
                             "post_id": post_id_str,
                             "title": post_data.get("title", ""),
-                            "content": post_data.get("content") or "",
+                            "content": post_data.get("selftext") or "",
                             "link": post_data.get("url")
                             or _build_reddit_link(subreddit, post_id_str),
                         }
@@ -392,7 +392,7 @@ async def run_reddit_job(
                     # Save comments
                     for c in comments:
                         body = c.get("body", "")
-                        comment_id_str = c.get("comment_id", "")
+                        comment_id_str = c.get("id", "")
                         if not body or not comment_id_str:
                             continue
 
@@ -401,6 +401,8 @@ async def run_reddit_job(
                         if dedup_key in seen_comment_ids[subreddit]:
                             continue
                         seen_comment_ids[subreddit].add(dedup_key)
+
+                        created_utc = post_data.get("created_utc", None)
 
                         comment_stmt = (
                             pg_insert(RedditComment)
@@ -411,8 +413,11 @@ async def run_reddit_job(
                                 author=c.get("author") or "[deleted]",
                                 content=body,
                                 score=int(c.get("score", 0) or 0),
-                                parent_comment_id=c.get("parent_comment_id"),
-                                created_at=post_data.get("created_at", None),
+                                parent_comment_id=c.get("parent_id"),
+                                created_at=created_utc
+                                and datetime.datetime.fromtimestamp(
+                                    created_utc
+                                ),
                             )
                             .on_conflict_do_nothing(
                                 constraint="uq_reddit_comments_post_comment"
@@ -427,7 +432,7 @@ async def run_reddit_job(
                             {
                                 "post_id": post_id_str,
                                 "comment_id": comment_id_str,
-                                "parent_comment_id": c.get("parent_comment_id"),
+                                "parent_comment_id": c.get("parent_id"),
                                 "content": body,
                                 "subreddit": subreddit,
                                 "link": _build_reddit_link(
