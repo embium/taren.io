@@ -168,53 +168,53 @@ class RedditScraper:
         comments = []
         post_data = {}
 
-        try:
-            client = RedditClient()
-            html = client.get(url)
-        except MaxRetriesExceeded as exc:
-            logger.error(
-                "Max retries fetching comments for post %s: %s",
-                id,
-                exc,
-            )
-            return None, []
-        except Exception as exc:
-            logger.error(
-                "Failed to fetch comments for post %s: %s",
-                id,
-                exc,
-            )
-            return None, []
-
-        if not html:
-            logger.warning("Empty HTML for comments page of post %s", id)
-            return None, []
-
-        try:
-            # with open("comments.json", "w") as f:
-            #     f.write(html)
-            # with open("comments.json", "r") as f:
-            #     response_data = json.load(f)
-
-            response_data = json.loads(html)
-            post_data = (
-                response_data[0].get("data", {}).get("children", [])[0]["data"]
-            )
-            comments = response_data[1].get("data", {}).get("children", [])
-
-            if post_data is None:
-                logger.warning(
-                    "parse_post_from_comments_page returned None for post %s",
+        for _ in range(3):
+            try:
+                client = RedditClient()
+                html = client.get(url)
+            except MaxRetriesExceeded as exc:
+                logger.error(
+                    "Max retries fetching comments for post %s: %s",
                     id,
+                    exc,
+                )
+                return None, []
+            except Exception as exc:
+                logger.error(
+                    "Failed to fetch comments for post %s: %s",
+                    id,
+                    exc,
                 )
 
-        except Exception as exc:  # noqa: BLE001
-            logger.error(
-                "Failed to parse comments page for post %s: %s",
-                id,
-                exc,
-            )
-            return None, []
+            if not html:
+                logger.warning("Empty HTML for comments page of post %s", id)
+                continue
+
+            try:
+                response_data = json.loads(html)
+                post_data = (
+                    response_data[0]
+                    .get("data", {})
+                    .get("children", [])[0]["data"]
+                )
+                comments = response_data[1].get("data", {}).get("children", [])
+
+                if post_data is None:
+                    logger.warning(
+                        "parse_post_from_comments_page returned None for post %s",
+                        id,
+                    )
+                    continue
+
+                break
+
+            except Exception as exc:  # noqa: BLE001
+                logger.error(
+                    "Failed to parse comments page for post %s: %s",
+                    id,
+                    exc,
+                )
+                continue
 
         logger.debug(
             "Post %s: parsed %d top-level comments",
